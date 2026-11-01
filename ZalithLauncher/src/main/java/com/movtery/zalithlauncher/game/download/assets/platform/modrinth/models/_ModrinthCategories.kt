@@ -339,6 +339,7 @@ fun String.mapModrinthCategory(
         PlatformClasses.RESOURCE_PACK -> ModrinthResourcePackCategory.entries
         PlatformClasses.SAVES -> null
         PlatformClasses.SHADERS -> ModrinthShadersCategory.entries
+        PlatformClasses.DATAPACK -> ModrinthModCategory.entries
     }
     return mapValues?.find { it.facetValue() == this }
         ?: ModrinthFeatures.entries.find { it.facetValue() == this }

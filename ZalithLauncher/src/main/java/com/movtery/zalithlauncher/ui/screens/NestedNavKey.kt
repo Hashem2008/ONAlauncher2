@@ -121,6 +121,14 @@ sealed interface NestedNavKey {
             backStack.addIfEmpty(NormalNavKey.SearchShaders)
         }
     }
+    /** ONA: download data packs screen */
+    @Serializable class DownloadDatapacks : BackStackNavKey<TitledNavKey>(
+        androidText(R.string.download_category_datapacks)
+    ) {
+        init {
+            backStack.addIfEmpty(NormalNavKey.SearchDatapacks)
+        }
+    }
     /** 下载收藏屏幕 */
     @Serializable class DownloadFavorites : BackStackNavKey<TitledNavKey>(
         androidText(R.string.download_category_favorites)

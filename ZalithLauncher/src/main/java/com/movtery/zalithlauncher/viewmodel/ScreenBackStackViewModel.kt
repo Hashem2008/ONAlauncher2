@@ -42,6 +42,8 @@ class ScreenBackStackViewModel : ViewModel() {
     val downloadSavesScreen = NestedNavKey.DownloadSaves()
     /** 下载光影包屏幕 */
     val downloadShadersScreen = NestedNavKey.DownloadShaders()
+    /** ONA: download data packs screen */
+    val downloadDatapacksScreen = NestedNavKey.DownloadDatapacks()
     /** 下载收藏屏幕 */
     val downloadFavoritesScreen = NestedNavKey.DownloadFavorites()
 

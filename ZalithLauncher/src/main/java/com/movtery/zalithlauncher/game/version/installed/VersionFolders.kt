@@ -31,6 +31,8 @@ enum class VersionFolders(val folderName: String) {
     SAVES("saves"),
     /** 光影包文件夹 */
     SHADERS("shaderpacks"),
+    /** ONA: data packs, copied into every world on install */
+    DATAPACKS("datapacks"),
     /** 截屏文件夹 */
     SCREENSHOTS("screenshots");
 

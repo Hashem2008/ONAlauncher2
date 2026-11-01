@@ -64,5 +64,11 @@ enum class PlatformClasses(
         curseforge = CurseForgeClassID.SHADERS,
         modrinth = ProjectTypeFacet.SHADER,
         versionFolder = VersionFolders.SHADERS
+    ),
+    /** ONA: data packs */
+    DATAPACK(
+        curseforge = CurseForgeClassID.DATAPACK,
+        modrinth = ProjectTypeFacet.DATAPACK,
+        versionFolder = VersionFolders.DATAPACKS
     )
 }

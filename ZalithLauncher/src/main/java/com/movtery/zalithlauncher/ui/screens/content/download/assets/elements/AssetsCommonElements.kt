@@ -171,6 +171,7 @@ private fun PlatformClasses.getDrawable() = when (this) {
     PlatformClasses.RESOURCE_PACK -> R.drawable.ic_format_paint_outlined
     PlatformClasses.SAVES -> R.drawable.ic_public
     PlatformClasses.SHADERS -> R.drawable.ic_lightbulb
+    PlatformClasses.DATAPACK -> R.drawable.ic_package_2_outlined
 }
 
 private fun PlatformClasses.getText() = when (this) {
@@ -179,6 +180,7 @@ private fun PlatformClasses.getText() = when (this) {
     PlatformClasses.RESOURCE_PACK -> R.string.download_category_resource_pack
     PlatformClasses.SAVES -> R.string.download_category_saves
     PlatformClasses.SHADERS -> R.string.download_category_shaders
+    PlatformClasses.DATAPACK -> R.string.download_category_datapacks
 }
 
 @Composable

@@ -105,6 +105,16 @@ object AllSettings : SettingsRegistry() {
     val sustainedPerformance = boolSetting("sustainedPerformance", false)
 
     /**
+     * ONA: device based resolution default already applied
+     */
+    val onaDeviceDefaultsApplied = boolSetting("onaDeviceDefaultsApplied", false)
+
+    /**
+     * ONA: CurseForge API key pasted by the user, wins over the one built in
+     */
+    val curseForgeApiKey = stringSetting("curseForgeApiKey", "")
+
+    /**
      * 游戏运行时请求系统切换到同分辨率最高刷新率档位（关闭则回落系统自适应刷新）
      */
     val requestMaxRefreshRate = boolSetting("requestMaxRefreshRate", true)
@@ -641,4 +651,7 @@ object AllSettings : SettingsRegistry() {
      * 搜索光影的初始搜索平台
      */
     val searchShadersPlatform = enumSetting("searchShadersPlatform", Platform.CURSEFORGE)
+
+    /** ONA: data packs search platform */
+    val searchDatapacksPlatform = enumSetting("searchDatapacksPlatform", Platform.MODRINTH)
 }

@@ -87,6 +87,8 @@ private const val LATEST_API_CHINESE_URL = "https://repo.miawa.cn/zalith-info/v2
 /**
  * 用于记录启动器更新 ViewModel
  */
+private const val ONA_FORK = true
+
 class LauncherUpgradeViewModel: ViewModel() {
     var operation by mutableStateOf<LauncherUpgradeOperation>(LauncherUpgradeOperation.None)
 
@@ -123,6 +125,8 @@ class LauncherUpgradeViewModel: ViewModel() {
     fun checkOnAppStart(
         onIsLatest: suspend () -> Unit = {}
     ) {
+        // ONA Launcher 2 is a fork, Zalith's update feed does not apply to it
+        if (ONA_FORK) return
         viewModelScope.launch {
             if (
                 isWithinRateLimit(
@@ -159,6 +163,10 @@ class LauncherUpgradeViewModel: ViewModel() {
         onInProgress: suspend () -> Unit = {},
         onIsLatest: suspend () -> Unit = {}
     ): Boolean {
+        if (ONA_FORK) {
+            onIsLatest()
+            return true
+        }
         return checkMutex.withLock {
             if (
                 isWithinRateLimit(

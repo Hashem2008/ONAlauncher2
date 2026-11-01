@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
+import com.movtery.zalithlauncher.game.version.mod.ModCompat
 import android.app.Activity
 import android.net.Uri
 import android.os.Build
@@ -178,11 +179,20 @@ sealed interface LaunchGameOperation {
         val quickPlay: QuickPlay?
     ) : LaunchGameOperation
 
+    /** ONA: mods that would stop the game from loading, with Fix / Fix all */
+    data class ModProblems(
+        val version: Version,
+        val quickPlay: QuickPlay?,
+        val skipAccountRefresh: Boolean,
+        val problems: List<ModCompat.Problem>
+    ) : LaunchGameOperation
+
     /** 正式启动 */
     data class RealLaunch(
         val version: Version,
         val quickPlay: QuickPlay?,
-        val skipAccountRefresh: Boolean = false
+        val skipAccountRefresh: Boolean = false,
+        val skipModCheck: Boolean = false
     ) : LaunchGameOperation
 }
 
@@ -460,10 +470,39 @@ fun LaunchGameOperation(
                 }
             )
         }
+        is LaunchGameOperation.ModProblems -> {
+            ModProblemsDialog(
+                version = operation.version,
+                initialProblems = operation.problems,
+                onPlay = {
+                    launchGameViewModel.updateOperation(
+                        LaunchGameOperation.RealLaunch(
+                            version = operation.version,
+                            quickPlay = operation.quickPlay,
+                            skipAccountRefresh = operation.skipAccountRefresh,
+                            skipModCheck = true
+                        )
+                    )
+                },
+                onDismiss = {
+                    launchGameViewModel.updateOperation(LaunchGameOperation.None)
+                }
+            )
+        }
         is LaunchGameOperation.RealLaunch -> {
             LaunchedEffect(Unit) {
                 val version = operation.version
                 val quickPlay = operation.quickPlay
+                if (!operation.skipModCheck) {
+                    // Catch broken mod setups here, where they can be fixed with a tap
+                    val problems = version.findModProblems()
+                    if (problems.isNotEmpty()) {
+                        launchGameViewModel.updateOperation(
+                            LaunchGameOperation.ModProblems(version, quickPlay, operation.skipAccountRefresh, problems)
+                        )
+                        return@LaunchedEffect
+                    }
+                }
                 version.apply {
                     offlineAccountLogin = false
                     quickPlaySingle = quickPlay

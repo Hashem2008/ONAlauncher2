@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.setting
 
 import android.content.Context
 import com.movtery.zalithlauncher.utils.device.Architecture
+import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import com.movtery.zalithlauncher.utils.platform.bytesToMB
 import com.movtery.zalithlauncher.utils.platform.getTotalMemory
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
@@ -35,6 +36,11 @@ fun loadAllSettings(context: Context, reloadAll: Boolean = false) {
     if (AllSettings.ramAllocation.getValue() == null) {
         val ram = findBestRAMAllocation(context)
         AllSettings.ramAllocation.save(ram)
+    }
+    if (!AllSettings.onaDeviceDefaultsApplied.getValue()) {
+        // Weak phones start at 540p/720p internally instead of the full screen resolution
+        AllSettings.resolutionRatio.save(OnaTweaks.bestResolutionRatio(context))
+        AllSettings.onaDeviceDefaultsApplied.save(true)
     }
     val jvmArgs = AllSettings.jvmArgs.getValue()
     jvmArgs.splitPreservingQuotes().find { it.startsWith(LWJGL_LIB_NAME_ARG) }?.let { arg ->
@@ -63,6 +69,8 @@ fun findBestRAMAllocation(context: Context): Int {
         deviceRam < 3064 -> 936
         deviceRam < 4096 -> 1144
         deviceRam < 6144 -> 1536
-        else -> 2048 //Default RAM allocation for 64 bits
+        // 8 GB devices usually report a bit less than 8192 MB
+        deviceRam < 7168 -> 2048
+        else -> 3072 //Bigger heap means fewer GC stutters with modpacks
     }
 }

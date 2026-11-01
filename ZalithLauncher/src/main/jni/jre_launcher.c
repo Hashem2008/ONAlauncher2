@@ -120,6 +120,8 @@ static void abort_waiter_setup() {
     }
 }
 
+extern void bigcore_set_affinity();
+
 static jint launchJVM(int margc, char** margv) {
    void* libjli = dlopen("libjli.so", RTLD_LAZY | RTLD_GLOBAL);
    struct sigaction clean_sa;
@@ -153,6 +155,8 @@ static jint launchJVM(int margc, char** margv) {
        LOG_TO_E("JLI_Launch = NULL");
        return -1;
    }
+
+   if (getenv("ONA_BIG_CORE_AFFINITY") != NULL) bigcore_set_affinity();
 
    LOG_TO_D("Calling JLI_Launch");
 

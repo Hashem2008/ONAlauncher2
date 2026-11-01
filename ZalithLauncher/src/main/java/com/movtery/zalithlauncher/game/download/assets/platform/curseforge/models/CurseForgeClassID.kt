@@ -37,7 +37,10 @@ enum class CurseForgeClassID(val classID: Int, val slug: String) {
     SAVES(17, "worlds"),
 
     /** 光影包 */
-    SHADERS(6552, "shaders")
+    SHADERS(6552, "shaders"),
+
+    /** ONA: data packs */
+    DATAPACK(6945, "data-packs")
 }
 
 /**
@@ -64,5 +67,6 @@ fun CurseForgeData.getPlatformClassesOrNull(): PlatformClasses? {
         CurseForgeClassID.RESOURCE_PACK -> PlatformClasses.RESOURCE_PACK
         CurseForgeClassID.SAVES -> PlatformClasses.SAVES
         CurseForgeClassID.SHADERS -> PlatformClasses.SHADERS
+        CurseForgeClassID.DATAPACK -> PlatformClasses.DATAPACK
     }
 }

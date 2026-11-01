@@ -335,6 +335,7 @@ fun String.mapCurseForgeCategory(classes: PlatformClasses): PlatformFilterCode? 
         PlatformClasses.RESOURCE_PACK -> CurseForgeResourcePackCategory.entries
         PlatformClasses.SAVES -> CurseForgeSavesCategory.entries
         PlatformClasses.SHADERS -> CurseForgeShadersCategory.entries
+        PlatformClasses.DATAPACK -> emptyList()
     }
     return mapValues.find { it.describe() == this }
 }

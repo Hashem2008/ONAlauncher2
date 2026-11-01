@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.activities
 
+import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -483,7 +484,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
         window?.apply {
             setBackgroundDrawable(NativeColor.BLACK.toDrawable())
-            if (AllSettings.sustainedPerformance.getValue()) {
+            if (OnaTweaks.shouldUseSustainedPerformance(this@VMActivity, AllSettings.sustainedPerformance.getValue())) {
                 setSustainedPerformanceMode(true)
             }
             addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) // 防止系统息屏

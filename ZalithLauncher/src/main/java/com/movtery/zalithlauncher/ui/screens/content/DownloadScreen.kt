@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
+import com.movtery.zalithlauncher.ui.screens.content.download.DownloadDatapacksScreen
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -103,6 +104,7 @@ private fun ScreenBackStackViewModel.swapToCategoryAssets(
         PlatformClasses.RESOURCE_PACK -> downloadResourcePackScreen
         PlatformClasses.SAVES -> downloadSavesScreen
         PlatformClasses.SHADERS -> downloadShadersScreen
+        PlatformClasses.DATAPACK -> downloadDatapacksScreen
     }
     navigateToDownload(
         targetScreen = targetScreen.apply {
@@ -170,6 +172,7 @@ private fun TabMenu(
         CategoryItem(backScreenViewModel.downloadResourcePackScreen, { CategoryIcon(R.drawable.ic_format_paint_outlined, R.string.download_category_resource_pack) }, R.string.download_category_resource_pack),
         CategoryItem(backScreenViewModel.downloadSavesScreen, { CategoryIcon(R.drawable.ic_public, R.string.download_category_saves) }, R.string.download_category_saves),
         CategoryItem(backScreenViewModel.downloadShadersScreen, { CategoryIcon(R.drawable.ic_lightbulb, R.string.download_category_shaders) }, R.string.download_category_shaders),
+        CategoryItem(backScreenViewModel.downloadDatapacksScreen, { CategoryIcon(R.drawable.ic_package_2_outlined, R.string.download_category_datapacks) }, R.string.download_category_datapacks),
         CategoryItem(NormalNavKey.SearchId, { CategoryIcon(R.drawable.ic_card, R.string.download_category_by_id) }, R.string.download_category_by_id, division = true),
         CategoryItem(backScreenViewModel.downloadFavoritesScreen, { CategoryIcon(R.drawable.ic_favorite_outlined, R.string.download_category_favorites) }, R.string.download_category_favorites),
     )
@@ -319,6 +322,19 @@ private fun NavigationUI(
                         downloadShadersScreenKey = backScreenViewModel.downloadShadersScreen.currentKey,
                         onCurrentKeyChange = { newKey ->
                             backScreenViewModel.downloadShadersScreen.currentKey = newKey
+                        },
+                        submitError = submitError,
+                        eventViewModel = eventViewModel
+                    )
+                }
+                entry<NestedNavKey.DownloadDatapacks> { key ->
+                    DownloadDatapacksScreen(
+                        key = key,
+                        mainScreenKey = backScreenViewModel.mainScreen.currentKey,
+                        downloadScreenKey = backScreenViewModel.downloadScreen.currentKey,
+                        downloadDatapacksScreenKey = backScreenViewModel.downloadDatapacksScreen.currentKey,
+                        onCurrentKeyChange = { newKey ->
+                            backScreenViewModel.downloadDatapacksScreen.currentKey = newKey
                         },
                         submitError = submitError,
                         eventViewModel = eventViewModel

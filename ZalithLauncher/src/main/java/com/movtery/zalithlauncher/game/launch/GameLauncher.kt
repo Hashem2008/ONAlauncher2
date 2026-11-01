@@ -18,6 +18,8 @@
 
 package com.movtery.zalithlauncher.game.launch
 
+import com.movtery.zalithlauncher.context.GlobalContext
+import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import android.app.Activity
 import android.os.Build
 import android.os.Parcelable
@@ -255,6 +257,7 @@ class GameLauncher(
 
         val gameDirPath = version.getGameDir()
 
+        OnaTweaks.applyGameDefaults(GlobalContext, gameDirPath)
         disableSplash(gameDirPath)
 
         if (version.getVersionInfo()?.hasLoader(ModLoader.NEOFORGE) == true) {

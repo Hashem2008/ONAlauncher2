@@ -86,6 +86,15 @@ private const val TENANT = "/consumers"
  */
 private const val MAX_CONSECUTIVE_POLL_FAILURES = 5
 
+/**
+ * Builds without an Azure app id (no OAUTH_CLIENT_ID secret) sign in through the public
+ * login.live.com device flow with the Minecraft Nintendo Switch title, like other open launchers.
+ */
+private const val LIVE_CLIENT_ID = "00000000441cc96b"
+private const val LIVE_SCOPE = "service::user.auth.xboxlive.com::MBI_SSL"
+private val useLiveFlow: Boolean get() = BuildKeys.OAUTH_CLIENT_ID.isBlank()
+private val clientId: String get() = if (useLiveFlow) LIVE_CLIENT_ID else BuildKeys.OAUTH_CLIENT_ID
+
 const val MICROSOFT_AUTH_URL = "https://login.microsoftonline.com"
 const val LIVE_AUTH_URL = "https://login.live.com"
 const val XBL_AUTH_URL = "https://user.auth.xboxlive.com"
@@ -98,14 +107,26 @@ const val MINECRAFT_SERVICES_URL = "https://api.minecraftservices.com"
  */
 suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeResponse = coroutineScope {
     withRetry {
-        submitForm(
-            url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode",
-            parameters = Parameters.build {
-                append("client_id", BuildKeys.OAUTH_CLIENT_ID)
-                append("scope", SCOPES.joinToString(" "))
-            },
-            context = context
-        )
+        if (useLiveFlow) {
+            submitForm(
+                url = "$LIVE_AUTH_URL/oauth20_connect.srf",
+                parameters = Parameters.build {
+                    append("client_id", clientId)
+                    append("scope", LIVE_SCOPE)
+                    append("response_type", "device_code")
+                },
+                context = context
+            )
+        } else {
+            submitForm(
+                url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode",
+                parameters = Parameters.build {
+                    append("client_id", clientId)
+                    append("scope", SCOPES.joinToString(" "))
+                },
+                context = context
+            )
+        }
     }
 }
 
@@ -137,12 +158,12 @@ suspend fun getTokenResponse(
 
         try {
             val response: JsonObject = submitForm(
-                "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token",
+                if (useLiveFlow) "$LIVE_AUTH_URL/oauth20_token.srf" else "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token",
                 parameters = Parameters.build {
                     append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
                     append("device_code", codeResponse.deviceCode)
-                    append("client_id", BuildKeys.OAUTH_CLIENT_ID)
-                    append("tenant", TENANT)
+                    append("client_id", clientId)
+                    if (!useLiveFlow) append("tenant", TENANT)
                 },
                 context = context
             )
@@ -271,9 +292,10 @@ private suspend fun refreshAccessToken(
             val response = submitForm<JsonObject>(
                 url = "$LIVE_AUTH_URL/oauth20_token.srf",
                 parameters = Parameters.build {
-                    append("client_id", BuildKeys.OAUTH_CLIENT_ID)
+                    append("client_id", clientId)
                     append("refresh_token", refreshToken)
                     append("grant_type", "refresh_token")
+                    if (useLiveFlow) append("scope", LIVE_SCOPE)
                 },
                 context = context
             )
@@ -320,7 +342,8 @@ private suspend fun authenticateXBL(accessToken: String, update: (AsyncStatus) -
 
     return withRetry {
         try {
-            requestXblToken("d=$accessToken")
+            // Live tokens use the t= ticket prefix, Azure ones d=
+            requestXblToken(if (useLiveFlow) "t=$accessToken" else "d=$accessToken")
         } catch (e: ClientRequestException) {
             // 参考 Wiki：RpsTicket 如遇 400 Bad Request，可尝试去掉 "d=" 前缀重新请求
             // https://zh.minecraft.wiki/w/Tutorial:%E7%BC%96%E5%86%99%E5%90%AF%E5%8A%A8%E5%99%A8#Xbox_Live%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81

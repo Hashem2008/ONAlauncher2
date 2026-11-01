@@ -18,6 +18,10 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.versions
 
+import androidx.compose.runtime.rememberCoroutineScope
+import com.movtery.zalithlauncher.ui.screens.content.elements.findModProblems
+import com.movtery.zalithlauncher.ui.screens.content.elements.ModProblemsDialog
+import com.movtery.zalithlauncher.game.version.mod.ModCompat
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -708,6 +712,21 @@ fun ModsManagerScreen(
                             }
                         )
 
+                        // ONA: check the mods folder and offer Fix / Fix all
+                        val checkScope = rememberCoroutineScope()
+                        var modProblems by remember { mutableStateOf<List<ModCompat.Problem>?>(null) }
+                        modProblems?.let { problems ->
+                            ModProblemsDialog(
+                                version = version,
+                                initialProblems = problems,
+                                onPlay = null,
+                                onDismiss = {
+                                    modProblems = null
+                                    viewModel.refresh(context)
+                                }
+                            )
+                        }
+
                         Column {
                             ModsActionsHeader(
                                 modifier = Modifier.fillMaxWidth(),
@@ -756,6 +775,16 @@ fun ModsManagerScreen(
                                 },
                                 swapToDownload = swapToDownload,
                                 refresh = { viewModel.refresh(context) },
+                                onCheckProblems = {
+                                    checkScope.launch {
+                                        val problems = version.findModProblems()
+                                        if (problems.isEmpty()) {
+                                            Toast.makeText(context, R.string.mod_problems_none, Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            modProblems = problems
+                                        }
+                                    }
+                                },
                                 submitError = submitError
                             )
 
@@ -847,6 +876,7 @@ private fun ModsActionsHeader(
     onClearModsSelected: () -> Unit,
     swapToDownload: () -> Unit,
     refresh: () -> Unit,
+    onCheckProblems: () -> Unit = {},
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit = {},
     inputFieldColor: Color = itemColor(),
     inputFieldContentColor: Color = onItemColor()
@@ -1037,6 +1067,14 @@ private fun ModsActionsHeader(
                             )
                         }
                     )
+
+                    if (hasModLoader) {
+                        IconTextButton(
+                            onClick = onCheckProblems,
+                            painter = painterResource(R.drawable.ic_check),
+                            text = stringResource(R.string.mod_problems_check)
+                        )
+                    }
 
                     IconTextButton(
                         onClick = swapToDownload,

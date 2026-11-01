@@ -66,6 +66,11 @@ enum class ProjectTypeFacet : ModrinthFacet {
 
     SHADER {
         override fun facetValue(): String = "shader"
+    },
+
+    /** ONA: data packs */
+    DATAPACK {
+        override fun facetValue(): String = "datapack"
     };
 
     override fun facetName(): String = "project_type"

@@ -108,10 +108,19 @@ fun GameSettingsScreen(
 
                     TextInputSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
+                        position = CardPosition.Middle,
                         unit = AllSettings.versionCustomInfo,
                         title = stringResource(R.string.settings_game_version_custom_info_title),
                         summary = stringResource(R.string.settings_game_version_custom_info_summary)
+                    )
+
+                    // ONA: optional own CurseForge key, used before the built-in one and the mirror
+                    TextInputSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.curseForgeApiKey,
+                        title = stringResource(R.string.settings_curseforge_key_title),
+                        summary = stringResource(R.string.settings_curseforge_key_summary)
                     )
                 }
             }

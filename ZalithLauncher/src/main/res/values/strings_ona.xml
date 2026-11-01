@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ONA Launcher 2 additions -->
+<resources>
+    <string name="mod_problems_title">Mod problems</string>
+    <string name="mod_problems_header">%d problem(s) would stop the game from loading:</string>
+    <string name="mod_problems_fix">Fix</string>
+    <string name="mod_problems_fix_all">Fix all</string>
+    <string name="mod_problems_play_anyway">Play anyway</string>
+    <string name="mod_problems_working">Fixing, please wait…</string>
+    <string name="mod_problems_all_fixed">All mod problems fixed</string>
+    <string name="mod_problems_some_failed">Some problems could not be fixed automatically</string>
+    <string name="mod_problems_check">Check &amp; fix</string>
+    <string name="mod_problems_none">No mod problems found</string>
+    <string name="mod_problem_missing">%1$s needs %2$s, which is not installed</string>
+    <string name="mod_problem_wrong_loader">%1$s is made for %2$s, but this version uses %3$s</string>
+    <string name="mod_problem_version">%1$s needs %2$s %3$s, but you have %4$s</string>
+    <string name="settings_curseforge_key_title">CurseForge API key</string>
+    <string name="settings_curseforge_key_summary">Optional. Paste your own key from console.curseforge.com if CurseForge downloads fail. Without one the launcher uses a mirror.</string>
+    <string name="download_category_datapacks">Data packs</string>
+</resources>

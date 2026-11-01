@@ -419,6 +419,7 @@ private fun PlatformClasses.categoryText(): Int = when (this) {
     PlatformClasses.RESOURCE_PACK -> R.string.download_category_resource_pack
     PlatformClasses.SAVES -> R.string.download_category_saves
     PlatformClasses.SHADERS -> R.string.download_category_shaders
+    PlatformClasses.DATAPACK -> R.string.download_category_datapacks
 }
 
 @Composable

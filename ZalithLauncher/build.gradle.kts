@@ -64,8 +64,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = zalithPackageName
-        applicationIdSuffix = ".v2"
+        // Own package so it installs next to Zalith Launcher and ONAlauncher
+        applicationId = "com.onalauncher.app2"
         minSdk = 26
         targetSdk = 34
         versionCode = launcherVersionCode

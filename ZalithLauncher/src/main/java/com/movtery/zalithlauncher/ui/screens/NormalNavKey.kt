@@ -181,6 +181,8 @@ sealed interface NormalNavKey : TitledNavKey {
     @Serializable data object SearchSaves : NormalNavKey
     /** 搜索光影包屏幕 */
     @Serializable data object SearchShaders : NormalNavKey
+    /** ONA: search data packs screen */
+    @Serializable data object SearchDatapacks : NormalNavKey
     /** 搜索ID屏幕 */
     @Serializable data object SearchId : NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.download_category_by_id)

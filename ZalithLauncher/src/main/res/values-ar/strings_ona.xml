@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ONA Launcher 2 additions -->
+<resources>
+    <string name="mod_problems_title">مشاكل المودات</string>
+    <string name="mod_problems_header">في %d مشكلة رح توقف اللعبة:</string>
+    <string name="mod_problems_fix">Fix</string>
+    <string name="mod_problems_fix_all">Fix all</string>
+    <string name="mod_problems_play_anyway">العب هيك</string>
+    <string name="mod_problems_working">عم نصلّح، استنى…</string>
+    <string name="mod_problems_all_fixed">انحلّت كل مشاكل المودات</string>
+    <string name="mod_problems_some_failed">في مشاكل ما انحلّت تلقائياً</string>
+    <string name="mod_problems_check">افحص وصلّح</string>
+    <string name="mod_problems_none">ما في مشاكل بالمودات</string>
+    <string name="mod_problem_missing">%1$s بده %2$s ومش منزّل</string>
+    <string name="mod_problem_wrong_loader">%1$s معمول لـ %2$s بس النسخة %3$s</string>
+    <string name="mod_problem_version">%1$s بده %2$s %3$s بس عندك %4$s</string>
+    <string name="settings_curseforge_key_title">مفتاح CurseForge</string>
+    <string name="settings_curseforge_key_summary">اختياري. الصق مفتاحك من console.curseforge.com إذا تنزيل CurseForge ما زبط. بدونه اللانشر بستخدم سيرفر بديل.</string>
+    <string name="download_category_datapacks">داتا باكات</string>
+</resources>

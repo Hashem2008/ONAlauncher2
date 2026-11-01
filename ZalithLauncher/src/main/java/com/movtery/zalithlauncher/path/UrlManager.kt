@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.path
 
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.utils.network.ResilientDns
@@ -79,7 +80,7 @@ private fun isCurseForgeHost(host: String): Boolean =
 private val CURSEFORGE_INTERCEPTOR = Interceptor { chain ->
     val request = chain.request()
     if (isCurseForgeHost(request.url.host)) {
-        val apiKey = BuildKeys.CURSEFORGE_API
+        val apiKey = AllSettings.curseForgeApiKey.getValue().trim().ifBlank { BuildKeys.CURSEFORGE_API }
         if (apiKey.isNotBlank()) {
             val newRequest = request.newBuilder()
                 .header("x-api-key", apiKey)
@@ -144,7 +145,7 @@ val GLOBAL_CLIENT = HttpClient(OkHttp) {
 }.apply {
     requestPipeline.intercept(HttpRequestPipeline.State) {
         if (isCurseForgeHost(context.url.host)) {
-            val apiKey = BuildKeys.CURSEFORGE_API
+            val apiKey = AllSettings.curseForgeApiKey.getValue().trim().ifBlank { BuildKeys.CURSEFORGE_API }
             if (apiKey.isNotBlank()) {
                 context.header("x-api-key", apiKey)
             }
