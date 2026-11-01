@@ -184,9 +184,14 @@ private suspend fun installNewForgeHMCLWay(
         R.string.download_game_install_forgelike_preparing_mapping_file, loaderName
     ))
 
+    // ONA: like HMCL, patch an isolated copy of the vanilla jar. Forge for 26.x binary patches
+    // MINECRAFT_JAR directly (--marker), which must not touch the jar the version will use
+    val isolatedVanillaJar = File(tempDir, "minecraft.jar")
+    tempVanillaJar.copyTo(isolatedVanillaJar, overwrite = true)
+
     vars["SIDE"] = "client"
-    vars["MINECRAFT_JAR"] = tempVanillaJar.absolutePath
-    vars["MINECRAFT_VERSION"] = tempVanillaJar.absolutePath
+    vars["MINECRAFT_JAR"] = isolatedVanillaJar.absolutePath
+    vars["MINECRAFT_VERSION"] = installProfile["minecraft"]?.asString ?: tempVanillaJar.absolutePath
     vars["ROOT"] = tempMinecraftDir.absolutePath
     vars["INSTALLER"] = tempInstaller.absolutePath
     vars["LIBRARY_DIR"] = File(tempMinecraftDir, "libraries").absolutePath
@@ -373,11 +378,11 @@ private suspend fun runProcessors(
         val progress = step.toFloat() / commandList.size
         val taskStr = outputs.joinToString(", ") { (artifact, _) -> artifact.name }
 
-        runJvmRetryRuntimes(
+        suspend fun run(jre: Jre) = runJvmRetryRuntimes(
             logId = FORGE_LIKE_INSTALL_ID,
             jvmArgs = jvmArgs,
             prefixArgs = { null },
-            jre = Jre.JRE_8,
+            jre = jre,
             userHome = tempGameDir.absolutePath.trimEnd('\\'),
             postSummary = "$loaderName $taskStr ($step/${commandList.size})",
             postProgress = NoticeProgress(commandList.size, step),
@@ -394,6 +399,14 @@ private suspend fun runProcessors(
             }
         )
 
+        run(Jre.JRE_8)
+        // ONA: a processor that dies without reporting its exit code (out of memory, killed by the
+        // system...) counts as success; give it another go on the newest runtime before failing
+        if (outputs.any { (artifact, _) -> !Files.isRegularFile(artifact) }) {
+            Logger.warning(TAG, "$taskStr was not produced, retrying the processor with ${Jre.JRE_21.name}")
+            run(Jre.JRE_21)
+        }
+
         for ((artifact, value) in outputs) {
             if (!Files.isRegularFile(artifact)) throw FileNotFoundException("File missing: $artifact")
 
@@ -401,8 +414,9 @@ private suspend fun runProcessors(
                 DigestUtils.digestToString("SHA-1", stream)
             }
             if (code != value) {
-                Files.delete(artifact)
-                throw IOException("Checksum mismatch: expected $value, got $code for $artifact")
+                // Same as HMCL with zlib-ng: Android's zlib can compress differently from the one
+                // Forge hashed with, the patcher itself already verified every patched class
+                Logger.warning(TAG, "Checksum differs (expected $value, got $code) for $artifact, keeping it")
             }
         }
     }

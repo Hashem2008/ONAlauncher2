@@ -513,6 +513,9 @@ private fun setRendererEnv(
         envMap["SDL_EGL_LIBRARY"] = sfpewLibraryPath
     }
 
+    // ONA: SDL (Minecraft 26.x) must resolve gl* to the same library LWJGL uses, see sdl_dlopen_hook.c
+    getGameRendererLibrary(version)?.let { envMap["ONA_GL_LIBRARY"] = it }
+
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
     if (!renderer.mesaBased) {

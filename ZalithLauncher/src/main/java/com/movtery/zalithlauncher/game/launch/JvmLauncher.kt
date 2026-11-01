@@ -33,7 +33,10 @@ import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.activities.runJar
 import com.movtery.zalithlauncher.ui.theme.showThemed
+import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.platform.bytesToMB
+import com.movtery.zalithlauncher.utils.platform.getTotalMemory
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import java.io.File
@@ -44,6 +47,20 @@ private const val TAG = "JvmLauncher"
 
 /** 安装器等轻量任务的内存上限 */
 private const val INSTALL_RAM_ALLOCATION = 512
+
+/**
+ * ONA: Forge for 26.x binary patches the whole (unobfuscated) client jar in one go, which does not
+ * fit in 512 MB; give installers more heap on phones that have the memory for it
+ */
+private fun Context.installRamAllocation(): Int {
+    if (Architecture.is32BitsDevice) return INSTALL_RAM_ALLOCATION
+    val deviceRam = getTotalMemory(this).bytesToMB()
+    return when {
+        deviceRam >= 6144 -> 1536
+        deviceRam >= 3072 -> 1024
+        else -> INSTALL_RAM_ALLOCATION
+    }
+}
 
 open class JvmLauncher(
     private val context: Context,
@@ -57,7 +74,7 @@ open class JvmLauncher(
         if (jvmLaunchInfo.useUserJvm) {
             super.progressFinalUserArgs(args, ramAllocation)
         } else {
-            super.progressFinalUserArgs(args, INSTALL_RAM_ALLOCATION)
+            super.progressFinalUserArgs(args, context.installRamAllocation())
         }
     }
 

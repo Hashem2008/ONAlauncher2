@@ -138,7 +138,9 @@ class VulkanCheckerViewModel: ViewModel() {
         }
 
         //记录不存在或驱动状态不一致时走完整的检测流程，检测完成后结果已保存
-        waitForVulkanChecker(version)
+        // ONA: check silently instead of stopping the launch with the tip and result dialogs,
+        // the full report is still available from the version settings
+        check(version)
         val record = loadRecord() ?: return false
         return mcVersion != null && record.isSupported(mcVersion)
     }

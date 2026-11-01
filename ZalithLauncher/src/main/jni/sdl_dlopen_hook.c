@@ -3,6 +3,7 @@
 
 #include <dlfcn.h>
 #include <jni.h>
+#include <stdbool.h>
 #include <bytehook.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,9 +29,66 @@ static jint isolatedSdlJniOnLoad(JavaVM *vm, void *reserved) {
     return JNI_VERSION_1_4;
 }
 
+// ONA: Minecraft 26.x compares the GL/Vulkan entry points SDL resolves with the ones LWJGL uses
+// ("glGetError mismatch" / "vkGetInstanceProcAddr mismatch"). SDL resolves them through its
+// internal SDL_LoadFunction -> dlsym, which the SDL_LoadObject hooks can't see, so fix it here.
+extern void *maybe_load_vulkan();
+
+typedef void *(*egl_get_proc_address_t)(const char *name);
+static egl_get_proc_address_t realEglGetProcAddress;
+static void *glWrapperHandle;
+
+static bool callerIsSdl(void *returnAddress) {
+    Dl_info info;
+    if (returnAddress == NULL || !dladdr(returnAddress, &info) || info.dli_fname == NULL) return false;
+    return strstr(info.dli_fname, "libSDL3") != NULL;
+}
+
+// LWJGL takes gl* from the renderer library (-Dorg.lwjgl.opengl.libname), SDL asks the EGL
+static void *onaSdlEglGetProcAddress(const char *name) {
+    if (name != NULL && strncmp(name, "gl", 2) == 0) {
+        if (glWrapperHandle == NULL) {
+            const char *glLibrary = getenv("ONA_GL_LIBRARY");
+            if (glLibrary != NULL && glLibrary[0] != '\0') {
+                glWrapperHandle = dlopen(glLibrary, RTLD_NOW | RTLD_NOLOAD);
+                if (glWrapperHandle == NULL) glWrapperHandle = dlopen(glLibrary, RTLD_NOW);
+            }
+        }
+        if (glWrapperHandle != NULL) {
+            void *wrapperFunc = dlsym(glWrapperHandle, name);
+            if (wrapperFunc != NULL) return wrapperFunc;
+        }
+    }
+    return realEglGetProcAddress != NULL ? realEglGetProcAddress(name) : NULL;
+}
+
+static void *onaWrapSdlSymbol(void *handle, const char *symbol, void *result) {
+    if (strcmp(symbol, "vkGetInstanceProcAddr") == 0) {
+        // Same loader instance as LWJGL (possibly Turnip in a private namespace)
+        void *launcherLoader = maybe_load_vulkan();
+        if (launcherLoader == NULL || launcherLoader == handle) return result;
+        void *launcherFunc = dlsym(launcherLoader, symbol);
+        if (launcherFunc == NULL) return result;
+        LOG_TO_I("SDL_Hook: giving SDL the launcher's vkGetInstanceProcAddr");
+        return launcherFunc;
+    }
+    if (strcmp(symbol, "eglGetProcAddress") == 0) {
+        const char *glLibrary = getenv("ONA_GL_LIBRARY");
+        if (glLibrary == NULL || glLibrary[0] == '\0') return result;
+        if (realEglGetProcAddress == NULL) realEglGetProcAddress = (egl_get_proc_address_t) result;
+        LOG_TO_I("SDL_Hook: SDL gl* lookups go to %s", glLibrary);
+        return (void *) onaSdlEglGetProcAddress;
+    }
+    return result;
+}
+
 static void *customDlsym(void *handle, const char *symbol) {
     void *result = BYTEHOOK_CALL_PREV(customDlsym, dlsym_func_t, handle, symbol);
+    bool fromSdl = result != NULL && symbol != NULL
+            && (strcmp(symbol, "vkGetInstanceProcAddr") == 0 || strcmp(symbol, "eglGetProcAddress") == 0)
+            && callerIsSdl(BYTEHOOK_RETURN_ADDRESS());
     BYTEHOOK_POP_STACK();
+    if (fromSdl) result = onaWrapSdlSymbol(handle, symbol, result);
     if (sdlHandle == NULL) {
         sdlHandle = dlopen("libSDL3.so", RTLD_LOCAL | RTLD_NOW);
     }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ONA Launcher 2 icon: grass block with a "2" badge -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group>
+        <clip-path android:pathData="M24,4h60a20,20 0,0 1,20,20v60a20,20 0,0 1,-20,20h-60a20,20 0,0 1,-20,-20v-60a20,20 0,0 1,20,-20z" />
+    <path
+        android:fillColor="#10291C"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#163A27"
+        android:pathData="M108,0L108,108L0,108Z" />
+    <path
+        android:fillColor="#1B4630"
+        android:pathData="M14,54A40,40 0,1 1,94,54A40,40 0,1 1,14,54Z" />
+    <path
+        android:fillColor="#7BD650"
+        android:pathData="M54,28L76,40L54,52L32,40Z" />
+    <path
+        android:fillColor="#8D5B2E"
+        android:pathData="M32,40L54,52L54,78L32,66Z" />
+    <path
+        android:fillColor="#6A4220"
+        android:pathData="M54,52L76,40L76,66L54,78Z" />
+    <path
+        android:fillColor="#58B23A"
+        android:pathData="M32,40L54,52L54,58L32,46Z" />
+    <path
+        android:fillColor="#3F8F29"
+        android:pathData="M54,52L76,40L76,46L54,58Z" />
+    <path
+        android:fillColor="#5FBF3C"
+        android:pathData="M50,36L54,38L50,40L46,38ZM60,40L64,42L60,44L56,42Z" />
+    <path
+        android:fillColor="#14261B"
+        android:pathData="M61.8,71A11.2,11.2 0,1 1,84.2,71A11.2,11.2 0,1 1,61.8,71Z" />
+    <path
+        android:fillColor="#FFC83D"
+        android:pathData="M63,71A10,10 0,1 1,83,71A10,10 0,1 1,63,71Z" />
+    <path
+        android:fillColor="#1E1A12"
+        android:pathData="M70.45,65.05L72.15,65.05L72.15,66.75L70.45,66.75ZM72.15,65.05L73.85,65.05L73.85,66.75L72.15,66.75ZM73.85,65.05L75.55,65.05L75.55,66.75L73.85,66.75ZM68.75,66.75L70.45,66.75L70.45,68.45L68.75,68.45ZM75.55,66.75L77.25,66.75L77.25,68.45L75.55,68.45ZM75.55,68.45L77.25,68.45L77.25,70.15L75.55,70.15ZM73.85,70.15L75.55,70.15L75.55,71.85L73.85,71.85ZM72.15,71.85L73.85,71.85L73.85,73.55L72.15,73.55ZM70.45,73.55L72.15,73.55L72.15,75.25L70.45,75.25ZM68.75,75.25L70.45,75.25L70.45,76.95L68.75,76.95ZM70.45,75.25L72.15,75.25L72.15,76.95L70.45,76.95ZM72.15,75.25L73.85,75.25L73.85,76.95L72.15,76.95ZM73.85,75.25L75.55,75.25L75.55,76.95L73.85,76.95ZM75.55,75.25L77.25,75.25L77.25,76.95L75.55,76.95Z" />
+    </group>
+</vector>
