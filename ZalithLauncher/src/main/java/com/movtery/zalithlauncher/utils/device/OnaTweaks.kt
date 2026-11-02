@@ -155,9 +155,11 @@ object OnaTweaks {
     /**
      * Frame rate options from the launcher settings written into options.txt before each launch.
      * @param cap 0 leaves the game setting alone, 260 is unlimited
+     * @param maxRenderDistance 0 leaves it alone, otherwise render and simulation distance are
+     *                          lowered to it when they are higher (never raised)
      */
-    fun applyFpsOptions(gameDir: File, cap: Int, disableVsync: Boolean) {
-        if (cap <= 0 && !disableVsync) return
+    fun applyFpsOptions(gameDir: File, cap: Int, disableVsync: Boolean, maxRenderDistance: Int = 0) {
+        if (cap <= 0 && !disableVsync && maxRenderDistance <= 0) return
         val options = File(gameDir, "options.txt")
         runCatching {
             val lines = if (options.exists()) options.readLines().toMutableList() else mutableListOf()
@@ -166,6 +168,15 @@ object OnaTweaks {
                 if (index >= 0) lines[index] = "$key:$value" else lines.add("$key:$value")
             }
             if (cap > 0) put("maxFps", cap.toString())
+            if (maxRenderDistance > 0) {
+                fun lower(key: String, max: Int) {
+                    val index = lines.indexOfFirst { it.startsWith("$key:") }
+                    val value = if (index >= 0) lines[index].substringAfter(':').trim().toIntOrNull() else null
+                    if (value == null || value > max) put(key, max.toString())
+                }
+                lower("renderDistance", maxRenderDistance)
+                lower("simulationDistance", maxOf(5, maxRenderDistance * 2 / 3))
+            }
             if (disableVsync) put("enableVsync", "false")
             if (!gameDir.isDirectory && !gameDir.mkdirs()) return
             options.writeText(lines.joinToString("\n", postfix = "\n"))

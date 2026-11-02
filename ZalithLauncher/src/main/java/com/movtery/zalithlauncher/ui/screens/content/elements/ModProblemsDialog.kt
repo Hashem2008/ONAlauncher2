@@ -89,8 +89,8 @@ private fun describe(context: Context, problem: ModCompat.Problem): String = whe
 
 /**
  * Lists what would stop the game from loading the version's mods (missing dependencies, wrong
- * game or loader version) with a Fix button for each problem and Fix all, which downloads every
- * missing required mod and swaps incompatible builds for ones that fit.
+ * game or loader version) that the automatic resolver could not handle, with a Fix button for
+ * each one (which may also turn the mod off).
  * @param onPlay launch anyway; null hides the button
  */
 @Composable
@@ -125,29 +125,6 @@ fun ModProblemsDialog(
             val (remaining, failed) = withContext(Dispatchers.IO) {
                 val result = ModCompat.fix(problem, version.modsDir(), env)
                 ModCompat.analyze(version.modsDir(), env) to if (result == ModCompat.FIX_FAILED) 1 else 0
-            }
-            finish(remaining, failed)
-        }
-    }
-
-    fun fixAll() {
-        val env = environment ?: return
-        working = true
-        scope.launch {
-            val (remaining, failed) = withContext(Dispatchers.IO) {
-                val modsDir = version.modsDir()
-                var remaining = ModCompat.analyze(modsDir, env)
-                var failed = 0
-                // New downloads can bring their own missing dependencies, so go a few rounds
-                for (round in 0 until 3) {
-                    if (remaining.isEmpty()) break
-                    failed = remaining.count { ModCompat.fix(it, modsDir, env) == ModCompat.FIX_FAILED }
-                    val next = ModCompat.analyze(modsDir, env)
-                    val stuck = next.size >= remaining.size && failed == remaining.size
-                    remaining = next
-                    if (stuck) break
-                }
-                remaining to failed
             }
             finish(remaining, failed)
         }
@@ -188,23 +165,18 @@ fun ModProblemsDialog(
             }
         },
         confirmButton = {
-            Button(enabled = !working && environment != null, onClick = { fixAll() }) {
-                Text(text = stringResource(R.string.mod_problems_fix_all))
+            if (onPlay != null) {
+                Button(enabled = !working, onClick = {
+                    onDismiss()
+                    onPlay()
+                }) {
+                    Text(text = stringResource(R.string.mod_problems_play_anyway))
+                }
             }
         },
         dismissButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (onPlay != null) {
-                    FilledTonalButton(enabled = !working, onClick = {
-                        onDismiss()
-                        onPlay()
-                    }) {
-                        Text(text = stringResource(R.string.mod_problems_play_anyway))
-                    }
-                }
-                FilledTonalButton(enabled = !working, onClick = onDismiss) {
-                    Text(text = stringResource(R.string.generic_cancel))
-                }
+            FilledTonalButton(enabled = !working, onClick = onDismiss) {
+                Text(text = stringResource(R.string.generic_cancel))
             }
         }
     )

@@ -24,6 +24,7 @@ import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.PanfrostRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VirGLRenderer
 import com.movtery.zalithlauncher.utils.logging.Logger
 
@@ -49,6 +50,7 @@ object Renderers {
         }
 
         addRenderers(
+            SmartRenderer,
             NGGL4ESRenderer,
             GL4ESRenderer,
             KopperZinkRenderer,
@@ -106,7 +108,8 @@ object Renderers {
         if (!isInitialized) throw IllegalStateException("Uninitialized renderer!")
         currentRenderer = renderers.find { it.getUniqueIdentifier() == uniqueIdentifier } ?: run {
             if (retryToFirstOnFailure) {
-                val renderer = renderers[0]
+                // ONA Smart is only a chooser, fall back to a real renderer
+                val renderer = renderers.firstOrNull { it !== SmartRenderer } ?: renderers[0]
                 Logger.warning(TAG, "Incompatible renderer $uniqueIdentifier will be replaced with ${renderer.getUniqueIdentifier()} (${renderer.getRendererName()})")
                 renderer
             } else null

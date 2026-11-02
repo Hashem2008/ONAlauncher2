@@ -19,6 +19,8 @@
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import com.movtery.zalithlauncher.game.version.mod.ModCompat
+import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
+import androidx.compose.material3.LinearProgressIndicator
 import android.app.Activity
 import android.net.Uri
 import android.os.Build
@@ -179,7 +181,14 @@ sealed interface LaunchGameOperation {
         val quickPlay: QuickPlay?
     ) : LaunchGameOperation
 
-    /** ONA: mods that would stop the game from loading, with Fix / Fix all */
+    /** ONA: installing missing requirements and swapping wrong builds before the launch */
+    data class ResolvingMods(
+        val version: Version,
+        val quickPlay: QuickPlay?,
+        val skipAccountRefresh: Boolean
+    ) : LaunchGameOperation
+
+    /** ONA: mod problems the automatic resolver could not handle */
     data class ModProblems(
         val version: Version,
         val quickPlay: QuickPlay?,
@@ -470,6 +479,49 @@ fun LaunchGameOperation(
                 }
             )
         }
+        is LaunchGameOperation.ResolvingMods -> {
+            var current by remember { mutableStateOf("") }
+            LaunchedEffect(operation) {
+                val result = withContext(Dispatchers.IO) {
+                    ModAutoResolver.resolve(operation.version) { name -> current = name }
+                }
+                if (result.fixed > 0) {
+                    eventViewModel.sendToast(androidText(R.string.mod_auto_deps_done, result.fixed))
+                }
+                launchGameViewModel.updateOperation(
+                    if (result.remaining.isEmpty()) {
+                        LaunchGameOperation.RealLaunch(
+                            version = operation.version,
+                            quickPlay = operation.quickPlay,
+                            skipAccountRefresh = operation.skipAccountRefresh,
+                            skipModCheck = true
+                        )
+                    } else {
+                        LaunchGameOperation.ModProblems(operation.version, operation.quickPlay, operation.skipAccountRefresh, result.remaining)
+                    }
+                )
+            }
+            Dialog(onDismissRequest = {}) {
+                Surface(shape = MaterialTheme.shapes.extraLarge) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.mod_auto_deps_title),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        if (current.isNotEmpty()) {
+                            Text(
+                                text = stringResource(R.string.mod_auto_deps_installing, current),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+        }
         is LaunchGameOperation.ModProblems -> {
             ModProblemsDialog(
                 version = operation.version,
@@ -494,11 +546,11 @@ fun LaunchGameOperation(
                 val version = operation.version
                 val quickPlay = operation.quickPlay
                 if (!operation.skipModCheck) {
-                    // Catch broken mod setups here, where they can be fixed with a tap
+                    // Broken mod setups get their requirements installed automatically first
                     val problems = version.findModProblems()
                     if (problems.isNotEmpty()) {
                         launchGameViewModel.updateOperation(
-                            LaunchGameOperation.ModProblems(version, quickPlay, operation.skipAccountRefresh, problems)
+                            LaunchGameOperation.ResolvingMods(version, quickPlay, operation.skipAccountRefresh)
                         )
                         return@LaunchedEffect
                     }

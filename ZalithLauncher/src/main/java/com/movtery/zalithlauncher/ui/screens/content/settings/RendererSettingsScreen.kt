@@ -60,6 +60,7 @@ import com.movtery.zalithlauncher.path.URL_GITHUB_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_RENDERER_PLUGINS
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
+import com.movtery.zalithlauncher.setting.enums.UpscalerMode
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
@@ -104,6 +105,48 @@ fun RendererSettingsScreen(
                 .padding(all = 12.dp),
             isVisible = isVisible
         ) {
+            // ONA: device report, recommendations and the upscaler
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    OnaDeviceCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top
+                    )
+
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.upscalerMode,
+                        items = UpscalerMode.entries,
+                        title = stringResource(R.string.ona_upscaler_title),
+                        summary = stringResource(R.string.ona_upscaler_summary),
+                        getItemText = { stringResource(it.nameRes) }
+                    )
+
+                    IntSliderSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.upscalerSharpness,
+                        title = stringResource(R.string.ona_upscaler_sharpness_title),
+                        summary = stringResource(R.string.ona_upscaler_sharpness_summary),
+                        valueRange = AllSettings.upscalerSharpness.floatRange,
+                        suffix = "%"
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.smartDriver,
+                        title = stringResource(R.string.ona_smart_driver_title),
+                        summary = stringResource(R.string.ona_smart_driver_summary)
+                    )
+                }
+            }
+
             AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier

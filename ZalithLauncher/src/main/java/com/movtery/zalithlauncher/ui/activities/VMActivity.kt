@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.activities
 
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import com.movtery.zalithlauncher.utils.device.GameColorFilter
+import com.movtery.zalithlauncher.utils.device.GameUpscaler
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -36,6 +37,7 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.Surface
 import android.view.TextureView
+import android.widget.FrameLayout
 import android.view.TextureView.SurfaceTextureListener
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -406,6 +408,28 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
     /** View used to locate the layout hosting SDL's text input bridge. */
     private var gameTextureView: TextureView? = null
 
+    /** ONA: holds the TextureView and colour grades it when the upscaler is off */
+    private var gameGradeFrame: GameColorFilter.GradeFrame? = null
+
+    /** ONA: upscaler the game renders into when enabled, recreated with the TextureView surface */
+    private var upscaler: GameUpscaler? = null
+
+    /** ONA: push the current colour grade to the upscaler pass or to the grade frame */
+    private fun applyColorGrade() {
+        val profile = AllSettings.gameColorProfile.state
+        val brightness = AllSettings.gameBrightness.state
+        val contrast = AllSettings.gameContrast.state
+        val saturation = AllSettings.gameSaturation.state
+        val active = upscaler
+        if (active != null) {
+            gameGradeFrame?.gradePaint = null
+            active.gradeMatrix = GameColorFilter.glMatrix(profile, brightness, contrast, saturation)
+            active.redraw()
+        } else {
+            gameGradeFrame?.gradePaint = GameColorFilter.paint(profile, brightness, contrast, saturation)
+        }
+    }
+
     private var magnifierBitmap: Bitmap? = null
     private var magnifierFrame by mutableStateOf<ImageBitmap?>(null)
     private var magnifierFrameVersion by mutableLongStateOf(0L)
@@ -707,7 +731,8 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         }
         lastWindowSize = newSize
 
-        gameTextureView?.surfaceTexture?.setDefaultBufferSize(newSize.width, newSize.height)
+        upscaler?.setInputSize(newSize.width, newSize.height)
+            ?: gameTextureView?.surfaceTexture?.setDefaultBufferSize(newSize.width, newSize.height)
         ZLBridgeStates.onWindowChange()
         CallbackBridge.sendUpdateWindowSize(newSize.width, newSize.height)
         if (SdlBridge.sdlEnabled) {
@@ -902,10 +927,27 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-        val nativeSurface = Surface(surface)
+        // ONA: the game renders into the upscaler at render resolution, the upscaler presents
+        // on this TextureView at screen resolution. Without it the game renders here directly.
+        upscaler?.release()
+        upscaler = null
+        if (withHandler { type } == HandlerType.GAME) {
+            upscaler = GameUpscaler.create(
+                output = surface,
+                mode = AllSettings.upscalerMode.getValue(),
+                sharpness = AllSettings.upscalerSharpness.getValue() / 100f
+            )?.also { created ->
+                val size = lastWindowSize ?: IntSize(width, height)
+                created.setInputSize(size.width, size.height)
+            }
+        }
+        applyColorGrade()
+        val gameTexture = upscaler?.inputTexture ?: surface
+
+        val nativeSurface = Surface(gameTexture)
         gameSurface = nativeSurface
         applyMaxRefreshRatePolicy()
-        SdlBridge.prepareSurface(this, nativeSurface, gameTextureView?.parent as? ViewGroup, surface)
+        SdlBridge.prepareSurface(this, nativeSurface, gameGradeFrame?.parent as? ViewGroup ?: gameTextureView?.parent as? ViewGroup, surface)
         //游戏请求 GLFW direct gamepad 时的通知接收方
         CallbackBridge.setDirectGamepadEnableHandler {
             LoggerBridge.append("ZalithLauncher: Direct gamepad handler enabled")
@@ -926,7 +968,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
             val currentSize = refreshWindowSize(screenSize = screenSize)
             withHandler {
                 execute(
-                    surface = Surface(surface),
+                    surface = Surface(gameTexture),
                     screenSize = currentSize,
                     scope = lifecycleScope
                 )
@@ -949,6 +991,8 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
             SdlBridge.unregisterSurface(nativeSurface)
         }
         withHandler { mIsSurfaceDestroyed = true }
+        upscaler?.release()
+        upscaler = null
         return true
     }
 
@@ -1006,7 +1050,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                         IntOffset(0, -bottomPadding)
                     },
                 factory = { context ->
-                    TextureView(context).apply {
+                    val texture = TextureView(context).apply {
                         isOpaque = true
                         alpha = 1.0f
                         surfaceTextureListener = this@VMActivity
@@ -1018,20 +1062,24 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                             }
                             v.onApplyWindowInsets(insets)
                         }
-                    }.also { texture ->
-                        gameTextureView = texture
+                    }
+                    gameTextureView = texture
+                    GameColorFilter.GradeFrame(context).apply {
+                        addView(
+                            texture,
+                            FrameLayout.LayoutParams(
+                                FrameLayout.LayoutParams.MATCH_PARENT,
+                                FrameLayout.LayoutParams.MATCH_PARENT
+                            )
+                        )
+                    }.also { frame ->
+                        gameGradeFrame = frame
                     }
                 },
-                update = { texture ->
-                    // ONA: live colour grading of the game picture
-                    texture.setLayerPaint(
-                        GameColorFilter.paint(
-                            profile = AllSettings.gameColorProfile.state,
-                            brightness = AllSettings.gameBrightness.state,
-                            contrast = AllSettings.gameContrast.state,
-                            saturation = AllSettings.gameSaturation.state
-                        )
-                    )
+                update = { _ ->
+                    // ONA: live colour grading of the game picture. The states read inside are
+                    // observed, so a change re-runs this and lands in the upscaler or the frame.
+                    applyColorGrade()
                 }
             )
 

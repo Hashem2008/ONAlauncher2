@@ -4,7 +4,6 @@
     <string name="mod_problems_title">مشاكل المودات</string>
     <string name="mod_problems_header">في %d مشكلة رح توقف اللعبة:</string>
     <string name="mod_problems_fix">Fix</string>
-    <string name="mod_problems_fix_all">Fix all</string>
     <string name="mod_problems_play_anyway">العب هيك</string>
     <string name="mod_problems_working">عم نصلّح، استنى…</string>
     <string name="mod_problems_all_fixed">انحلّت كل مشاكل المودات</string>
@@ -17,4 +16,37 @@
     <string name="settings_curseforge_key_title">مفتاح CurseForge</string>
     <string name="settings_curseforge_key_summary">اختياري. الصق مفتاحك من console.curseforge.com إذا تنزيل CurseForge ما زبط. بدونه اللانشر بستخدم سيرفر بديل.</string>
     <string name="download_category_datapacks">داتا باكات</string>
+    <string name="mod_auto_deps_title">جاري تنزيل متطلبات المودات…</string>
+    <string name="mod_auto_deps_waiting">بانتظار انتهاء التنزيلات…</string>
+    <string name="mod_auto_deps_installing">تنزيل متطلب: %1$s</string>
+    <string name="mod_auto_deps_done">تم تنزيل أو إصلاح %1$d من متطلبات المودات تلقائياً</string>
+    <string name="ona_perf_boost">يرفع الفريمات</string>
+    <string name="ona_perf_smooth">يشتغل بأريحية</string>
+    <string name="ona_perf_may_lag">ممكن يهنج</string>
+    <string name="ona_perf_heavy">ثقيل على جهازك</string>
+    <string name="ona_upscaler_title">تقنية الأبسكيل</string>
+    <string name="ona_upscaler_summary">اللعبة ترسم بدقة أقل من الشاشة (نسبة الدقة) وبعدين تتكبر بحدة. نزّل نسبة الدقة إلى 67–85% مع تشغيلها لزيادة كبيرة في الفريمات. تتطبق عند تشغيل اللعبة.</string>
+    <string name="ona_upscaler_off">إيقاف (تكبير عادي)</string>
+    <string name="ona_upscaler_auto">تلقائي (GSR لأدرينو، ASR للباقي)</string>
+    <string name="ona_upscaler_gsr">أبسكيل بأسلوب GSR (الأفضل لأدرينو)</string>
+    <string name="ona_upscaler_asr">أبسكيل بأسلوب ASR (لكل معالجات ARM)</string>
+    <string name="ona_upscaler_sharpness_title">حدة الأبسكيل</string>
+    <string name="ona_upscaler_sharpness_summary">أعلى = أوضح، أقل = أنعم</string>
+    <string name="ona_smart_driver_title">درايفر فولكان ذكي</string>
+    <string name="ona_smart_driver_summary">يستخدم Turnip المدمج على أدرينو 6xx/7xx، ودرايفر الجهاز الأصلي على أدرينو الأحدث ومالي وإكسكليبس وPowerVR (لعوارض Zink)</string>
+    <string name="ona_device_title">جهازك</string>
+    <string name="ona_device_summary">%1$s · %2$s · %3$d جيجا رام\nالفئة: %4$s (التقييم %5$d/100)</string>
+    <string name="ona_tier_low">ضعيف</string>
+    <string name="ona_tier_mid">متوسط</string>
+    <string name="ona_tier_high">قوي</string>
+    <string name="ona_tier_flagship">رائد</string>
+    <string name="ona_driver_system">درايفر الجهاز</string>
+    <string name="ona_shaders_none">بدون</string>
+    <string name="ona_shaders_potato">خفيفة جداً</string>
+    <string name="ona_shaders_low">خفيفة</string>
+    <string name="ona_shaders_medium">متوسطة</string>
+    <string name="ona_shaders_high">عالية</string>
+    <string name="ona_device_recommended">أفضل إعدادات: الدقة %1$d%% + %2$s، الدرايفر %3$s، مسافة الرؤية حتى %4$d، حوالي %5$d مود تشتغل بأريحية، شيدرز حتى %6$s. العارض: ONA الذكي يختاره لكل نسخة.</string>
+    <string name="ona_device_apply">طبّق أفضل إعدادات</string>
+    <string name="ona_device_applied">تم تطبيق أفضل إعدادات</string>
 </resources>

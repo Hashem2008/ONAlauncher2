@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import com.movtery.zalithlauncher.game.download.assets.downloadDependenciesForVersions
+import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
 import com.movtery.zalithlauncher.game.download.assets.downloadSingleForVersions
 import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -81,6 +82,8 @@ fun AssetInfoScreen(
                 versions = gameVersions,
                 submitError = submitError
             )
+            // ONA: install what the download needs (requirements, shader loader)
+            ModAutoResolver.afterInstall(classes, gameVersions)
         },
         onDependencyClicked = { platform, projectId, classes ->
             backStack.navigateTo(

@@ -495,6 +495,14 @@ public class ModCompat {
 
     /** Try to fix one problem. Network heavy, call off the UI thread. */
     public static int fix(Problem problem, File modsDir, Environment environment) {
+        return fix(problem, modsDir, environment, true);
+    }
+
+    /**
+     * @param allowDisable false never turns a mod off, used by the automatic fixer so it only
+     *                     ever adds or swaps jars behind the user's back
+     */
+    public static int fix(Problem problem, File modsDir, Environment environment, boolean allowDisable) {
         try {
             if (problem.kind == PROBLEM_MISSING) {
                 // A jar the user (or an older fix) disabled may already provide it
@@ -515,6 +523,7 @@ public class ModCompat {
                     return FIX_REPLACED;
                 }
             }
+            if (!allowDisable) return FIX_FAILED;
             File disabled = new File(problem.file.getPath() + ".disabled");
             return problem.file.renameTo(disabled) ? FIX_DISABLED : FIX_FAILED;
         } catch (Exception e) {

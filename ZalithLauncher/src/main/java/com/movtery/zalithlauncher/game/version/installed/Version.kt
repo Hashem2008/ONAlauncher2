@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.game.version.installed
 
+import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
 import android.content.Context
 import android.os.Parcelable
 import androidx.annotation.Keep
@@ -207,7 +208,14 @@ class Version(
 
     private fun String.getValueOrDefault(default: String): String = this.takeIf { it.isNotEmpty() } ?: default
 
-    fun getRenderer(): String = versionConfig.renderer.getValueOrDefault(AllSettings.renderer.getValue())
+    /**
+     * The renderer this version starts with. ONA Smart (also the default when nothing was
+     * picked) is resolved here to the bundled renderer that suits the version, mods and GPU.
+     */
+    fun getRenderer(): String {
+        val configured = versionConfig.renderer.getValueOrDefault(AllSettings.renderer.getValue())
+        return if (configured.isEmpty() || configured == SmartRenderer.ID) SmartRenderer.choose(this) else configured
+    }
 
     fun isSfpewPluginLayerEnabled(): Boolean = versionConfig.isSfpewPluginLayerEnabled()
 

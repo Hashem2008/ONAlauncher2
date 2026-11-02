@@ -32,6 +32,7 @@ import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
 import com.movtery.zalithlauncher.setting.enums.AppLanguage
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.GameColorProfile
+import com.movtery.zalithlauncher.setting.enums.UpscalerMode
 import com.movtery.zalithlauncher.setting.enums.DarkMode
 import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
@@ -116,6 +117,28 @@ object AllSettings : SettingsRegistry() {
     val gameBrightness = intSetting("gameBrightness", 0, -50..50)
     val gameContrast = intSetting("gameContrast", 100, 50..150)
     val gameSaturation = intSetting("gameSaturation", 100, 0..200)
+
+    /**
+     * ONA: upscaler between the game and the screen (GSR style on Adreno, ASR style elsewhere)
+     */
+    val upscalerMode = enumSetting("onaUpscalerMode", UpscalerMode.OFF)
+
+    /**
+     * ONA: upscaler sharpening strength, percent
+     */
+    val upscalerSharpness = intSetting("onaUpscalerSharpness", 50, 0..100)
+
+    /**
+     * ONA: pick the Vulkan driver for Zink from the GPU (bundled Turnip on Adreno 6xx/7xx,
+     * the system driver everywhere else) when the version uses the default driver
+     */
+    val smartDriver = boolSetting("onaSmartDriver", true)
+
+    /**
+     * ONA: highest render distance written to options.txt on launch (only ever lowers it),
+     * 0 leaves it alone. Set from the device recommendation.
+     */
+    val onaRenderDistance = intSetting("onaRenderDistance", 0, 0..32)
 
     /**
      * ONA: frame rate cap written to options.txt on launch, 0 leaves it alone, 260 is unlimited

@@ -23,6 +23,7 @@ import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import com.movtery.zalithlauncher.utils.platform.bytesToMB
 import com.movtery.zalithlauncher.utils.platform.getTotalMemory
+import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 
 private const val LWJGL_LIB_NAME_ARG = "-Dorg.lwjgl.opengl.libname="
@@ -42,6 +43,9 @@ fun loadAllSettings(context: Context, reloadAll: Boolean = false) {
         AllSettings.resolutionRatio.save(OnaTweaks.bestResolutionRatio(context))
         AllSettings.onaDeviceDefaultsApplied.save(true)
     }
+    // ONA: read the SoC / GPU once in the background, renderer and driver choices use it
+    val appContext = context.applicationContext
+    Thread({ runCatching { DeviceProfiler.get(appContext) } }, "ONA-DeviceProfiler").start()
     val jvmArgs = AllSettings.jvmArgs.getValue()
     jvmArgs.splitPreservingQuotes().find { it.startsWith(LWJGL_LIB_NAME_ARG) }?.let { arg ->
         AllSettings.jvmArgs.save(jvmArgs.replace(arg, ""))

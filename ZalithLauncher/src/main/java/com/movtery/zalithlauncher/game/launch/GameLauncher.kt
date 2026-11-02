@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.game.launch
 
+import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import android.app.Activity
@@ -200,6 +201,13 @@ class GameLauncher(
         val envMap = super.initEnv(screenSize)
 
         envMap["DRIVER_PATH"] = DriverPluginManager.getDriver(version.getDriver()).path
+        // ONA: the bundled Turnip only on the Adreno generations it is known good on, the
+        // system Vulkan driver on newer Adreno, Mali, Xclipse and PowerVR
+        if (AllSettings.smartDriver.getValue() && version.getDriver() == AllSettings.vulkanDriver.defaultValue) {
+            DeviceProfiler.peek()?.let { profile ->
+                if (!profile.turnipRecommended) envMap["POJAV_ZINK_PREFER_SYSTEM_DRIVER"] = "1"
+            }
+        }
 
         checkAndUsedJSPH(envMap, runtime)
         version.getVersionInfo()?.loaderInfos?.forEach { info ->
@@ -271,7 +279,12 @@ class GameLauncher(
         val gameDirPath = version.getGameDir()
 
         OnaTweaks.applyGameDefaults(GlobalContext, gameDirPath)
-        OnaTweaks.applyFpsOptions(gameDirPath, AllSettings.gameFpsCap.getValue(), AllSettings.gameDisableVsync.getValue())
+        OnaTweaks.applyFpsOptions(
+            gameDirPath,
+            AllSettings.gameFpsCap.getValue(),
+            AllSettings.gameDisableVsync.getValue(),
+            AllSettings.onaRenderDistance.getValue()
+        )
         disableSplash(gameDirPath)
 
         if (version.getVersionInfo()?.hasLoader(ModLoader.NEOFORGE) == true) {

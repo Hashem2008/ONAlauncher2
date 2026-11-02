@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import com.movtery.zalithlauncher.game.download.assets.downloadDependenciesForVersions
+import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
 import com.movtery.zalithlauncher.game.download.assets.downloadSingleForVersions
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
@@ -98,6 +99,8 @@ fun DownloadModScreen(
                 versions = gameVersions,
                 submitError = submitError
             )
+            // ONA: then install whatever the jar itself says it still needs
+            ModAutoResolver.afterInstall(classes, gameVersions)
         },
         installedProjects = installedProjects,
         onDependencyClicked = { platform, projectId, classes ->

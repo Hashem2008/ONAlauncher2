@@ -18,6 +18,9 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.download.assets.elements
 
+import com.movtery.zalithlauncher.utils.device.DeviceProfiler
+import com.movtery.zalithlauncher.utils.device.PerformanceAdvisor
+import com.movtery.zalithlauncher.utils.device.PerformanceRating
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
@@ -397,6 +400,9 @@ private fun ResultList(
             val downloads = remember(item) { item.platformDownloadCount() }
             val modloaders = remember(item) { item.platformModLoaders() }
             val categories = remember(item, classes) { item.platformCategories(classes) }
+            val performance = remember(item, classes) {
+                DeviceProfiler.peek()?.let { profile -> PerformanceAdvisor.rate(profile, classes, categories) }
+            }
             val isInstalled = installedInfo?.invoke(platform, item.platformId()) != null
             val isFavorite = FavoriteProjectsRepository.isFavorite(platform, item.platformId())
 
@@ -414,6 +420,7 @@ private fun ResultList(
                 categories = categories?.sortedWith { o1, o2 -> o1.index() - o2.index() },
                 isInstalled = isInstalled,
                 isFavorite = isFavorite,
+                performance = performance,
                 onFavoriteClick = {
                     FavoriteProjectsRepository.toggle(item, classes)
                 },
@@ -439,6 +446,7 @@ fun ResultProjectLayout(
     categories: List<PlatformFilterCode>? = null,
     isInstalled: Boolean = false,
     isFavorite: Boolean = false,
+    performance: PerformanceRating? = null,
     onFavoriteClick: (() -> Unit)? = null,
     shape: Shape = MaterialTheme.shapes.large,
     influencedByBackground: Boolean = true,
@@ -553,6 +561,10 @@ fun ResultProjectLayout(
                         ClassesIdentifier(classes = classes)
                     }
 
+                    performance?.let { rating ->
+                        PerformanceBadge(rating = rating)
+                    }
+
                     if (isInstalled) {
                         InstalledModBadge()
                     }
@@ -631,5 +643,33 @@ fun ProjectTitleHead(
         }
         //平台标签
         PlatformIdentifier(platform = platform)
+    }
+}
+/**
+ * ONA: how well this project should run on this phone
+ */
+@Composable
+fun PerformanceBadge(
+    rating: PerformanceRating,
+    modifier: Modifier = Modifier
+) {
+    val color = when (rating) {
+        PerformanceRating.BOOST -> Color(0xFF2E7D32)
+        PerformanceRating.SMOOTH -> Color(0xFF388E3C)
+        PerformanceRating.MAY_LAG -> Color(0xFFF9A825)
+        PerformanceRating.HEAVY -> Color(0xFFC62828)
+    }
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(6.dp),
+        color = color,
+        contentColor = Color.White
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+            text = stringResource(rating.textRes),
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1
+        )
     }
 }
