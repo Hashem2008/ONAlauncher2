@@ -241,7 +241,20 @@ class GameLauncher(
     }
 
     override fun progressFinalUserArgs(args: MutableList<String>, ramAllocation: Int) {
-        super.progressFinalUserArgs(args, version.getRamAllocation(activity))
+        val configured = version.getRamAllocation(activity)
+        if (!AllSettings.autoTuneMemory.getValue()) {
+            super.progressFinalUserArgs(args, configured)
+        } else {
+            val heap = OnaTweaks.tunedHeap(activity, configured, version.getGameDir())
+            val gcArgs = OnaTweaks.gcArgs(args, heap)
+            super.progressFinalUserArgs(args, heap)
+            // Committing the whole heap up front gets the game killed by Android's low memory killer
+            if (heap > 2048) {
+                args.purgeArg("-Xms")
+                args.add("-Xms${heap / 2}M")
+            }
+            args.addAll(gcArgs)
+        }
         if (Renderers.isCurrentRendererValid()) {
             args.add("-Dorg.lwjgl.opengl.libname=${getGameRendererLibrary(version)}")
         }
@@ -258,6 +271,7 @@ class GameLauncher(
         val gameDirPath = version.getGameDir()
 
         OnaTweaks.applyGameDefaults(GlobalContext, gameDirPath)
+        OnaTweaks.applyFpsOptions(gameDirPath, AllSettings.gameFpsCap.getValue(), AllSettings.gameDisableVsync.getValue())
         disableSplash(gameDirPath)
 
         if (version.getVersionInfo()?.hasLoader(ModLoader.NEOFORGE) == true) {

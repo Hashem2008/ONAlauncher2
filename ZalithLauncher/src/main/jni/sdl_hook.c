@@ -385,7 +385,11 @@ static bool sdlInitSubSystemPrepare(SDL_InitFlags flags) {
     SET_DLSYM_PTR(dlopen("libSDL3.so", RTLD_NOLOAD), SDL_SetHint);
     if (SDL_SetHint_p) SDL_SetHint_p("SDL_RETURN_KEY_HIDES_IME", "true");
     // FIXME: MobileGlues has issues with passing in the proper EGL params to make this work
-    if (isMobileGluesEgl()) {
+    // GLES wrappers encode sRGB twice (EGL colorspace + their own blit), which washes the
+    // picture out, so keep the framebuffer linear for every mobile ES renderer
+    const char *forceSrgb = getenv("ONA_FORCE_SRGB");
+    bool keepSrgb = forceSrgb != NULL && strcmp(forceSrgb, "1") == 0;
+    if (SDL_SetHint_p && !keepSrgb && (isMobileGluesEgl() || sdlGlesCompatEnabled())) {
         SDL_SetHint_p("SDL_OPENGL_FORCE_SRGB_FRAMEBUFFER", "0");
     }
     // MC 按桌面惯例设置 SDL_ENABLE_SCREEN_KEYBOARD=0 来禁用平台软键盘（改用自绘 IME UI），

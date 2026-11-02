@@ -110,6 +110,71 @@ object OnaTweaks {
     }
 
     /**
+     * Heap for this launch: big modpacks and shaders run out of memory with the default, so grow it
+     * with the mod count, never past what the phone can spare.
+     */
+    fun tunedHeap(context: Context, configured: Int, gameDir: File): Int {
+        if (Architecture.is32BitsDevice) return configured
+        val mods = File(gameDir, "mods").listFiles { file -> file.name.endsWith(".jar") }?.size ?: 0
+        val shaders = File(gameDir, "shaderpacks").listFiles()?.any { !it.name.endsWith(".txt") } == true
+        val wanted = when {
+            mods >= 250 -> 6144
+            mods >= 150 -> 5120
+            mods >= 80 -> 4096
+            mods >= 30 -> 3072
+            else -> 0
+        } + if (shaders && mods >= 30) 512 else 0
+        val deviceRam = getTotalMemory(context).bytesToMB().toInt()
+        // Leave more than half of the phone to Android, the GPU driver and the renderer
+        val ceiling = (deviceRam * 0.45).toInt()
+        val heap = maxOf(configured, min(wanted, ceiling))
+        if (heap != configured) Logger.info(TAG, "Raised heap to ${heap}M for $mods mods${if (shaders) " and shaders" else ""}")
+        return heap
+    }
+
+    /**
+     * G1 tuned for short pauses unless the user picked a collector. Fewer and shorter GC
+     * pauses are most of the frame drops with many mods.
+     */
+    fun gcArgs(userArgs: List<String>, heap: Int): List<String> {
+        if (userArgs.any { it.startsWith("-XX:+Use") && it.endsWith("GC") }) return emptyList()
+        return listOf(
+            "-XX:+UseG1GC",
+            "-XX:+UnlockExperimentalVMOptions",
+            "-XX:MaxGCPauseMillis=37",
+            "-XX:G1NewSizePercent=23",
+            "-XX:G1ReservePercent=20",
+            "-XX:G1HeapRegionSize=${if (heap >= 4096) 16 else 8}M",
+            "-XX:InitiatingHeapOccupancyPercent=20",
+            "-XX:+ParallelRefProcEnabled",
+            "-XX:+DisableExplicitGC",
+            "-XX:+PerfDisableSharedMem"
+        )
+    }
+
+    /**
+     * Frame rate options from the launcher settings written into options.txt before each launch.
+     * @param cap 0 leaves the game setting alone, 260 is unlimited
+     */
+    fun applyFpsOptions(gameDir: File, cap: Int, disableVsync: Boolean) {
+        if (cap <= 0 && !disableVsync) return
+        val options = File(gameDir, "options.txt")
+        runCatching {
+            val lines = if (options.exists()) options.readLines().toMutableList() else mutableListOf()
+            fun put(key: String, value: String) {
+                val index = lines.indexOfFirst { it.startsWith("$key:") }
+                if (index >= 0) lines[index] = "$key:$value" else lines.add("$key:$value")
+            }
+            if (cap > 0) put("maxFps", cap.toString())
+            if (disableVsync) put("enableVsync", "false")
+            if (!gameDir.isDirectory && !gameDir.mkdirs()) return
+            options.writeText(lines.joinToString("\n", postfix = "\n"))
+        }.onFailure {
+            Logger.warning(TAG, "Could not write fps options", it)
+        }
+    }
+
+    /**
      * Give a fresh game folder lighter video settings on phones that are not high end, so the
      * first launch is playable. Never touches an existing options.txt.
      */

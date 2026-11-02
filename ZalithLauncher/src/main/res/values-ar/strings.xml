@@ -596,4 +596,25 @@
     <string name="fm_property_modified">تم تعديله</string>
     <string name="fm_property_size">الحجم</string>
     <string name="fm_property_type">النوع</string>
+
+    <string name="game_color_profile_title">نمط الألوان</string>
+    <string name="game_color_profile_natural">طبيعي</string>
+    <string name="game_color_profile_deep">عميق (يصلح الألوان الباهتة)</string>
+    <string name="game_color_profile_vivid">زاهي</string>
+    <string name="game_color_profile_log">Log (مسطح)</string>
+    <string name="game_color_profile_cinematic">سينمائي</string>
+    <string name="game_color_profile_cool">بارد</string>
+    <string name="game_color_brightness">السطوع</string>
+    <string name="game_color_contrast">التباين</string>
+    <string name="game_color_saturation">التشبع</string>
+    <string name="game_color_reset">إرجاع الألوان</string>
+
+    <string name="settings_ona_fps_cap_title">حد الفريمات</string>
+    <string name="settings_ona_fps_cap_summary">ينكتب بإعدادات اللعبة كل تشغيل. حد أقل شوي من معدل تحديث الشاشة بخلي الفريمات ثابتة والجهاز أبرد</string>
+    <string name="settings_ona_fps_cap_off">اللعبة تقرر</string>
+    <string name="settings_ona_fps_cap_unlimited">بلا حد</string>
+    <string name="settings_ona_disable_vsync_title">إطفاء VSync إجباري</string>
+    <string name="settings_ona_disable_vsync_summary">VSync مع مترجمات GLES بينزل الفريمات للنص لما يتأخر فريم، إطفاؤه بشيل هالهبوط</string>
+    <string name="settings_ona_auto_memory_title">ذاكرة ذكية</string>
+    <string name="settings_ona_auto_memory_summary">بزيد الذاكرة للمودباكات الكبيرة والشيدرات (لحد 45% من رام الجهاز) وبضبط جامع القمامة لتقطيع وكراشات أقل</string>
 </resources>

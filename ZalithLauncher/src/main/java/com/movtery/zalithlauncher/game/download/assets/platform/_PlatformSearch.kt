@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.download.assets.platform
 
 import android.util.Log
+import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.addons.mirror.MirrorPriority
 import com.movtery.zalithlauncher.game.addons.mirror.resolveMirrorPriority
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
@@ -106,12 +107,17 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
     throw lastException ?: IllegalStateException("Should not have executed to this stage.")
 }
 
+private fun hasCurseForgeApiKey(): Boolean =
+    AllSettings.curseForgeApiKey.getValue().isNotBlank() || BuildKeys.CURSEFORGE_API.isNotBlank()
+
 /**
  * 镜像源只能在中国地区使用
  */
 fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
+    // ONA: without an API key the official API answers 403, MCIM serves the same data keyless
+    if (!hasCurseForgeApiKey()) return listOf(mirrorCurseForgeSearcher, curseForgeSearcher)
     val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
     val mirrorSource = mirrorCurseForgeSearcher.takeIf { enabledMirror }
     return when (source) {

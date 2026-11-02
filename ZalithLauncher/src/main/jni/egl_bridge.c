@@ -102,7 +102,9 @@ EXTERNAL_API void* pojavGetCurrentContext() {
     if (pojav_environ->config_renderer == RENDERER_VIRGL)
         return virglGetCurrentContext();
 
-    return br_get_current();
+    // SDL (26.x) creates the context itself, the bridge table may never have been set up
+    if (br_get_current != NULL) return br_get_current();
+    return eglGetCurrentContext_p != NULL ? eglGetCurrentContext_p() : NULL;
 }
 
 static void set_vulkan_ptr(void* ptr) {

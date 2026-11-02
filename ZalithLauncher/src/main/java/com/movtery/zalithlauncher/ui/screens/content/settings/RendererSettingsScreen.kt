@@ -345,6 +345,41 @@ fun RendererSettingsScreen(
                         summary = stringResource(R.string.settings_renderer_max_refresh_rate_summary)
                     )
 
+                    val fpsOff = stringResource(R.string.settings_ona_fps_cap_off)
+                    val fpsUnlimited = stringResource(R.string.settings_ona_fps_cap_unlimited)
+                    IntSliderSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.gameFpsCap,
+                        title = stringResource(R.string.settings_ona_fps_cap_title),
+                        summary = stringResource(R.string.settings_ona_fps_cap_summary),
+                        valueRange = AllSettings.gameFpsCap.floatRange,
+                        steps = 25,
+                        valueText = { value ->
+                            when (value.toInt()) {
+                                0 -> fpsOff
+                                260 -> fpsUnlimited
+                                else -> "${value.toInt()} FPS"
+                            }
+                        }
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.gameDisableVsync,
+                        title = stringResource(R.string.settings_ona_disable_vsync_title),
+                        summary = stringResource(R.string.settings_ona_disable_vsync_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.autoTuneMemory,
+                        title = stringResource(R.string.settings_ona_auto_memory_title),
+                        summary = stringResource(R.string.settings_ona_auto_memory_summary)
+                    )
+
                     if (checkVulkanSupport(LocalContext.current.packageManager)) {
                         var adrenoGPUAlert by remember { mutableStateOf(false) }
 

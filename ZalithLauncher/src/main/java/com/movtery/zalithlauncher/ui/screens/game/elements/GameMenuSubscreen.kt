@@ -59,6 +59,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
+import com.movtery.zalithlauncher.setting.enums.GameColorProfile
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
@@ -356,6 +357,73 @@ private fun GameActionContent(
                 color = color,
                 contentColor = contentColor,
             )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // ONA: colour grading, applied live
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                MenuListLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.game_color_profile_title),
+                    items = GameColorProfile.entries,
+                    currentItem = AllSettings.gameColorProfile.state,
+                    onItemChange = { AllSettings.gameColorProfile.save(it) },
+                    getItemText = { stringResource(it.nameRes) },
+                    color = color,
+                    contentColor = contentColor,
+                )
+                MenuSliderLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.game_color_brightness),
+                    value = AllSettings.gameBrightness.state,
+                    valueRange = AllSettings.gameBrightness.floatRange,
+                    onValueChange = { AllSettings.gameBrightness.updateState(it) },
+                    onValueChangeFinished = { AllSettings.gameBrightness.save(it) },
+                    color = color,
+                    contentColor = contentColor,
+                )
+                MenuSliderLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.game_color_contrast),
+                    value = AllSettings.gameContrast.state,
+                    valueRange = AllSettings.gameContrast.floatRange,
+                    onValueChange = { AllSettings.gameContrast.updateState(it) },
+                    onValueChangeFinished = { AllSettings.gameContrast.save(it) },
+                    suffix = "%",
+                    color = color,
+                    contentColor = contentColor,
+                )
+                MenuSliderLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.game_color_saturation),
+                    value = AllSettings.gameSaturation.state,
+                    valueRange = AllSettings.gameSaturation.floatRange,
+                    onValueChange = { AllSettings.gameSaturation.updateState(it) },
+                    onValueChangeFinished = { AllSettings.gameSaturation.save(it) },
+                    suffix = "%",
+                    color = color,
+                    contentColor = contentColor,
+                )
+                MenuTextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.game_color_reset),
+                    onClick = {
+                        AllSettings.gameColorProfile.save(GameColorProfile.NATURAL)
+                        AllSettings.gameBrightness.save(0)
+                        AllSettings.gameContrast.save(100)
+                        AllSettings.gameSaturation.save(100)
+                    },
+                    color = color,
+                    contentColor = contentColor,
+                )
+            }
         }
 
         item {

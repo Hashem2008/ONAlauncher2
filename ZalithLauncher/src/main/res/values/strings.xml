@@ -3050,4 +3050,27 @@
     <string name="guide_tip_blank">Tap any blank area to continue to the next step</string>
     <!-- Next-step hint shown near a screen corner during the final guide step; tapping any blank area finishes the whole guide -->
     <string name="guide_tip_finish">Tap any blank area to finish the guide</string>
+
+    <!-- ONA: in-game colour grading -->
+    <string name="game_color_profile_title">Color Profile</string>
+    <string name="game_color_profile_natural">Natural</string>
+    <string name="game_color_profile_deep">Deep (fix washed out)</string>
+    <string name="game_color_profile_vivid">Vivid</string>
+    <string name="game_color_profile_log">Log (flat)</string>
+    <string name="game_color_profile_cinematic">Cinematic</string>
+    <string name="game_color_profile_cool">Cool</string>
+    <string name="game_color_brightness">Brightness</string>
+    <string name="game_color_contrast">Contrast</string>
+    <string name="game_color_saturation">Saturation</string>
+    <string name="game_color_reset">Reset colors</string>
+
+    <!-- ONA: frame rate and memory -->
+    <string name="settings_ona_fps_cap_title">FPS Limit</string>
+    <string name="settings_ona_fps_cap_summary">Written to the game options on every launch. A cap a bit under your screen refresh rate keeps frame times steady and the phone cooler</string>
+    <string name="settings_ona_fps_cap_off">Game decides</string>
+    <string name="settings_ona_fps_cap_unlimited">Unlimited</string>
+    <string name="settings_ona_disable_vsync_title">Force VSync Off</string>
+    <string name="settings_ona_disable_vsync_summary">VSync on GLES wrappers halves the frame rate when a frame misses the refresh, turning it off removes those drops</string>
+    <string name="settings_ona_auto_memory_title">Smart Memory</string>
+    <string name="settings_ona_auto_memory_summary">Grows the memory for big modpacks and shaders (up to 45% of the phone RAM) and tunes the garbage collector for shorter pauses, less crashing and stutter</string>
 </resources>

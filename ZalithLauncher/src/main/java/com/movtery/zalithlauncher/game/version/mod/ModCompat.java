@@ -59,6 +59,8 @@ public class ModCompat {
     public static class Dependency {
         public String modId, range;
         boolean fabricStyle;
+        /** Metadata it came from: fabric, forge or neoforge (multi-loader jars carry several) */
+        String source;
     }
 
     public static class ModInfo {
@@ -232,6 +234,7 @@ public class ModCompat {
         Dependency dependency = new Dependency();
         dependency.modId = modId;
         dependency.range = table.containsKey("versionRange") ? table.get("versionRange") : "";
+        dependency.source = neoforge ? "neoforge" : "forge";
         info.dependencies.add(dependency);
     }
 
@@ -257,6 +260,7 @@ public class ModCompat {
             Dependency dependency = new Dependency();
             dependency.modId = entry.getKey();
             dependency.fabricStyle = true;
+            dependency.source = "fabric";
             JsonElement value = entry.getValue();
             if (value.isJsonArray()) {
                 // Any of the listed predicates may match
@@ -345,8 +349,9 @@ public class ModCompat {
         if (predicate.startsWith("~") || predicate.startsWith("^")) {
             String base = predicate.substring(1);
             if (compareVersions(version, base) < 0) return false;
-            String[] parts = base.split("\\.");
-            String[] own = version.split("\\.");
+            // "~26.3-" means 26.3 and its pre-releases: only the release part has to line up
+            String[] parts = base.replaceFirst("[-+].*$", "").split("\\.");
+            String[] own = version.replaceFirst("[-+].*$", "").split("\\.");
             int fixedParts = predicate.startsWith("^") ? 1 : Math.min(2, parts.length);
             for (int i = 0; i < fixedParts && i < parts.length; i++) {
                 if (i >= own.length || !own[i].equals(parts[i])) return false;
@@ -365,6 +370,17 @@ public class ModCompat {
         return dependency.fabricStyle ? matchesFabricRange(version, dependency.range) : matchesMavenRange(version, dependency.range);
     }
 
+    /** Only the metadata the running loader reads counts, a Fabric+NeoForge jar must not need NeoForge on Fabric */
+    private static boolean appliesTo(Dependency dependency, ModInfo info, Environment environment) {
+        if (environment.loader == null || dependency.source == null) return true;
+        switch (environment.loader) {
+            case "forge": return dependency.source.equals("forge");
+            case "neoforge": return dependency.source.equals("neoforge")
+                    || dependency.source.equals("forge") && !info.hasNeoforgeToml;
+            default: return dependency.source.equals("fabric");
+        }
+    }
+
     // ---- Checking ----
 
     /** @return the first problem that prevents this jar from loading on the environment, or null */
@@ -373,6 +389,7 @@ public class ModCompat {
         Problem wrongLoader = checkLoader(info, environment);
         if (wrongLoader != null) return wrongLoader;
         for (Dependency dependency : info.dependencies) {
+            if (!appliesTo(dependency, info, environment)) continue;
             String actual = null;
             if (dependency.modId.equals("minecraft")) actual = environment.gameVersion;
             else if (environment.loaderVersion != null && isLoaderId(dependency.modId, environment.loader)) actual = environment.loaderVersion;
@@ -455,6 +472,7 @@ public class ModCompat {
                 continue;
             }
             for (Dependency dependency : info.dependencies) {
+                if (!appliesTo(dependency, info, environment)) continue;
                 String id = dependency.modId;
                 if (provided.contains(id) || isFabricApiModule(id) && provided.contains("fabric-api")) continue;
                 if (!reportedMissing.add(id)) continue;
@@ -479,6 +497,8 @@ public class ModCompat {
     public static int fix(Problem problem, File modsDir, Environment environment) {
         try {
             if (problem.kind == PROBLEM_MISSING) {
+                // A jar the user (or an older fix) disabled may already provide it
+                if (reenableProvider(problem.requiredId, modsDir, environment)) return FIX_REPLACED;
                 String projectId = findProjectForModId(problem.requiredId, environment);
                 if (projectId == null) return FIX_FAILED;
                 File installed = installCompatible(projectId, modsDir, environment, problem.requiredId);
@@ -501,6 +521,20 @@ public class ModCompat {
             Log.w(TAG, "Fix failed for " + problem.modName, e);
             return FIX_FAILED;
         }
+    }
+
+    private static boolean reenableProvider(String modId, File modsDir, Environment environment) {
+        File[] disabled = modsDir.listFiles((dir, name) -> name.endsWith(".jar.disabled"));
+        if (disabled == null) return false;
+        for (File file : disabled) {
+            ModInfo info = read(file);
+            if (info == null || checkCompatible(info, environment) != null) continue;
+            if (!info.providedIds.contains(modId) && !(isFabricApiModule(modId) && info.providedIds.contains("fabric-api"))) continue;
+            String name = file.getName();
+            File enabled = new File(modsDir, name.substring(0, name.length() - ".disabled".length()));
+            if (!enabled.exists() && file.renameTo(enabled)) return true;
+        }
+        return false;
     }
 
     @Nullable

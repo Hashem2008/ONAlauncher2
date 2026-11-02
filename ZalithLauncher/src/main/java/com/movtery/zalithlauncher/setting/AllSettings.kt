@@ -31,6 +31,7 @@ import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
 import com.movtery.zalithlauncher.setting.enums.AppLanguage
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
+import com.movtery.zalithlauncher.setting.enums.GameColorProfile
 import com.movtery.zalithlauncher.setting.enums.DarkMode
 import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
@@ -103,6 +104,33 @@ object AllSettings : SettingsRegistry() {
      * 持续性能模式
      */
     val sustainedPerformance = boolSetting("sustainedPerformance", false)
+
+    /**
+     * ONA: colour profile the game picture is graded with
+     */
+    val gameColorProfile = enumSetting("gameColorProfile", GameColorProfile.NATURAL)
+
+    /**
+     * ONA: picture brightness, contrast and saturation on top of the profile
+     */
+    val gameBrightness = intSetting("gameBrightness", 0, -50..50)
+    val gameContrast = intSetting("gameContrast", 100, 50..150)
+    val gameSaturation = intSetting("gameSaturation", 100, 0..200)
+
+    /**
+     * ONA: frame rate cap written to options.txt on launch, 0 leaves it alone, 260 is unlimited
+     */
+    val gameFpsCap = intSetting("gameFpsCap", 0, 0..260)
+
+    /**
+     * ONA: force VSync off in options.txt on launch
+     */
+    val gameDisableVsync = boolSetting("gameDisableVsync", true)
+
+    /**
+     * ONA: grow the heap and tune the GC for big modpacks and shaders
+     */
+    val autoTuneMemory = boolSetting("autoTuneMemory", true)
 
     /**
      * ONA: device based resolution default already applied

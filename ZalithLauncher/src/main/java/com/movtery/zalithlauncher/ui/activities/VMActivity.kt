@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.activities
 
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
+import com.movtery.zalithlauncher.utils.device.GameColorFilter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -1020,6 +1021,17 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                     }.also { texture ->
                         gameTextureView = texture
                     }
+                },
+                update = { texture ->
+                    // ONA: live colour grading of the game picture
+                    texture.setLayerPaint(
+                        GameColorFilter.paint(
+                            profile = AllSettings.gameColorProfile.state,
+                            brightness = AllSettings.gameBrightness.state,
+                            contrast = AllSettings.gameContrast.state,
+                            saturation = AllSettings.gameSaturation.state
+                        )
+                    )
                 }
             )
 
