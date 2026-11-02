@@ -49,4 +49,25 @@
     <string name="ona_device_recommended">أفضل إعدادات: الدقة %1$d%% + %2$s، الدرايفر %3$s، مسافة الرؤية حتى %4$d، حوالي %5$d مود تشتغل بأريحية، شيدرز حتى %6$s. العارض: ONA الذكي يختاره لكل نسخة.</string>
     <string name="ona_device_apply">طبّق أفضل إعدادات</string>
     <string name="ona_device_applied">تم تطبيق أفضل إعدادات</string>
+    <string name="ona_crash_header">طبيب الكراش من ONA:</string>
+    <string name="ona_crash_renderer">اللعبة كرشت داخل العارض أو درايفر كرت الشاشة</string>
+    <string name="ona_crash_renderer_fix">مع العارض الذكي ONA، التشغيل الجاي لهاي النسخة رح يجرب عارض ثاني تلقائياً. إذا أنت مختار عارض بنفسك، غيّره لـ ONA الذكي أو عارض ثاني من إعدادات النسخة. تنزيل نسبة الدقة وإطفاء الشيدرز بساعد كمان.</string>
+    <string name="ona_crash_native">اللعبة كرشت بكود نيتف</string>
+    <string name="ona_crash_native_fix">غالباً من العارض أو الدرايفر أو مود فيه كود نيتف. جرب عارض ثاني (ONA الذكي بغيّر تلقائياً)، وبعدين شيل آخر مودات نزلتها.</string>
+    <string name="ona_crash_oom">الرام خلصت على اللعبة</string>
+    <string name="ona_crash_oom_fix">زيد الرام من إعدادات النسخة (أو شغّل الذاكرة الذكية)، نزّل مسافة الرؤية، أو شيل مودات أو شيدرز ثقيلة.</string>
+    <string name="ona_crash_heap">الرام المعطاة للعبة أكثر من اللي يقدر الجهاز يحجزه</string>
+    <string name="ona_crash_heap_fix">قلّل الرام من الإعدادات، سكّر التطبيقات الثانية، وشغّل مرة ثانية.</string>
+    <string name="ona_crash_missing">في مودات ناقصها متطلبات</string>
+    <string name="ona_crash_missing_fix">شغّل مرة ثانية: ONA بنزّل المتطلبات الناقصة تلقائياً قبل ما تشتغل اللعبة. إذا ضلت ناقصة، المود مش متوفر لهاي النسخة أو اللودر.</string>
+    <string name="ona_crash_duplicate">نفس المود منزّل مرتين</string>
+    <string name="ona_crash_duplicate_fix">افتح مدير المودات واحذف النسخة الأقدم.</string>
+    <string name="ona_crash_mixin">مودين متعارضين (خطأ mixin)</string>
+    <string name="ona_crash_mixin_fix">حدّث أو احذف المود المذكور، ما بزبط مع مود ثاني أو مع نسخة اللعبة.</string>
+    <string name="ona_crash_java">نسخة جافا غلط لهاي اللعبة أو المود</string>
+    <string name="ona_crash_java_fix">شغّل الاختيار التلقائي للجافا، أو اختار جافا أحدث من إعدادات النسخة.</string>
+    <string name="ona_crash_graphics">العارض ما قدر يفتح نافذة اللعبة</string>
+    <string name="ona_crash_graphics_fix">هذا العارض ما بدعم نسخة اللعبة. استخدم ONA الذكي أو عارض ثاني (MobileGlues للنسخ الجديدة، GL4ES للقديمة).</string>
+    <string name="ona_crash_shader">حزمة الشيدرز ما اشتغلت</string>
+    <string name="ona_crash_shader_fix">اختار شيدرز أخف، حدّث Iris / Oculus، أو استخدم عارض MobileGlues.</string>
 </resources>

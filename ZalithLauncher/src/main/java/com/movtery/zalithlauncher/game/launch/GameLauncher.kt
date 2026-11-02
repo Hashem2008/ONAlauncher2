@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.launch
 
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
+import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import android.app.Activity
@@ -204,7 +205,7 @@ class GameLauncher(
         // ONA: the bundled Turnip only on the Adreno generations it is known good on, the
         // system Vulkan driver on newer Adreno, Mali, Xclipse and PowerVR
         if (AllSettings.smartDriver.getValue() && version.getDriver() == AllSettings.vulkanDriver.defaultValue) {
-            DeviceProfiler.peek()?.let { profile ->
+            DeviceProfiler.current()?.let { profile ->
                 if (!profile.turnipRecommended) envMap["POJAV_ZINK_PREFER_SYSTEM_DRIVER"] = "1"
             }
         }
@@ -361,6 +362,13 @@ class GameLauncher(
         appendInfo("Custom Java arguments: $javaArguments")
         appendInfo("Java Runtime: $javaRuntime")
         appendInfo("Account: ${usingAccount.username} (${usingAccount.accountType})")
+        // ONA: what the smart features decided, so a shared log explains itself
+        DeviceProfiler.current()?.let { profile ->
+            appendInfo("ONA Device: ${profile.socName} | ${profile.gpuName} | ${profile.ramMb} MB | ${profile.tier} (${profile.score})")
+            appendInfo("ONA Vulkan driver: ${if (profile.turnipRecommended || !AllSettings.smartDriver.getValue()) "launcher setting" else "system (smart)"}")
+        }
+        if (version.usesSmartRenderer()) appendInfo("ONA Smart renderer: ${SmartRenderer.lastReason}")
+        appendInfo("ONA Upscaler: ${AllSettings.upscalerMode.getValue()} (sharpness ${AllSettings.upscalerSharpness.getValue()}%), resolution ${AllSettings.resolutionRatio.getValue()}%")
     }
 
     /**

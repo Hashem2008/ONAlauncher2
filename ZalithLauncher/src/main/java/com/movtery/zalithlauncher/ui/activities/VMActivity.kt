@@ -21,6 +21,8 @@ package com.movtery.zalithlauncher.ui.activities
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import com.movtery.zalithlauncher.utils.device.GameColorFilter
 import com.movtery.zalithlauncher.utils.device.GameUpscaler
+import com.movtery.zalithlauncher.game.launch.CrashDoctor
+import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -236,6 +238,18 @@ class VMViewModel : ViewModel() {
                             val finishedCount = AllSettings.finishedGame.getValue()
                             if (finishedCount < Int.MAX_VALUE)  {
                                 AllSettings.finishedGame.save(finishedCount + 1)
+                            }
+                        } else {
+                            // ONA: a native crash in the renderer makes ONA Smart try the next
+                            // suitable renderer on the next launch of this version
+                            runCatching {
+                                val version = config.version
+                                if (version.usesSmartRenderer() && Renderers.isCurrentRendererValid()) {
+                                    val diagnosis = CrashDoctor.analyze(version.getLatestLog(), version.getGameDir())
+                                    if (diagnosis?.rendererSuspect == true) {
+                                        SmartRenderer.recordCrash(version, Renderers.getCurrentRenderer().getUniqueIdentifier())
+                                    }
+                                }
                             }
                         }
                         exitListener(code, isSignal)
@@ -494,7 +508,8 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                     val logPath = withLauncher {
                         getLogFile().absolutePath
                     }
-                    showExitMessage(this@VMActivity, exitCode, isSignal, logPath)
+                    val gameDir = runCatching { withLauncher { chdir() } }.getOrNull()
+                    showExitMessage(this@VMActivity, exitCode, isSignal, logPath, gameDir)
                 } else {
                     //重启启动器
                     ProcessPhoenix.triggerRebirth(this@VMActivity)

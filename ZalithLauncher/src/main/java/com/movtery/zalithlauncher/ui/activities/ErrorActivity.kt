@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
+import com.movtery.zalithlauncher.game.launch.CrashDoctor
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.main.ErrorScreen
@@ -61,13 +62,14 @@ fun showExitMessage(
     context: Context,
     code: Int,
     isSignal: Boolean,
-    logPath: String
+    logPath: String,
+    gameDir: String? = null
 ) {
     val intent = Intent(context, ErrorActivity::class.java).apply {
         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         putExtra(BUNDLE_EXIT_TYPE, EXIT_JVM)
-        putExtra(BUNDLE_JVM_CRASH, JvmCrash(code, isSignal, logPath))
+        putExtra(BUNDLE_JVM_CRASH, JvmCrash(code, isSignal, logPath, gameDir))
     }
     context.startActivity(intent)
 }
@@ -76,7 +78,8 @@ fun showExitMessage(
 private data class JvmCrash(
     val code: Int,
     val isSignal: Boolean,
-    val logPath: String
+    val logPath: String,
+    val gameDir: String? = null
 ): Parcelable
 
 @AndroidEntryPoint
@@ -100,7 +103,11 @@ class ErrorActivity : BaseAppCompatActivity() {
                 val jvmCrash = extras.getParcelableSafely(BUNDLE_JVM_CRASH, JvmCrash::class.java) ?: return runFinish()
                 val messageResId = if (jvmCrash.isSignal) R.string.crash_singnal_message else R.string.crash_exit_message
                 val message = getString(messageResId, jvmCrash.code)
-                val messageBody = getString(R.string.crash_exit_note)
+                // ONA: say what went wrong and how to fix it before the generic note
+                val diagnosis = CrashDoctor.analyze(File(jvmCrash.logPath), jvmCrash.gameDir?.let { File(it) })
+                val messageBody = diagnosis?.let {
+                    getString(R.string.ona_crash_header) + "\n" + it.describe(this) + "\n\n" + getString(R.string.crash_exit_note)
+                } ?: getString(R.string.crash_exit_note)
                 ErrorMessage(
                     message = message,
                     messageBody = messageBody,

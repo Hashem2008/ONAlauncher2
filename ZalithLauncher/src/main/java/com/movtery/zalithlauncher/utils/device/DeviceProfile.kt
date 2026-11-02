@@ -22,6 +22,7 @@ import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.GLES20
 import android.os.Build
+import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.platform.bytesToMB
 import com.movtery.zalithlauncher.utils.platform.getTotalMemory
@@ -78,6 +79,12 @@ object DeviceProfiler {
 
     /** Null until [get] ran once, for callers that must not block */
     fun peek(): DeviceProfile? = cached
+
+    /**
+     * [peek], or read it now from the app context. After the first start the GPU strings come
+     * from a cache file, so this never creates a GL context in the game process.
+     */
+    fun current(): DeviceProfile? = cached ?: runCatching { get(GlobalContext) }.getOrNull()
 
     private fun build(context: Context): DeviceProfile {
         val (vendorString, rendererString) = cachedGlStrings(context)

@@ -59,7 +59,7 @@ object SmartRenderer : RendererInterface {
         val shaderMod = modNames.any { name -> SHADER_MODS.any { name.contains(it) } }
         val shaderPacks = File(gameDir, "shaderpacks").listFiles()?.any { !it.name.endsWith(".txt") } == true
         val shaders = shaderMod || shaderPacks && modNames.any { name -> SODIUM_LIKE.any { name.contains(it) } }
-        val profile = DeviceProfiler.peek()
+        val profile = DeviceProfiler.current()
         val goodVulkan = profile?.let { it.vulkan && it.turnipRecommended } ?: false
 
         val candidates = buildList {
@@ -83,12 +83,48 @@ object SmartRenderer : RendererInterface {
             add(NGGL4ESRenderer)
         }
         val available = Renderers.getRenderers()
-        val chosen = candidates.firstOrNull { renderer ->
+        val usable = candidates.distinct().filter { renderer ->
             available.any { it.getUniqueIdentifier() == renderer.getUniqueIdentifier() } &&
                     renderer.getMinMCVersion()?.let { mc.isLowerVer(it) } != true &&
                     renderer.getMaxMCVersion()?.let { mc.isBiggerVer(it) } != true
-        } ?: candidates.first()
-        Logger.info(TAG, "${version.getVersionName()} ($mc, shaders=$shaders, vulkan=$goodVulkan) -> ${chosen.getRendererName()}")
+        }
+        // Skip the renderers that already crashed natively on this version
+        val crashed = crashedRenderers(version)
+        val chosen = usable.firstOrNull { it.getUniqueIdentifier() !in crashed }
+            ?: usable.firstOrNull()
+            ?: candidates.first()
+        if (usable.isNotEmpty() && usable.all { it.getUniqueIdentifier() in crashed }) {
+            // Everything crashed once: start over instead of being stuck
+            clearCrashes(version)
+        }
+        lastReason = "${version.getVersionName()} ($mc, shaders=$shaders, vulkan=$goodVulkan, skipped=${crashed.size}) -> ${chosen.getRendererName()}"
+        Logger.info(TAG, lastReason)
         return chosen.getUniqueIdentifier()
+    }
+
+    /** Why the last choice was made, printed in the launch log */
+    @Volatile var lastReason: String = ""
+        private set
+
+    private fun crashFile(version: Version) = File(version.getVersionPath(), "ona_crashed_renderers.txt")
+
+    private fun crashedRenderers(version: Version): Set<String> =
+        runCatching { crashFile(version).readLines().map { it.trim() }.filter { it.isNotEmpty() }.toSet() }.getOrDefault(emptySet())
+
+    private fun clearCrashes(version: Version) {
+        runCatching { crashFile(version).delete() }
+    }
+
+    /**
+     * The game crashed inside the renderer or the driver: the next launch of this version with
+     * ONA Smart moves on to the next renderer that suits it.
+     */
+    fun recordCrash(version: Version, rendererId: String) {
+        if (rendererId == ID) return
+        runCatching {
+            val known = crashedRenderers(version)
+            if (rendererId !in known) crashFile(version).appendText("$rendererId\n")
+            Logger.info(TAG, "Marked $rendererId as crashing on ${version.getVersionName()}")
+        }
     }
 }

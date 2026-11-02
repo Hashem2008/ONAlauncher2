@@ -212,6 +212,12 @@ class Version(
      * The renderer this version starts with. ONA Smart (also the default when nothing was
      * picked) is resolved here to the bundled renderer that suits the version, mods and GPU.
      */
+    /** ONA Smart picks the renderer for this version (also when none was chosen) */
+    fun usesSmartRenderer(): Boolean {
+        val configured = versionConfig.renderer.getValueOrDefault(AllSettings.renderer.getValue())
+        return configured.isEmpty() || configured == SmartRenderer.ID
+    }
+
     fun getRenderer(): String {
         val configured = versionConfig.renderer.getValueOrDefault(AllSettings.renderer.getValue())
         return if (configured.isEmpty() || configured == SmartRenderer.ID) SmartRenderer.choose(this) else configured
