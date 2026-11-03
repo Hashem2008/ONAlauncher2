@@ -131,7 +131,8 @@ ONA HYBRID (2026-11-04, on main)
   * gl4esTuning(): LIBGL_PSA_FOLDER = filesDir/gl4es (shader archive on internal storage), only with
     Hybrid + GL4ES family. Wired in GameLauncher.setRendererEnv.
   * Strings "ONA Smart" -> "ONA Hybrid" (EN + AR).
-  Not tested on a device.
+  Commit 13a8e82: CI run 41729617967 SUCCESS (APK given to the user). Not tested on a device yet:
+  ask for a log, it must show the line "ONA Hybrid renderer: ...".
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
