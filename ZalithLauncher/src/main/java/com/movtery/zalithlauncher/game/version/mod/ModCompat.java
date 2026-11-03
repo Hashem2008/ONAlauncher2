@@ -495,7 +495,8 @@ public class ModCompat {
 
     /** Try to fix one problem. Network heavy, call off the UI thread. */
     public static int fix(Problem problem, File modsDir, Environment environment) {
-        return fix(problem, modsDir, environment, true);
+        // ONA never switches a mod off: only add requirements or swap in a build that fits
+        return fix(problem, modsDir, environment, false);
     }
 
     /**

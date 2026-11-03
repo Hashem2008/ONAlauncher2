@@ -21,6 +21,7 @@ import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
+import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
@@ -97,7 +98,10 @@ object SmartRenderer : RendererInterface {
             if (anyVulkan) add(KopperZinkRenderer)
         }
         val available = Renderers.getRenderers()
+        // Render mods that break the GL4ES family keep running: pick another renderer for them
+        val avoidGl4es = MobileModRules.avoidGl4es(version)
         val usable = candidates.distinct().filter { renderer ->
+            !(avoidGl4es && MobileModRules.isGl4esFamily(renderer)) &&
             available.any { it.getUniqueIdentifier() == renderer.getUniqueIdentifier() } &&
                     renderer.getMinMCVersion()?.let { mc.isLowerVer(it) } != true &&
                     renderer.getMaxMCVersion()?.let { mc.isBiggerVer(it) } != true

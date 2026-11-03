@@ -33,12 +33,13 @@ import java.io.File
  * attributes onto its fixed function array slots; the next ordinary draw then reads past the
  * end of a buffer and the GPU driver crashes in memmove under glDrawArrays.
  *
+ * Mods are never switched off or deleted:
  *  - Nothirium is made compatible: under a GL4ES renderer its config is switched to the GL15
  *    engine, plain client state arrays exactly like vanilla 1.12, which GL4ES handles well.
- *    The original setting comes back with any other renderer. Only if it still crashes with
- *    GL15 is it switched off.
- *  - Vintagium and Celeritas (Sodium ports that need modern GL) are switched off under a GL4ES
- *    renderer (renamed to *.jar.ona-off) and come back with any other renderer.
+ *    The original setting comes back with any other renderer. If it still crashes on GL15,
+ *    ONA Smart moves the version to Kopper Zink / MobileGlues.
+ *  - Vintagium and Celeritas (Sodium ports that need modern GL) make ONA Smart pick Kopper
+ *    Zink / MobileGlues for the version instead of a GL4ES renderer.
  */
 object MobileModRules {
     private const val TAG = "MobileModRules"
@@ -95,14 +96,14 @@ object MobileModRules {
     }
 
     /**
-     * The game crashed in the renderer: if Nothirium ran on the GL15 engine we set, it is not
-     * enough for this version and the next launch switches it off instead.
+     * The game crashed in the renderer: if Nothirium ran on the GL15 engine we set, that is not
+     * enough for this version and ONA Smart stops using GL4ES renderers for it.
      */
     fun onRendererCrash(version: Version) {
         runCatching {
             if (nothiriumBackup(version).isFile && riskyMods(version.modsDir()).contains(NOTHIRIUM)) {
                 nothiriumFailedMarker(version).writeText("1")
-                Logger.info(TAG, "Nothirium crashed on GL15 too, it will be switched off")
+                Logger.info(TAG, "Nothirium crashed on GL15 too, GL4ES renderers will be avoided")
             }
         }
     }
@@ -129,51 +130,36 @@ object MobileModRules {
     class Result(val switchedOff: List<String>, val madeCompatible: List<String>)
 
     /**
-     * Make risky render mods safe for a GL4ES based renderer, undo it for any other.
-     * Never leaves a mod off that another mod needs.
+     * The GL4ES family should not run this version: it has a Sodium port that needs modern GL
+     * (Vintagium, Celeritas), or Nothirium crashed there even on its GL15 engine. ONA Smart
+     * then starts it with Kopper Zink or MobileGlues instead, and every mod stays on.
+     */
+    fun avoidGl4es(version: Version): Boolean {
+        val risky = runCatching { riskyMods(version.modsDir()) }.getOrDefault(emptyList())
+        return risky.any { it != NOTHIRIUM } || (NOTHIRIUM in risky && nothiriumFailedMarker(version).exists())
+    }
+
+    /**
+     * Make risky render mods work with the renderer. Mods are never switched off or deleted:
+     * Nothirium gets its GL15 engine under a GL4ES renderer, the others are handled by the
+     * renderer choice ([avoidGl4es]). Jars an older ONA build switched off are put back.
      */
     fun apply(version: Version, renderer: RendererInterface): Result {
         val modsDir = version.modsDir()
         if (!modsDir.isDirectory) return Result(emptyList(), emptyList())
+        restore(modsDir)
         if (!isGl4esFamily(renderer)) {
-            restore(modsDir)
             runCatching { restoreNothiriumEngine(version) }
             return Result(emptyList(), emptyList())
         }
-        // Nothirium: GL15 engine first, off only if that crashed too
         val compatible = mutableListOf<String>()
-        val nothiriumFailed = nothiriumFailedMarker(version).exists()
-        if (!nothiriumFailed && riskyMods(modsDir).contains(NOTHIRIUM)) {
+        if (riskyMods(modsDir).contains(NOTHIRIUM)) {
             runCatching {
                 setNothiriumEngine(version, NOTHIRIUM_SAFE_ENGINE)
                 compatible.add("Nothirium (GL15)")
             }.onFailure { Logger.warning(TAG, "Could not configure Nothirium", it) }
         }
-
-        val disabled = mutableListOf<String>()
-        modsDir.listFiles { file -> file.isFile && file.name.endsWith(".jar") }?.forEach { jar ->
-            val id = riskyId(jar) ?: return@forEach
-            if (id == NOTHIRIUM && !nothiriumFailed) return@forEach
-            val off = File(jar.path + OFF_SUFFIX)
-            if (jar.renameTo(off)) disabled.add(jar.nameWithoutExtension)
-        }
-        if (disabled.isEmpty()) return Result(disabled, compatible)
-
-        // Another mod may hard depend on one of them: then it has to stay
-        val environment = version.modEnvironment()
-        if (environment != null) {
-            val missing = runCatching { ModCompat.analyze(modsDir, environment) }.getOrDefault(emptyList())
-                .filter { it.kind == ModCompat.PROBLEM_MISSING }
-                .map { it.requiredId }
-                .toSet()
-            if (missing.any { it in GL4ES_UNSAFE.keys }) {
-                restore(modsDir)
-                Logger.info(TAG, "Kept risky render mods, other mods need them")
-                return Result(emptyList(), compatible)
-            }
-        }
-        Logger.info(TAG, "Switched off for ${renderer.getRendererName()}: $disabled")
-        return Result(disabled, compatible)
+        return Result(emptyList(), compatible)
     }
 
     private fun restore(modsDir: File) {

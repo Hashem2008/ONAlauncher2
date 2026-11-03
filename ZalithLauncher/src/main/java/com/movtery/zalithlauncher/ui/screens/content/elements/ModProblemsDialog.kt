@@ -90,7 +90,7 @@ private fun describe(context: Context, problem: ModCompat.Problem): String = whe
 /**
  * Lists what would stop the game from loading the version's mods (missing dependencies, wrong
  * game or loader version) that the automatic resolver could not handle, with a Fix button for
- * each one (which may also turn the mod off).
+ * each one (adds requirements or swaps in a build that fits, never turns a mod off).
  * @param onPlay launch anyway; null hides the button
  */
 @Composable

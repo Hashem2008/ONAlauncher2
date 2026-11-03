@@ -23,6 +23,7 @@ import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
 import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.version.mod.ModPerformanceTuner
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
+import com.movtery.zalithlauncher.game.version.mod.VoxyInstaller
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.utils.device.DeviceTier
 import android.widget.Toast
@@ -194,6 +195,14 @@ sealed interface LaunchGameOperation {
         val skipAccountRefresh: Boolean
     ) : LaunchGameOperation
 
+    /** ONA: Voxy is installed but plugins it needs are missing */
+    data class VoxySetup(
+        val version: Version,
+        val quickPlay: QuickPlay?,
+        val skipAccountRefresh: Boolean,
+        val missing: List<VoxyInstaller.Part>
+    ) : LaunchGameOperation
+
     /** ONA: mod problems the automatic resolver could not handle */
     data class ModProblems(
         val version: Version,
@@ -207,7 +216,8 @@ sealed interface LaunchGameOperation {
         val version: Version,
         val quickPlay: QuickPlay?,
         val skipAccountRefresh: Boolean = false,
-        val skipModCheck: Boolean = false
+        val skipModCheck: Boolean = false,
+        val skipVoxyCheck: Boolean = false
     ) : LaunchGameOperation
 }
 
@@ -528,6 +538,25 @@ fun LaunchGameOperation(
                 }
             }
         }
+        is LaunchGameOperation.VoxySetup -> {
+            VoxySetupDialog(
+                missing = operation.missing,
+                onPlay = {
+                    launchGameViewModel.updateOperation(
+                        LaunchGameOperation.RealLaunch(
+                            version = operation.version,
+                            quickPlay = operation.quickPlay,
+                            skipAccountRefresh = operation.skipAccountRefresh,
+                            skipModCheck = true,
+                            skipVoxyCheck = true
+                        )
+                    )
+                },
+                onDismiss = {
+                    launchGameViewModel.updateOperation(LaunchGameOperation.None)
+                }
+            )
+        }
         is LaunchGameOperation.ModProblems -> {
             ModProblemsDialog(
                 version = operation.version,
@@ -570,15 +599,12 @@ fun LaunchGameOperation(
                         )
                     }
                 }
-                // ONA: Voxy needs the Zink + Turnip plugins and its Android compat mod
-                val voxyNotice = withContext(Dispatchers.IO) {
-                    runCatching {
-                        VoxySupport.hasVoxy(version) && (VoxySupport.missingZinkPlugin() ||
-                                VoxySupport.turnipPluginDriverId() == null || !VoxySupport.hasCompatMod(version))
-                    }.getOrDefault(false)
+                // ONA: Voxy's Android compatibility mod goes in by itself
+                val voxyCompatInstalled = withContext(Dispatchers.IO) {
+                    runCatching { VoxyInstaller.ensureCompatMod(version) }.getOrDefault(false)
                 }
-                if (voxyNotice) {
-                    eventViewModel.sendToast(androidText(R.string.ona_voxy_needs_plugins, VoxySupport.GUIDE_URL), Toast.LENGTH_LONG)
+                if (voxyCompatInstalled) {
+                    eventViewModel.sendToast(androidText(R.string.ona_voxy_compat_installed))
                 }
                 // ONA: lighten heavy mods through their configs, or put the configs back
                 val tunedMods = withContext(Dispatchers.IO) {
@@ -600,6 +626,19 @@ fun LaunchGameOperation(
                     if (problems.isNotEmpty()) {
                         launchGameViewModel.updateOperation(
                             LaunchGameOperation.ResolvingMods(version, quickPlay, operation.skipAccountRefresh)
+                        )
+                        return@LaunchedEffect
+                    }
+                }
+                // ONA: Voxy needs the Turnip, Kopper Zink and RocksDB plugins
+                if (!operation.skipVoxyCheck) {
+                    val missing = withContext(Dispatchers.IO) {
+                        runCatching { if (VoxySupport.hasVoxy(version)) VoxyInstaller.missingParts() else emptyList() }
+                            .getOrDefault(emptyList())
+                    }
+                    if (missing.isNotEmpty()) {
+                        launchGameViewModel.updateOperation(
+                            LaunchGameOperation.VoxySetup(version, quickPlay, operation.skipAccountRefresh, missing)
                         )
                         return@LaunchedEffect
                     }

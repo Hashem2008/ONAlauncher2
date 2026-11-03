@@ -76,4 +76,12 @@
     <string name="ona_tune_mods_summary">قبل كل تشغيل بخفف المودات الثقيلة من إعداداتها حسب قوة جهازك: Sound Physics Remastered و 3D Skin Layers و Entity Texture/Model Features و Dynamic Lights و Subtle Effects و Distant Horizons و Embeddium و Create و Supplementaries و Falling Leaves و LambDynamicLights و Effective و Particle Rain. المودات بتضل منزلة وشغالة. الإعدادات الأصلية بتنحفظ وبترجع لما تطفي هذا الخيار (بالتشغيل الجاي).</string>
     <string name="ona_tuned_mods">تم تخفيف هذه المودات لفريمات أعلى: %1$s</string>
     <string name="ona_voxy_needs_plugins">مود Voxy بيحتاج OpenGL 4.6 تبع الكمبيوتر: نزّل إضافات Kopper Zink و Turnip ومود Voxy Android Compatibility من %1$s (لأدرينو 7xx/8xx). ONA بيستخدمهم تلقائياً.</string>
+    <string name="ona_voxy_compat_installed">تم تنزيل مود Voxy Android Compatibility</string>
+    <string name="ona_voxy_setup_title">تجهيز Voxy</string>
+    <string name="ona_voxy_setup_body">مود Voxy بيحتاج OpenGL 4.6 تبع الكمبيوتر. على الجوال بيجي من 3 إضافات (لأدرينو 7xx/8xx) بتنزل من مشروع zalith-voxy. اضغط تثبيت، ووافق على مثبت أندرويد، وبعدين سكّر ONA وافتحه. ONA بيستخدمهم لـ Voxy تلقائياً.</string>
+    <string name="ona_voxy_install">تثبيت</string>
+    <string name="ona_voxy_install_again">مرة ثانية</string>
+    <string name="ona_voxy_install_all">ثبّت الكل</string>
+    <string name="ona_voxy_restart_note">بعد التثبيت سكّر ONA بالكامل وافتحه مرة ثانية عشان يقرأ الإضافات.</string>
+    <string name="ona_voxy_download_failed">فشل التنزيل، تأكد من النت وجرب مرة ثانية</string>
 </resources>
