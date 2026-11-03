@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings.layouts
 
 import androidx.compose.foundation.layout.Column
+import com.movtery.zalithlauncher.ui.theme.styleOuterRadius
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -42,7 +43,7 @@ fun SwitchSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     enabled: Boolean = true,
@@ -107,7 +108,7 @@ fun SwitchSettingsCard(
     onCheckedChange: (Boolean) -> Unit = {},
     title: String,
     position: CardPosition,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     enabled: Boolean = true,

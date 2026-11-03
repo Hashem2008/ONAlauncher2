@@ -93,4 +93,27 @@
     <string name="ona_crash_physx">Physics Mod: نسخة PhysX تبعه ما إلها نسخة أندرويد</string>
     <string name="ona_crash_physx_fix">ONA بيشغّل PhysX على أندرويد تلقائياً من نسخة 2.3.1 وطالع. نسخة Physics Mod هاي بتستخدم PhysX أقدم معمول للكمبيوتر بس؛ استخدم نسخة أحدث من المود أو من المودباك (مثلاً 1.20.1).</string>
     <string name="ona_lighting_fixed">تحديث الإضاءة كان مطفي (البلوك المكسور بصير أسود)، رجعته شغال في: %1$s</string>
+    <string name="ona_style_title">ستايل اللانشر</string>
+    <string name="ona_style_summary">غيّر شكل اللانشر. كل الميزات موجودة بكل ستايل.</string>
+    <string name="ona_style_selected">المختار: %1$s</string>
+    <string name="ona_style_zalith">Zalith (الأساسي)</string>
+    <string name="ona_style_pc">لانشر الكمبيوتر</string>
+    <string name="ona_style_modrinth">ستايل Modrinth</string>
+    <string name="ona_style_console">كونسول</string>
+    <string name="ona_style_material_you">Material You (ألوان الخلفية)</string>
+    <string name="ona_style_glass">زجاج</string>
+    <string name="ona_style_retro">بكسل قديم</string>
+    <string name="ona_style_amoled">أسود AMOLED (بوفر بطارية)</string>
+    <string name="ona_style_nether">النذر</string>
+    <string name="ona_style_end">الإند</string>
+    <string name="ona_style_ocean">محيط</string>
+    <string name="ona_style_sunset">غروب</string>
+    <string name="ona_style_cherry">زهر الكرز</string>
+    <string name="ona_style_cyberpunk">نيون سايبربنك</string>
+    <string name="ona_style_contrast">تباين عالي</string>
+    <string name="ona_style_compact">مضغوط</string>
+    <string name="ona_style_custom">ثيم مخصص</string>
+    <string name="ona_style_custom_radius">حجم الزوايا</string>
+    <string name="ona_style_custom_font">حجم الخط</string>
+    <string name="ona_style_custom_mono">خط بكسل (Monospace)</string>
 </resources>

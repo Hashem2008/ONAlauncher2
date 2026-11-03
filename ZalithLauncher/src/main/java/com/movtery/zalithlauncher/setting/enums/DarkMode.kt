@@ -43,6 +43,8 @@ enum class DarkMode(val textRes: Int) {
  */
 @Composable
 fun isLauncherInDarkTheme(): Boolean {
+    // ONA: AMOLED / Cyberpunk styles are black whatever the dark mode setting says
+    if (AllSettings.launcherStyle.state.forcesDark) return true
     val value = AllSettings.launcherDarkMode.state
     return key(value) {
         when (value) {

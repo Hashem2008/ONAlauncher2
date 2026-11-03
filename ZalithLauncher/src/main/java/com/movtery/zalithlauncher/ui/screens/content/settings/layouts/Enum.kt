@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings.layouts
 
 import androidx.compose.animation.animateContentSize
+import com.movtery.zalithlauncher.ui.theme.styleOuterRadius
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -49,7 +50,7 @@ fun <E: Enum<E>> EnumSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     getRadioText: @Composable (E) -> String,
@@ -116,7 +117,7 @@ fun <E: Enum<E>> EnumSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     getRadioText: @Composable (E) -> String,

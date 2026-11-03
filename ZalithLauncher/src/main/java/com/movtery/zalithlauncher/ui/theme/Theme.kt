@@ -612,11 +612,68 @@ fun ZalithLauncherTheme(
     val customColorInt = AllSettings.launcherCustomColor.state
     val customColor = Color(customColorInt)
     val customPaletteStyle = AllSettings.launcherCustomPaletteStyle.state
+    // ONA: launcher style (colours, corners, text) on top of the colour theme
+    val launcherStyle = AllSettings.launcherStyle.state
+    val styleRadius = AllSettings.launcherStyleRadius.state
+    val styleFontScale = AllSettings.launcherStyleFontScale.state
+    val styleMono = AllSettings.launcherStyleMono.state
 
     val context = LocalContext.current
 
-    val targetColorScheme = remember(darkTheme, dynamicColor, colorTheme, customColor, customPaletteStyle) {
-        when {
+    val targetColorScheme = remember(darkTheme, dynamicColor, colorTheme, customColor, customPaletteStyle, launcherStyle) {
+        val wallpaper = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (darkTheme || launcherStyle.forcesDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        } else null
+        launcherStyle.colorScheme(themeColorScheme(darkTheme, dynamicColor, colorTheme, customColor, customPaletteStyle, context), darkTheme, wallpaper)
+    }
+    val styleShapes = remember(launcherStyle, styleRadius) { launcherStyle.shapes(styleRadius) }
+    val styleTypography = remember(launcherStyle, styleFontScale, styleMono) {
+        launcherStyle.typography(AppTypography, styleFontScale / 100f, styleMono)
+    }
+
+    var currentDarkTheme by remember { mutableStateOf(darkTheme) }
+    var currentDisplayScheme by remember { mutableStateOf(targetColorScheme) }
+
+    LaunchedEffect(darkTheme, targetColorScheme) {
+        if (darkTheme != currentDarkTheme) {
+            context.activeMaskView(
+                maskComplete = {
+                    currentDarkTheme = darkTheme
+                    currentDisplayScheme = targetColorScheme
+                },
+                maskAnimFinish = {
+
+                }
+            )
+        } else {
+            currentDarkTheme = darkTheme
+            currentDisplayScheme = targetColorScheme
+        }
+    }
+
+    CompositionLocalProvider(
+        LocalBackgroundViewModel provides backgroundViewModel,
+        LocalFestivals provides festivals
+    ) {
+        MaterialExpressiveTheme(
+            colorScheme = currentDisplayScheme,
+            motionScheme = MotionScheme.expressive(),
+            shapes = styleShapes,
+            typography = styleTypography,
+            content = content
+        )
+    }
+}
+
+private fun themeColorScheme(
+    darkTheme: Boolean,
+    dynamicColor: Boolean,
+    colorTheme: ColorThemeType,
+    customColor: Color,
+    customPaletteStyle: PaletteStyle,
+    context: android.content.Context,
+): ColorScheme {
+    return when {
             dynamicColor && colorTheme == ColorThemeType.DYNAMIC && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
                 if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             }
@@ -651,37 +708,4 @@ fun ZalithLauncherTheme(
                 else -> embermireLight
             }
         }
-    }
-
-    var currentDarkTheme by remember { mutableStateOf(darkTheme) }
-    var currentDisplayScheme by remember { mutableStateOf(targetColorScheme) }
-
-    LaunchedEffect(darkTheme, targetColorScheme) {
-        if (darkTheme != currentDarkTheme) {
-            context.activeMaskView(
-                maskComplete = {
-                    currentDarkTheme = darkTheme
-                    currentDisplayScheme = targetColorScheme
-                },
-                maskAnimFinish = {
-
-                }
-            )
-        } else {
-            currentDarkTheme = darkTheme
-            currentDisplayScheme = targetColorScheme
-        }
-    }
-
-    CompositionLocalProvider(
-        LocalBackgroundViewModel provides backgroundViewModel,
-        LocalFestivals provides festivals
-    ) {
-        MaterialExpressiveTheme(
-            colorScheme = currentDisplayScheme,
-            motionScheme = MotionScheme.expressive(),
-            typography = AppTypography,
-            content = content
-        )
-    }
 }

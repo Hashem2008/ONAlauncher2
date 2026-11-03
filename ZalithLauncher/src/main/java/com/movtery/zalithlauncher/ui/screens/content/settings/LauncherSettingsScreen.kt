@@ -150,6 +150,15 @@ fun LauncherSettingsScreen(
                 .padding(all = 12.dp),
             isVisible = isVisible
         ) {
+            // ONA: launcher style (colours, corners, text)
+            AnimatedItem { ctx ->
+                LauncherStyleCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                )
+            }
+
             AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier

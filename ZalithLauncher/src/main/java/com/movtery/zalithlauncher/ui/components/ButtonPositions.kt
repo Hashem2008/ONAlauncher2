@@ -1,6 +1,7 @@
 package com.movtery.zalithlauncher.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import com.movtery.zalithlauncher.ui.theme.styleOuterRadius
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -41,7 +42,7 @@ enum class ButtonPosition {
 @Composable
 fun rememberButtonPosShape(
     position: ButtonPosition,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     outerShapePressed: Dp = outerShape,
     innerShape: Dp = 4.dp,
     innerShapePressed: Dp = innerShape,

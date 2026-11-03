@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings.layouts
 
 import androidx.compose.foundation.layout.Arrangement
+import com.movtery.zalithlauncher.ui.theme.styleOuterRadius
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,7 +43,7 @@ fun TextInputSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     onValueChange: (String) -> Unit = {},
@@ -104,7 +105,7 @@ fun TextInputSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     label: String? = null,

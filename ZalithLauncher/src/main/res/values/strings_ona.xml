@@ -93,4 +93,27 @@
     <string name="ona_crash_physx">Physics Mod: its PhysX version has no Android build</string>
     <string name="ona_crash_physx_fix">ONA runs PhysX on Android for PhysX 2.3.1 and newer automatically. This Physics Mod version uses an older PhysX that was only built for PC; use a newer version of the mod or of the modpack (for example 1.20.1).</string>
     <string name="ona_lighting_fixed">Light updates were off (broken blocks turned black), turned back on in: %1$s</string>
+    <string name="ona_style_title">Launcher style</string>
+    <string name="ona_style_summary">Change the look of the launcher. All features are available in every style.</string>
+    <string name="ona_style_selected">Selected: %1$s</string>
+    <string name="ona_style_zalith">Zalith (default)</string>
+    <string name="ona_style_pc">PC launcher</string>
+    <string name="ona_style_modrinth">Modrinth style</string>
+    <string name="ona_style_console">Console</string>
+    <string name="ona_style_material_you">Material You (wallpaper colors)</string>
+    <string name="ona_style_glass">Glass</string>
+    <string name="ona_style_retro">Retro pixel</string>
+    <string name="ona_style_amoled">AMOLED black (saves battery)</string>
+    <string name="ona_style_nether">Nether</string>
+    <string name="ona_style_end">The End</string>
+    <string name="ona_style_ocean">Ocean</string>
+    <string name="ona_style_sunset">Sunset</string>
+    <string name="ona_style_cherry">Cherry blossom</string>
+    <string name="ona_style_cyberpunk">Cyberpunk neon</string>
+    <string name="ona_style_contrast">High contrast</string>
+    <string name="ona_style_compact">Compact</string>
+    <string name="ona_style_custom">Custom theme</string>
+    <string name="ona_style_custom_radius">Corner size</string>
+    <string name="ona_style_custom_font">Text size</string>
+    <string name="ona_style_custom_mono">Monospace (pixel) text</string>
 </resources>

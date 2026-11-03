@@ -47,6 +47,7 @@ import com.movtery.zalithlauncher.ui.control.mouse.CENTER_HOTSPOT
 import com.movtery.zalithlauncher.ui.control.mouse.CursorHotspot
 import com.movtery.zalithlauncher.ui.control.mouse.LEFT_TOP_HOTSPOT
 import com.movtery.zalithlauncher.ui.theme.ColorThemeType
+import com.movtery.zalithlauncher.ui.theme.LauncherStyle
 
 
 object AllSettings : SettingsRegistry() {
@@ -478,6 +479,18 @@ object AllSettings : SettingsRegistry() {
      * 启动器部分屏幕全屏
      */
     val launcherFullScreen = boolSetting("launcherFullScreen", true)
+
+    /** ONA: look of the launcher (colours, corners, text), every feature stays in every style */
+    val launcherStyle = enumSetting("onaLauncherStyle", LauncherStyle.ZALITH)
+
+    /** ONA: corner size of the Custom style, dp */
+    val launcherStyleRadius = intSetting("onaLauncherStyleRadius", 16, 0..32)
+
+    /** ONA: text size of the Custom style, percent */
+    val launcherStyleFontScale = intSetting("onaLauncherStyleFontScale", 100, 80..130)
+
+    /** ONA: monospace text in the Custom style */
+    val launcherStyleMono = boolSetting("onaLauncherStyleMono", false)
 
     /**
      * 持续型节日彩蛋效果

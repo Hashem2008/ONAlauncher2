@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings.layouts
 
 import androidx.compose.animation.AnimatedVisibility
+import com.movtery.zalithlauncher.ui.theme.styleOuterRadius
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeOut
@@ -71,7 +72,7 @@ private fun <E> BaseListSettingsCard(
     position: CardPosition,
     itemLayout: @Composable (E) -> Unit,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     middleLayout: (@Composable ColumnScope.() -> Unit)? = null,
@@ -175,7 +176,7 @@ fun <E> ListSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     getItemText: @Composable (E) -> String,
@@ -249,7 +250,7 @@ fun <E> ListSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     getItemText: @Composable (E) -> String,
@@ -296,7 +297,7 @@ fun <E: Enum<E>> ListSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     getItemText: @Composable (E) -> String,
@@ -341,7 +342,7 @@ fun <E> StringListSettingsCard(
     title: String,
     position: CardPosition,
     modifier: Modifier = Modifier,
-    outerShape: Dp = 28.dp,
+    outerShape: Dp = styleOuterRadius(),
     innerShape: Dp = 4.dp,
     summary: String? = null,
     getItemID: (E) -> String,
