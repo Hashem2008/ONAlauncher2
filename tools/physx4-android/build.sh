@@ -47,6 +47,11 @@ grep -q 'AttachCurrentThreadAsDaemon(&env, NULL)' "$ROOT/physx/source/physxjnibi
 sed -i 's/vdupq_lane_\(u32\|f32\)(vget_low_\1(a), index)/vdupq_lane_\1(vget_low_\1(a), index \& 1)/' \
   "$ROOT/physx/source/foundation/include/unix/neon/PsUnixNeonInlineAoS.h"
 
+# No CUDA on Android: use the CUDA stand-ins the macOS / web builds of the same glue use
+sed -i 's/#if defined(__EMSCRIPTEN__) || defined(__APPLE__)\(\r\?\)$/#if defined(__EMSCRIPTEN__) || defined(__APPLE__) || defined(__ANDROID__)\1/' \
+  "$ROOT/physx/source/physxwebbindings/src/PhysXJs.h"
+grep -q 'defined(__ANDROID__)' "$ROOT/physx/source/physxwebbindings/src/PhysXJs.h"
+
 # Newer clang warns about things PhysX 4.1 predates; warnings must not stop the port
 sed -i 's/ -Werror//g; s/ -Wpedantic//g' "$CM/android/CMakeLists.txt"
 
