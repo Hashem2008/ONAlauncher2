@@ -28,7 +28,10 @@ import java.io.File
 
 /**
  * ONA: makes heavy client mods lighter through their own config files, never touching the
- * mods themselves. Every file is backed up before the first change and put back exactly when
+ * mods (Sound Physics Remastered, 3D Skin Layers, Entity Texture / Model Features, Dynamic
+ * Lights, Subtle Effects, Distant Horizons, Embeddium, Create, Supplementaries, Falling Leaves,
+ * LambDynamicLights, Effective, Particle Rain). Keys were checked against the configs these
+ * mods write. Every file is backed up before the first change and put back exactly when
  * tuning is turned off.
  *
  * Only keys that already exist in the config are changed, so a mod version with a different
@@ -71,7 +74,7 @@ object ModPerformanceTuner {
         },
         // 3D Skin Layers: 3D layers only for players close by
         Patch.Json("config/skinlayers.json", "3D Skin Layers") { tier ->
-            mapOf(
+            mapOf<String, Any>(
                 "renderDistanceLOD" to when (tier) {
                     DeviceTier.FLAGSHIP -> 8
                     DeviceTier.HIGH -> 6
@@ -82,7 +85,7 @@ object ModPerformanceTuner {
         },
         // Entity Texture Features: fewer texture checks, emissives only on strong phones
         Patch.Json("config/entity_texture_features.json", "Entity Texture Features") { tier ->
-            buildMap {
+            buildMap<String, Any> {
                 put("textureUpdateFrequency_V2", "Slow")
                 if (!strong(tier)) {
                     put("enableEmissiveTextures", false)
@@ -93,7 +96,7 @@ object ModPerformanceTuner {
         },
         // Dynamic lights: update less often
         Patch.Toml("config/sodiumdynamiclights-client.toml", "Dynamic Lights") { tier ->
-            buildMap {
+            buildMap<String, String> {
                 put("mode", if (strong(tier)) "FAST" else "SLOW")
                 if (!strong(tier)) put("block_entities", "false")
             }
@@ -104,6 +107,93 @@ object ModPerformanceTuner {
                 "enableParticleCulling" to "true",
                 "particleRenderDistance" to if (strong(tier)) "16" else "12",
                 "cullParticlesInUnloadedChunks" to "true"
+            )
+        },
+        // Distant Horizons: the LOD radius and quality decide most of its GPU, RAM and CPU cost
+        Patch.Toml("config/DistantHorizons.toml", "Distant Horizons") { tier ->
+            mapOf(
+                "lodChunkRenderDistanceRadius" to when (tier) {
+                    DeviceTier.FLAGSHIP -> "96"
+                    DeviceTier.HIGH -> "64"
+                    else -> "32"
+                },
+                "horizontalQuality" to "LOW",
+                "verticalQuality" to "LOW",
+                "maxHorizontalResolution" to if (strong(tier)) "TWO_BLOCKS" else "FOUR_BLOCKS",
+                "transparency" to "FAKE",
+                "enableSsao" to "false",
+                "enableNoiseTexture" to "false",
+                // Leave the big cores to the game itself
+                "numberOfThreads" to if (strong(tier)) "3" else "2"
+            )
+        },
+        // Embeddium (Sodium for Forge): every culling path on, chunk updates deferred
+        Patch.Json("config/embeddium-options.json", "Embeddium") { tier ->
+            buildMap<String, Any> {
+                put("performance.always_defer_chunk_updates", true)
+                put("performance.animate_only_visible_textures", true)
+                put("performance.use_entity_culling", true)
+                put("performance.use_particle_culling", true)
+                put("performance.use_fog_occlusion", true)
+                put("performance.use_block_face_culling", true)
+                put("performance.use_compact_vertex_format", true)
+                if (!strong(tier)) {
+                    put("quality.weather_quality", "FAST")
+                    put("quality.leaves_quality", "FAST")
+                }
+            }
+        },
+        // Entity Model Features: full animations only close to the camera
+        Patch.Json("config/entity_model_features.json", "Entity Model Features") { tier ->
+            mapOf<String, Any>(
+                "animationLODDistance" to if (strong(tier)) 12 else 8,
+                "retainDetailOnLowFps" to false
+            )
+        },
+        // Create: fan particles and filter item rendering
+        Patch.Toml("config/create-client.toml", "Create") { tier ->
+            mapOf(
+                "fanParticleDensity" to if (strong(tier)) "0.25" else "0.1",
+                "filterItemRenderDistance" to "6.0"
+            )
+        },
+        // Supplementaries: rotation particles, fancy block renderers below flagship
+        Patch.Toml("config/supplementaries-client.toml", "Supplementaries") { tier ->
+            buildMap<String, String> {
+                put("turn_particles", "false")
+                if (!strong(tier)) put("fancy_renderers", "false")
+            }
+        },
+        // Falling Leaves: fewer, shorter living leaf particles
+        Patch.Json("config/fallingleaves.json", "Falling Leaves") { tier ->
+            mapOf<String, Any>(
+                "leafSpawnRate" to if (strong(tier)) 4 else 2,
+                "coniferLeafSpawnRate" to if (strong(tier)) 2 else 1,
+                "leafLifespan" to 120
+            )
+        },
+        // LambDynamicLights (Fabric / Connector)
+        Patch.Toml("config/lambdynlights.toml", "LambDynamicLights") { tier ->
+            mapOf("mode" to if (strong(tier)) "fast" else "fastest")
+        },
+        // Effective: water splashes, cascades and ambient particles
+        Patch.Json("config/effective.json", "Effective") { tier ->
+            mapOf<String, Any>(
+                "flowingWaterSplashingDensity" to if (strong(tier)) 25 else 10,
+                "cascadeCloudDensity" to if (strong(tier)) 1.0 else 0.5,
+                "cascadeMistDensity" to 0.5,
+                "rainRippleDensity" to 2,
+                "fireflyDensity" to 0.5,
+                "sculkDustDensity" to 50.0
+            )
+        },
+        // Particle Rain: weather particle budget
+        Patch.Json("config/particlerain.json", "Particle Rain") { tier ->
+            mapOf<String, Any>(
+                "perf.maxParticleAmount" to if (strong(tier)) 800 else 400,
+                "perf.particleDensity" to if (strong(tier)) 60 else 40,
+                "perf.particleStormDensity" to if (strong(tier)) 120 else 80,
+                "perf.particleDistance" to 12
             )
         }
     )
@@ -178,11 +268,17 @@ object ModPerformanceTuner {
         return if (changed) result else null
     }
 
-    /** Change existing top level keys of a JSON config */
+    /** Change existing keys of a JSON config, "a.b" reaches into nested objects */
     private fun patchJson(text: String, values: Map<String, Any>): String? {
-        val json = JsonParser.parseString(text).takeIf { it.isJsonObject }?.asJsonObject ?: return null
+        val root = JsonParser.parseString(text).takeIf { it.isJsonObject }?.asJsonObject ?: return null
         var changed = false
-        values.forEach { (key, value) ->
+        values.forEach { (path, value) ->
+            val parts = path.split('.')
+            var json: JsonObject = root
+            for (part in parts.dropLast(1)) {
+                json = json.get(part)?.takeIf { it.isJsonObject }?.asJsonObject ?: return@forEach
+            }
+            val key = parts.last()
             if (!json.has(key)) return@forEach
             val primitive = when (value) {
                 is Boolean -> JsonPrimitive(value)
@@ -194,6 +290,6 @@ object ModPerformanceTuner {
                 changed = true
             }
         }
-        return if (changed) GSON.toJson(json as JsonObject) else null
+        return if (changed) GSON.toJson(root) else null
     }
 }
