@@ -550,12 +550,18 @@ fun LaunchGameOperation(
                 // ONA: render mods that crash GL4ES based renderers are switched off for them
                 if (Renderers.isCurrentRendererValid()) {
                     val renderer = Renderers.getCurrentRenderer()
-                    val switchedOff = withContext(Dispatchers.IO) {
-                        runCatching { MobileModRules.apply(version, renderer) }.getOrDefault(emptyList())
+                    val result = withContext(Dispatchers.IO) {
+                        runCatching { MobileModRules.apply(version, renderer) }.getOrNull()
                     }
-                    if (switchedOff.isNotEmpty()) {
+                    if (result != null && result.madeCompatible.isNotEmpty()) {
                         eventViewModel.sendToast(
-                            androidText(R.string.ona_mobile_mods_off, switchedOff.joinToString(), renderer.getRendererName()),
+                            androidText(R.string.ona_mobile_mods_compatible, result.madeCompatible.joinToString(), renderer.getRendererName()),
+                            Toast.LENGTH_LONG
+                        )
+                    }
+                    if (result != null && result.switchedOff.isNotEmpty()) {
+                        eventViewModel.sendToast(
+                            androidText(R.string.ona_mobile_mods_off, result.switchedOff.joinToString(), renderer.getRendererName()),
                             Toast.LENGTH_LONG
                         )
                     }

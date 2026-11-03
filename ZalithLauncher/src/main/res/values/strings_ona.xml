@@ -71,4 +71,5 @@
     <string name="ona_crash_shader">The shader pack failed to load</string>
     <string name="ona_crash_shader_fix">Pick a lighter shader pack, update Iris / Oculus, or use the MobileGlues renderer.</string>
     <string name="ona_mobile_mods_off">Switched off for %2$s (they crash it on phones): %1$s. They come back on with another renderer.</string>
+    <string name="ona_mobile_mods_compatible">Made compatible with %2$s: %1$s</string>
 </resources>

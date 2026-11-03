@@ -25,14 +25,20 @@ import com.movtery.zalithlauncher.utils.logging.Logger
 import java.io.File
 
 /**
- * ONA: mods that replace Minecraft's own world renderer with desktop OpenGL tricks (their own
- * vertex buffers, attribute layouts, persistent mapping, multi draw). Under the GL4ES family
- * of renderers (GL4ES, Krypton Wrapper), which translate old desktop GL to GLES, they leave
- * vertex array state behind that the next ordinary draw reads past the end of, and the GPU
- * driver crashes in a memory copy (SIGSEGV in memmove under glDrawArrays).
+ * ONA: makes render engine mods work with the renderers phones have.
  *
- * They are optional optimisation mods, so while such a renderer is in use they are switched
- * off (renamed to *.jar.ona-off), and switched back on with any other renderer.
+ * Mods that replace Minecraft's world renderer with desktop OpenGL tricks (shader generic
+ * vertex attributes, constant attributes, persistent mapping, multi draw) leave vertex array
+ * state behind under the GL4ES family (GL4ES, Krypton Wrapper), which maps generic
+ * attributes onto its fixed function array slots; the next ordinary draw then reads past the
+ * end of a buffer and the GPU driver crashes in memmove under glDrawArrays.
+ *
+ *  - Nothirium is made compatible: under a GL4ES renderer its config is switched to the GL15
+ *    engine, plain client state arrays exactly like vanilla 1.12, which GL4ES handles well.
+ *    The original setting comes back with any other renderer. Only if it still crashes with
+ *    GL15 is it switched off.
+ *  - Vintagium and Celeritas (Sodium ports that need modern GL) are switched off under a GL4ES
+ *    renderer (renamed to *.jar.ona-off) and come back with any other renderer.
  */
 object MobileModRules {
     private const val TAG = "MobileModRules"
@@ -44,6 +50,62 @@ object MobileModRules {
         "vintagium" to "vintagium",
         "celeritas" to "celeritas"
     )
+
+    /** Mods made compatible through their own config instead of being switched off */
+    private const val NOTHIRIUM = "nothirium"
+    private const val NOTHIRIUM_SAFE_ENGINE = "GL15"
+
+    /** Written when Nothirium crashed even on the GL15 engine: then it is switched off */
+    private fun nothiriumFailedMarker(version: Version) = File(version.getVersionPath(), "ona_nothirium_gl15_crashed")
+    private fun nothiriumConfig(version: Version) = File(version.getGameDir(), "config/nothirium.cfg")
+    /** The renderEngine value the user had before we changed it */
+    private fun nothiriumBackup(version: Version) = File(version.getGameDir(), "config/nothirium.cfg.ona-original")
+
+    private val ENGINE_LINE = Regex("^(\\s*S:renderEngine=)(\\S*)\\s*$", RegexOption.MULTILINE)
+
+    /** Set Nothirium's render engine, keeping the user's value aside the first time */
+    private fun setNothiriumEngine(version: Version, engine: String) {
+        val cfg = nothiriumConfig(version)
+        val backup = nothiriumBackup(version)
+        val text = if (cfg.isFile) cfg.readText() else ""
+        val current = ENGINE_LINE.find(text)?.groupValues?.get(2)
+        if (current == engine) return
+        if (!backup.exists()) backup.writeText(current ?: "AUTOMATIC")
+        val updated = when {
+            current != null -> ENGINE_LINE.replace(text) { it.groupValues[1] + engine }
+            text.contains("general {") -> text.replaceFirst("general {", "general {\n    S:renderEngine=$engine")
+            else -> text + "\ngeneral {\n    S:renderEngine=$engine\n}\n"
+        }
+        cfg.parentFile?.mkdirs()
+        cfg.writeText(updated)
+        Logger.info(TAG, "Nothirium render engine set to $engine (was ${current ?: "default"})")
+    }
+
+    /** Put back the user's Nothirium render engine */
+    private fun restoreNothiriumEngine(version: Version) {
+        val backup = nothiriumBackup(version)
+        if (!backup.isFile) return
+        val original = backup.readText().trim().ifEmpty { "AUTOMATIC" }
+        val cfg = nothiriumConfig(version)
+        if (cfg.isFile) {
+            val text = cfg.readText()
+            if (ENGINE_LINE.containsMatchIn(text)) cfg.writeText(ENGINE_LINE.replace(text) { it.groupValues[1] + original })
+        }
+        backup.delete()
+    }
+
+    /**
+     * The game crashed in the renderer: if Nothirium ran on the GL15 engine we set, it is not
+     * enough for this version and the next launch switches it off instead.
+     */
+    fun onRendererCrash(version: Version) {
+        runCatching {
+            if (nothiriumBackup(version).isFile && riskyMods(version.modsDir()).contains(NOTHIRIUM)) {
+                nothiriumFailedMarker(version).writeText("1")
+                Logger.info(TAG, "Nothirium crashed on GL15 too, it will be switched off")
+            }
+        }
+    }
 
     /** Renderer ids that are GL4ES based */
     private val GL4ES_FAMILY = setOf("opengles2", "opengles3")
@@ -63,25 +125,39 @@ object MobileModRules {
         return GL4ES_UNSAFE.keys.firstOrNull { it in info.providedIds }
     }
 
+    /** What [apply] did, for the toast */
+    class Result(val switchedOff: List<String>, val madeCompatible: List<String>)
+
     /**
-     * Switch risky mods off for a GL4ES based renderer, back on for any other.
+     * Make risky render mods safe for a GL4ES based renderer, undo it for any other.
      * Never leaves a mod off that another mod needs.
-     * @return display names of the mods that were switched off
      */
-    fun apply(version: Version, renderer: RendererInterface): List<String> {
+    fun apply(version: Version, renderer: RendererInterface): Result {
         val modsDir = version.modsDir()
-        if (!modsDir.isDirectory) return emptyList()
+        if (!modsDir.isDirectory) return Result(emptyList(), emptyList())
         if (!isGl4esFamily(renderer)) {
             restore(modsDir)
-            return emptyList()
+            runCatching { restoreNothiriumEngine(version) }
+            return Result(emptyList(), emptyList())
         }
+        // Nothirium: GL15 engine first, off only if that crashed too
+        val compatible = mutableListOf<String>()
+        val nothiriumFailed = nothiriumFailedMarker(version).exists()
+        if (!nothiriumFailed && riskyMods(modsDir).contains(NOTHIRIUM)) {
+            runCatching {
+                setNothiriumEngine(version, NOTHIRIUM_SAFE_ENGINE)
+                compatible.add("Nothirium (GL15)")
+            }.onFailure { Logger.warning(TAG, "Could not configure Nothirium", it) }
+        }
+
         val disabled = mutableListOf<String>()
         modsDir.listFiles { file -> file.isFile && file.name.endsWith(".jar") }?.forEach { jar ->
-            if (riskyId(jar) == null) return@forEach
+            val id = riskyId(jar) ?: return@forEach
+            if (id == NOTHIRIUM && !nothiriumFailed) return@forEach
             val off = File(jar.path + OFF_SUFFIX)
             if (jar.renameTo(off)) disabled.add(jar.nameWithoutExtension)
         }
-        if (disabled.isEmpty()) return disabled
+        if (disabled.isEmpty()) return Result(disabled, compatible)
 
         // Another mod may hard depend on one of them: then it has to stay
         val environment = version.modEnvironment()
@@ -93,11 +169,11 @@ object MobileModRules {
             if (missing.any { it in GL4ES_UNSAFE.keys }) {
                 restore(modsDir)
                 Logger.info(TAG, "Kept risky render mods, other mods need them")
-                return emptyList()
+                return Result(emptyList(), compatible)
             }
         }
         Logger.info(TAG, "Switched off for ${renderer.getRendererName()}: $disabled")
-        return disabled
+        return Result(disabled, compatible)
     }
 
     private fun restore(modsDir: File) {

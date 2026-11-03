@@ -22,6 +22,7 @@ import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import com.movtery.zalithlauncher.utils.device.GameColorFilter
 import com.movtery.zalithlauncher.utils.device.GameUpscaler
 import com.movtery.zalithlauncher.game.launch.CrashDoctor
+import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
 import android.annotation.SuppressLint
 import android.content.Context
@@ -244,9 +245,11 @@ class VMViewModel : ViewModel() {
                             // suitable renderer on the next launch of this version
                             runCatching {
                                 val version = config.version
-                                if (version.usesSmartRenderer() && Renderers.isCurrentRendererValid()) {
-                                    val diagnosis = CrashDoctor.analyze(version.getLatestLog(), version.getGameDir())
-                                    if (diagnosis?.rendererSuspect == true) {
+                                val diagnosis = CrashDoctor.analyze(version.getLatestLog(), version.getGameDir())
+                                if (diagnosis?.rendererSuspect == true) {
+                                    // Nothirium on the GL15 engine crashed too: switch it off next time
+                                    MobileModRules.onRendererCrash(version)
+                                    if (version.usesSmartRenderer() && Renderers.isCurrentRendererValid()) {
                                         SmartRenderer.recordCrash(version, Renderers.getCurrentRenderer().getUniqueIdentifier())
                                     }
                                 }
