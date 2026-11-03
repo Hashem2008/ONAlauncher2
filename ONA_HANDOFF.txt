@@ -82,8 +82,11 @@ PHYSX PORT - BUILD LOG (newest last, keep appending)
   V4SplatElement<index> (vdupq_lane_f32(vget_low_f32(a), index) inside `index < 2` branch).
   Fixed in cd7a9d6 with sed -> `index & 1` (also the u32 variants) and switched the step to NDK r25.
 - cd7a9d6: step died instantly: `sdkmanager: command not found` (not on PATH in CI).
-- 5336721: sdkmanager called by full path ($ANDROID_HOME/cmdline-tools/*/bin/sdkmanager), falls back
-  to the default NDK if r25 cannot be installed. RESULT: not checked yet (run #18).
+- 5336721 (run #18): sdkmanager by full path works. ALL PhysX libraries now compile for arm64;
+  the JNI glue (PhysXJni.cpp) failed: no PxCudaContextManagerDesc / PxCudaBufferMemorySpace /
+  PxCreateCudaContextManager (no CUDA on Android).
+- 51cddf7: PhysXJs.h includes the existing PhysXCudaMock.h (used by the macOS/web builds) also
+  for __ANDROID__ (sed handles the file's CRLF line endings). RESULT: pending (run #20).
 - How to read the step: get_job_logs(job_id, return_content) -> saved JSON file, field logs_content;
   search "PhysX port uses NDK", " error: ", "Built /". A 0-40 s step means it failed early.
 - Running the PhysX build locally is DENIED by auto mode (external code); only CI can build it.
