@@ -61,12 +61,17 @@ object SmartRenderer : RendererInterface {
         val shaders = shaderMod || shaderPacks && modNames.any { name -> SODIUM_LIKE.any { name.contains(it) } }
         val profile = DeviceProfiler.current()
         val goodVulkan = profile?.let { it.vulkan && it.turnipRecommended } ?: false
+        // Any Vulkan 1.1 GPU can run Zink on its own driver, kept as a later fallback
+        val anyVulkan = profile?.vulkan ?: false
 
         val candidates = buildList {
             when {
                 mc.isLowerVer("1.17") -> {
                     add(GL4ESRenderer)
                     add(NGGL4ESRenderer)
+                    // Not GL4ES based, so a crash in GL4ES' array handling does not follow
+                    if (anyVulkan) add(KopperZinkRenderer)
+                    add(MobileGluesRenderer)
                 }
                 shaders || !mc.isLowerVer("1.21.5") -> {
                     add(MobileGluesRenderer)
@@ -81,6 +86,7 @@ object SmartRenderer : RendererInterface {
             if (goodVulkan) add(KopperZinkRenderer)
             add(MobileGluesRenderer)
             add(NGGL4ESRenderer)
+            if (anyVulkan) add(KopperZinkRenderer)
         }
         val available = Renderers.getRenderers()
         val usable = candidates.distinct().filter { renderer ->

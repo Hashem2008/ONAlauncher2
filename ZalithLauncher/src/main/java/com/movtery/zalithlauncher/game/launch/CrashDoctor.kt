@@ -19,6 +19,7 @@ package com.movtery.zalithlauncher.game.launch
 
 import android.content.Context
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.utils.logging.Logger
 import java.io.File
 import java.io.RandomAccessFile
@@ -76,6 +77,16 @@ object CrashDoctor {
      * @param gameDir the folder the game ran in, where hs_err and crash-reports end up
      */
     fun analyze(launcherLog: File?, gameDir: File?): Diagnosis? = runCatching {
+        analyzeInner(launcherLog, gameDir)?.let { diagnosis ->
+            // Name render mods known to break GL4ES based renderers when the renderer crashed
+            if (diagnosis.cause != Cause.RENDERER || gameDir == null) return@let diagnosis
+            val risky = MobileModRules.riskyMods(File(gameDir, "mods"))
+            if (risky.isEmpty()) diagnosis
+            else Diagnosis(diagnosis.cause, listOfNotNull(diagnosis.detail, "suspect mods: " + risky.joinToString()).joinToString(", "))
+        }
+    }.onFailure { Logger.warning(TAG, "Crash analysis failed", it) }.getOrNull()
+
+    private fun analyzeInner(launcherLog: File?, gameDir: File?): Diagnosis? = runCatching {
         val now = System.currentTimeMillis()
         fun fresh(file: File) = now - file.lastModified() < FRESH_MS
         val hsErr = gameDir?.listFiles { file -> file.name.startsWith("hs_err_pid") && file.name.endsWith(".log") }
@@ -89,7 +100,8 @@ object CrashDoctor {
             crashReport?.let { append(tail(it)).append('\n') }
             gameLatest?.let { append(tail(it)).append('\n') }
         }
-        val hsErrText = hsErr?.let { tail(it) }
+        // The thread, the frames and the native stack are at the top of hs_err
+        val hsErrText = hsErr?.let { head(it, 256 * 1024) }
 
         diagnose(text, hsErrText)
     }.onFailure { Logger.warning(TAG, "Crash analysis failed", it) }.getOrNull()
@@ -147,6 +159,8 @@ object CrashDoctor {
                 Regex("\\bSIG(SEGV|BUS|ABRT|ILL)\\b").containsMatchIn(text)
         if (!fatal) return null
         val frameSource = (hsErr ?: "") + "\n" + text
+        val stackLib = hsErr?.substringAfter("Native frames:", "")
+            ?.let { Regex("C\\s+\\[(lib[^+\\]]+)").findAll(it).map { m -> m.groupValues[1] }.firstOrNull { lib -> !lib.startsWith("libc.") } }
         val frame = Regex("Problematic frame:\\s*\\n#\\s*C\\s+\\[([^+\\]]+)").find(frameSource)?.groupValues?.get(1)
             ?: Regex("C\\s+\\[(lib[^+\\]]+)").find(frameSource)?.groupValues?.get(1)
         val nativeStack = hsErr?.substringAfter("Native frames:", "")?.take(6000).orEmpty()
@@ -155,7 +169,22 @@ object CrashDoctor {
         } || hsErr?.let {
             it.contains("org.lwjgl.opengl") || it.contains("Render thread") || it.contains("Client thread")
         } == true || frame?.startsWith("libc") == true && text.contains("memmove", ignoreCase = true)
-        return Diagnosis(if (inRenderer) Cause.RENDERER else Cause.NATIVE, frame)
+        val where = listOfNotNull(frame, stackLib?.takeIf { it != frame }).joinToString(" ← ")
+        return Diagnosis(if (inRenderer) Cause.RENDERER else Cause.NATIVE, where.ifEmpty { null })
+    }
+
+    private fun head(file: File, bytes: Int): String =
+        file.inputStream().use { input -> String(input.readNBytesCompat(bytes), Charsets.UTF_8) }
+
+    private fun java.io.InputStream.readNBytesCompat(limit: Int): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(16 * 1024)
+        while (out.size() < limit) {
+            val read = read(buffer, 0, minOf(buffer.size, limit - out.size()))
+            if (read < 0) break
+            out.write(buffer, 0, read)
+        }
+        return out.toByteArray()
     }
 
     private fun tail(file: File): String {

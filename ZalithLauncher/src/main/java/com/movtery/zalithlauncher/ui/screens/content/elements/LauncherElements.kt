@@ -20,6 +20,8 @@ package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import com.movtery.zalithlauncher.game.version.mod.ModCompat
 import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
+import com.movtery.zalithlauncher.game.version.mod.MobileModRules
+import android.widget.Toast
 import androidx.compose.material3.LinearProgressIndicator
 import android.app.Activity
 import android.net.Uri
@@ -545,6 +547,19 @@ fun LaunchGameOperation(
             LaunchedEffect(Unit) {
                 val version = operation.version
                 val quickPlay = operation.quickPlay
+                // ONA: render mods that crash GL4ES based renderers are switched off for them
+                if (Renderers.isCurrentRendererValid()) {
+                    val renderer = Renderers.getCurrentRenderer()
+                    val switchedOff = withContext(Dispatchers.IO) {
+                        runCatching { MobileModRules.apply(version, renderer) }.getOrDefault(emptyList())
+                    }
+                    if (switchedOff.isNotEmpty()) {
+                        eventViewModel.sendToast(
+                            androidText(R.string.ona_mobile_mods_off, switchedOff.joinToString(), renderer.getRendererName()),
+                            Toast.LENGTH_LONG
+                        )
+                    }
+                }
                 if (!operation.skipModCheck) {
                     // Broken mod setups get their requirements installed automatically first
                     val problems = version.findModProblems()
