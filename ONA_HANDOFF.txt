@@ -1,0 +1,105 @@
+ONA LAUNCHER 2 - HANDOFF FOR THE NEXT SESSION
+==============================================
+(ملخص بالعربي بآخر الملف)
+
+Repo:    Hashem2008/ONAlauncher2  (fork of Zalith Launcher 2, Android Minecraft Java launcher)
+Branch:  claude/upbeat-lovelace-cqpsmf   (all work below is here, NOT merged to main yet)
+Base:    main = 4ebcdfa (work of the session before this one, pushed straight to main)
+Package: com.onalauncher.app2(.debug)
+
+HOW TO BUILD / CHECK
+- No Android SDK/NDK in the cloud container (dl.google.com blocked). Compile check = GitHub CI.
+- Every push runs .github/workflows/push_ci.yml -> build.yml (Debug APK, matrix all + arm64, ~9 min).
+- Read results with the GitHub MCP tools: actions_list (list_workflow_runs, branch filter),
+  actions_get, get_job_logs. The APK is the "debug apk (arm64)" artifact of the run.
+- GLSL can be validated locally with glslangValidator (apt install glslang-tools works).
+- Java files can be syntax-checked with javac + small stubs (gson jar: /opt/gradle-8.14.3/lib/gson-2.10.jar).
+
+USER / DEVICE
+- User writes Arabic (Jordanian dialect). Answer in short, simple Arabic ("caveman" style was asked).
+- Phone: Samsung SM-S948B, Snapdragon SM8850, Adreno 840, Android 17 (API 37), ~12 GB RAM.
+- Packs he tests: BMC4 (Forge 1.20.1, ~496 mod files, uses Sinytra Connector), LDoH Test (Forge
+  1.12.2, has Nothirium, Fancy Block Particles), DeceasedCraft (Forge 1.18.2 with Physics Mod),
+  Fabulously Optimized (Fabric 26.3), wants Voxy / Voxyris (Fabric 1.21.x).
+- HARD RULE from the user: NEVER disable or delete a mod. Only make it work / tune it
+  (configs, renderer choice, porting). Ask before changing mods themselves.
+- He wants Modrinth AND CurseForge both working.
+
+WHAT WAS DONE (commits on the branch, oldest first)
+20afa95  - "Fix all" removed. ModAutoResolver (game/version/mod) installs missing mod requirements
+           from Modrinth before launch and after mod / shader downloads (shaders also get Iris/Oculus).
+         - Colour grading black screen fixed (no TextureView.setLayerPaint; saveLayer GradeFrame or
+           inside upscaler) - utils/device/GameColorFilter.kt
+         - GameUpscaler (utils/device): GL compositor between game and TextureView, GSR-style
+           (Adreno) / ASR-style (all ARM) spatial upscalers, setting "upscalerMode" (default OFF).
+         - DeviceProfiler + PerformanceAdvisor (utils/device): SoC/GPU/RAM tier, device card with
+           "Apply best settings" (ui/screens/content/settings/OnaDeviceCard.kt), perf badges in search.
+         - SmartRenderer (game/renderer/renderers) = default "ONA Smart (Auto)", resolved in
+           Version.getRenderer(). Smart Vulkan driver: Turnip only on Adreno 6xx/7xx.
+6aaa0ff  - CrashDoctor (game/launch/CrashDoctor.kt): explains crashes in ErrorActivity (EN/AR).
+         - Smart renderer remembers native renderer crashes per version (ona_crashed_renderers.txt).
+cad4758 / 6d7939c / fad1ef3
+         - MobileModRules: Nothirium gets renderEngine=GL15 under GL4ES renderers (config only).
+           Vintagium/Celeritas/Nothirium make Smart prefer Kopper Zink / MobileGlues (GL4ES last).
+         - Never disables mods anymore; old *.jar.ona-off files are restored.
+93a4f7c / 8da7a6f
+         - ModPerformanceTuner: lightens heavy mods via their own configs, backed up (*.ona-backup)
+           and restored when turned off. Setting "tuneHeavyMods" (now default ON). Covers Sound
+           Physics Remastered, 3D Skin Layers, ETF, EMF, Dynamic Lights, Subtle Effects, Distant
+           Horizons, Embeddium, Create, Supplementaries, Falling Leaves, LambDynLights, Effective,
+           Particle Rain, Voxy. Only existing keys are changed.
+b3c80ca / fad1ef3
+         - Voxy: VoxySupport + VoxyInstaller. Needs Kopper Zink + Turnip (plugins from
+           github.com/LXK-98/zalith-voxy, MIT). Launcher auto-installs the compat mod from Modrinth
+           and shows VoxySetupDialog to download/install the 3 plugin APKs
+           (REQUEST_INSTALL_PACKAGES added). Never uses the system Vulkan driver for Voxy.
+cae2d6f  - Hotbar touch box scaled by display/render ratio (taps missed below 100% resolution).
+         - GL4ES renderer env LIBGL_NORMALIZE=1 (FBP 3D particles were white).
+73f2a2a  - TLS: utils/network/TLSSecurity.kt now uses Android's own trust manager (+ eMudhra key
+           check). Fixed "Trust anchor for certification path not found" on Modrinth, CurseForge,
+           meta.fabricmc.net (Android 17).
+         - Modrinth/CurseForge searchers always fall back to the MCIM mirror (_PlatformSearch.kt).
+         - ModCompat.java: understands Sinytra Connector, caches jar metadata. ModAutoResolver:
+           45 s budget, failed fixes retried after 3 days (ona_unfixable_mods.txt), "Skip and play now".
+         - Modpack parser finds manifest.json in a sub folder; clear message for SERVER packs.
+         - PhysxSupport: mods with physx-jni >= 2.3.1 get the official Android build
+           (de.fabmax:physx-jni-android) via -Dphysxjni.nativeLibLocation.
+10de428  - PhysX port for Physics Mod 1.18.2 (physx-jni 1.1.0, x86 only): tools/physx4-android/
+           build.sh compiles fabmax/PhysX4 @ 5951e9dbe1e4d003bb7524cfa6aeca19356dc838 (PhysX 4.1.2 +
+           generated JNI glue) for arm64 with the NDK; CI step in build.yml (cached, continue-on-
+           error) puts it in jniLibs/arm64-v8a/libPhysXJniBindings_64.so. Before launch PhysxSupport
+           copies it to cache/de.fabmax.physx-jni/1.1.0/ (physx-jni 1.x only extracts its own copy
+           when no file is there), so the unchanged mod loads the arm64 port.
+
+STATUS / OPEN ITEMS (check these first)
+1. CI of 10de428: verify the step "Build PhysX 4.1 Android port (physx-jni 1.1.0, arm64)" really
+   printed "Built ... JNI entry points" (it is continue-on-error, overall success hides failure).
+   If it failed: read the job log, fix tools/physx4-android/build.sh (expect modern-clang compile
+   issues in PhysX 4.1; -Werror/-Wpedantic already removed; glue AttachCurrentThreadAsDaemon
+   patched for Android jni.h), push again.
+2. Nothing here was tested on a device by me. User reports so far: LDoH runs (117-186 FPS) after
+   the Nothirium fix, but with Nothirium on GL4ES chunks flickered -> Smart now prefers Zink /
+   MobileGlues for it; needs a new test + log.
+3. Waiting for user tests: Modrinth/CurseForge search, Voxyris install, BMC4 launch time,
+   DeceasedCraft 1.18.2 (Physics Mod port) and 1.20.1, hotbar, white particles.
+4. Upscaler is OFF by default and untested on device.
+5. Scheduled reminders created in the OLD session fire into the old session, not the new one.
+
+KEY FILES
+game/version/mod/: ModAutoResolver.kt, ModCompat.java, MobileModRules.kt, ModPerformanceTuner.kt,
+                   VoxySupport.kt, VoxyInstaller.kt, PhysxSupport.kt
+game/renderer/renderers/SmartRenderer.kt, game/launch/CrashDoctor.kt, game/launch/GameLauncher.kt
+ui/screens/content/elements/LauncherElements.kt (launch flow), ModProblemsDialog.kt, VoxySetupDialog.kt
+utils/device/: DeviceProfile.kt, PerformanceAdvisor.kt, GameUpscaler.kt, GameColorFilter.kt, OnaTweaks.kt
+utils/network/TLSSecurity.kt, game/download/modpack/install/_ParserModPack.kt
+res/values/strings_ona.xml + res/values-ar/strings_ona.xml (all new strings, EN + AR)
+tools/physx4-android/build.sh, .github/workflows/build.yml
+
+-----------------------------------------------------------------
+ملخص بالعربي
+- كل الشغل على فرع claude/upbeat-lovelace-cqpsmf ولسا ما اندمج مع main.
+- انعمل: تنزيل متطلبات المودات تلقائياً، عارض ذكي ودرايفر ذكي، طبيب الكراش، أبسكيل
+  (مطفي افتراضياً)، تخفيف المودات الثقيلة من إعداداتها، دعم Voxy، إصلاح الهوتبار والجزيئات
+  البيضاء، إصلاح Modrinth و CurseForge (الشهادات)، تسريع التشغيل، وبورت PhysX لـ Physics Mod.
+- القاعدة: ممنوع نطفي أو نحذف أي مود، بس نخليه يشتغل.
+- أول شي بالجلسة الجديدة: تأكد إن خطوة بناء PhysX نجحت بالـ CI، وجرّب على الجوال وابعت اللوقات.
