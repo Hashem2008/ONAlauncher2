@@ -72,4 +72,7 @@
     <string name="ona_crash_shader_fix">Pick a lighter shader pack, update Iris / Oculus, or use the MobileGlues renderer.</string>
     <string name="ona_mobile_mods_off">Switched off for %2$s (they crash it on phones): %1$s. They come back on with another renderer.</string>
     <string name="ona_mobile_mods_compatible">Made compatible with %2$s: %1$s</string>
+    <string name="ona_tune_mods_title">Lighten heavy mods</string>
+    <string name="ona_tune_mods_summary">Before each launch, makes Sound Physics Remastered, 3D Skin Layers, Entity Texture Features, Dynamic Lights and Subtle Effects lighter through their own settings, based on your phone. The mods stay installed and keep working. The original settings are backed up and put back when you turn this off (on the next launch).</string>
+    <string name="ona_tuned_mods">Lightened for more FPS: %1$s</string>
 </resources>

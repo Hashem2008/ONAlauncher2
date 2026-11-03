@@ -139,10 +139,18 @@ fun RendererSettingsScreen(
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
+                        position = CardPosition.Middle,
                         unit = AllSettings.smartDriver,
                         title = stringResource(R.string.ona_smart_driver_title),
                         summary = stringResource(R.string.ona_smart_driver_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.tuneHeavyMods,
+                        title = stringResource(R.string.ona_tune_mods_title),
+                        summary = stringResource(R.string.ona_tune_mods_summary)
                     )
                 }
             }

@@ -72,4 +72,7 @@
     <string name="ona_crash_shader_fix">اختار شيدرز أخف، حدّث Iris / Oculus، أو استخدم عارض MobileGlues.</string>
     <string name="ona_mobile_mods_off">تم إيقاف هذه المودات مع %2$s لأنها بتكرّشه على الجوال: %1$s. بترجع تشتغل مع أي عارض ثاني.</string>
     <string name="ona_mobile_mods_compatible">تم تعديل إعدادات هذه المودات لتتوافق مع %2$s: %1$s</string>
+    <string name="ona_tune_mods_title">تخفيف المودات الثقيلة</string>
+    <string name="ona_tune_mods_summary">قبل كل تشغيل بخفف Sound Physics Remastered و 3D Skin Layers و Entity Texture Features و Dynamic Lights و Subtle Effects من إعداداتهم حسب قوة جهازك. المودات بتضل منزلة وشغالة. الإعدادات الأصلية بتنحفظ وبترجع لما تطفي هذا الخيار (بالتشغيل الجاي).</string>
+    <string name="ona_tuned_mods">تم تخفيف هذه المودات لفريمات أعلى: %1$s</string>
 </resources>

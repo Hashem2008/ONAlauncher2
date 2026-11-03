@@ -135,6 +135,12 @@ object AllSettings : SettingsRegistry() {
     val smartDriver = boolSetting("onaSmartDriver", true)
 
     /**
+     * ONA: lighten heavy client mods (Sound Physics, 3D Skin Layers, ETF, Dynamic Lights,
+     * Subtle Effects) through their configs before launch, backed up and restored when off
+     */
+    val tuneHeavyMods = boolSetting("onaTuneHeavyMods", false)
+
+    /**
      * ONA: highest render distance written to options.txt on launch (only ever lowers it),
      * 0 leaves it alone. Set from the device recommendation.
      */

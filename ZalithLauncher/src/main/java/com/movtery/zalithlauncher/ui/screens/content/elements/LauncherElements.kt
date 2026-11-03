@@ -21,6 +21,9 @@ package com.movtery.zalithlauncher.ui.screens.content.elements
 import com.movtery.zalithlauncher.game.version.mod.ModCompat
 import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
 import com.movtery.zalithlauncher.game.version.mod.MobileModRules
+import com.movtery.zalithlauncher.game.version.mod.ModPerformanceTuner
+import com.movtery.zalithlauncher.utils.device.DeviceProfiler
+import com.movtery.zalithlauncher.utils.device.DeviceTier
 import android.widget.Toast
 import androidx.compose.material3.LinearProgressIndicator
 import android.app.Activity
@@ -565,6 +568,20 @@ fun LaunchGameOperation(
                             Toast.LENGTH_LONG
                         )
                     }
+                }
+                // ONA: lighten heavy mods through their configs, or put the configs back
+                val tunedMods = withContext(Dispatchers.IO) {
+                    runCatching {
+                        if (AllSettings.tuneHeavyMods.getValue()) {
+                            ModPerformanceTuner.apply(version, DeviceProfiler.current()?.tier ?: DeviceTier.HIGH)
+                        } else {
+                            ModPerformanceTuner.restore(version)
+                            emptyList()
+                        }
+                    }.getOrDefault(emptyList())
+                }
+                if (tunedMods.isNotEmpty()) {
+                    eventViewModel.sendToast(androidText(R.string.ona_tuned_mods, tunedMods.joinToString()), Toast.LENGTH_LONG)
                 }
                 if (!operation.skipModCheck) {
                     // Broken mod setups get their requirements installed automatically first
