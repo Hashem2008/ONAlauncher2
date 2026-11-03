@@ -15,6 +15,9 @@ HOW TO BUILD / CHECK
 - GLSL can be validated locally with glslangValidator (apt install glslang-tools works).
 - Java files can be syntax-checked with javac + small stubs (gson jar: /opt/gradle-8.14.3/lib/gson-2.10.jar).
 
+RULE FROM THE USER: after EVERY push/build, update this file (what was done, CI result, what is
+next) in the same commit or right after, so a new session can continue.
+
 USER / DEVICE
 - User writes Arabic (Jordanian dialect). Answer in short, simple Arabic ("caveman" style was asked).
 - Phone: Samsung SM-S948B, Snapdragon SM8850, Adreno 840, Android 17 (API 37), ~12 GB RAM.
@@ -71,8 +74,22 @@ cae2d6f  - Hotbar touch box scaled by display/render ratio (taps missed below 10
            copies it to cache/de.fabmax.physx-jni/1.1.0/ (physx-jni 1.x only extracts its own copy
            when no file is there), so the unchanged mod loads the arm64 port.
 
+PHYSX PORT - BUILD LOG (newest last, keep appending)
+- 10de428: CI step failed at configure: appended INCLUDE glued to last line (file had no final
+  newline). Fixed in 3f367a2 (printf with leading newline) + -DCMAKE_POLICY_VERSION_MINIMUM=3.5.
+- 3f367a2: got to ~58% of PhysX. Error with NDK r30 (clang 21):
+  PsUnixNeonInlineAoS.h:3582 "argument value 2 is outside the valid range [0, 1]" in
+  V4SplatElement<index> (vdupq_lane_f32(vget_low_f32(a), index) inside `index < 2` branch).
+  Fixed in cd7a9d6 with sed -> `index & 1` (also the u32 variants) and switched the step to NDK r25.
+- cd7a9d6: step died instantly: `sdkmanager: command not found` (not on PATH in CI).
+- 5336721: sdkmanager called by full path ($ANDROID_HOME/cmdline-tools/*/bin/sdkmanager), falls back
+  to the default NDK if r25 cannot be installed. RESULT: not checked yet (run #18).
+- How to read the step: get_job_logs(job_id, return_content) -> saved JSON file, field logs_content;
+  search "PhysX port uses NDK", " error: ", "Built /". A 0-40 s step means it failed early.
+- Running the PhysX build locally is DENIED by auto mode (external code); only CI can build it.
+
 STATUS / OPEN ITEMS (check these first)
-1. CI of 10de428: verify the step "Build PhysX 4.1 Android port (physx-jni 1.1.0, arm64)" really
+1. CI of the newest commit: verify the step "Build PhysX 4.1 Android port (physx-jni 1.1.0, arm64)" really
    printed "Built ... JNI entry points" (it is continue-on-error, overall success hides failure).
    If it failed: read the job log, fix tools/physx4-android/build.sh (expect modern-clang compile
    issues in PhysX 4.1; -Werror/-Wpedantic already removed; glue AttachCurrentThreadAsDaemon
@@ -103,3 +120,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
   البيضاء، إصلاح Modrinth و CurseForge (الشهادات)، تسريع التشغيل، وبورت PhysX لـ Physics Mod.
 - القاعدة: ممنوع نطفي أو نحذف أي مود، بس نخليه يشتغل.
 - أول شي بالجلسة الجديدة: تأكد إن خطوة بناء PhysX نجحت بالـ CI، وجرّب على الجوال وابعت اللوقات.
+- بعد كل بناء لازم يتحدّث هذا الملف.
