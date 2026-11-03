@@ -120,10 +120,11 @@ fun mirroredCurseForgeSource(
     if (!hasCurseForgeApiKey()) return listOf(mirrorCurseForgeSearcher, curseForgeSearcher)
     val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
     val mirrorSource = mirrorCurseForgeSearcher.takeIf { enabledMirror }
+    // ONA: the other source is always the fallback, one failing source never blocks the search
     return when (source) {
-        MirrorPriority.OFFICIAL -> listOf(curseForgeSearcher)
+        MirrorPriority.OFFICIAL -> listOf(curseForgeSearcher, mirrorCurseForgeSearcher)
         MirrorPriority.MIRROR_FIRST ->
-            listOfNotNull(mirrorSource, curseForgeSearcher)
+            listOfNotNull(mirrorSource, curseForgeSearcher, mirrorCurseForgeSearcher.takeIf { mirrorSource == null })
     }
 }
 
@@ -135,10 +136,11 @@ fun mirroredModrinthSource(
 ): List<ModrinthSearcher> {
     val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
     val mirrorSource = mirrorModrinthSearcher.takeIf { enabledMirror }
+    // ONA: the other source is always the fallback, one failing source never blocks the search
     return when (source) {
-        MirrorPriority.OFFICIAL -> listOf(modrinthSearcher)
+        MirrorPriority.OFFICIAL -> listOf(modrinthSearcher, mirrorModrinthSearcher)
         MirrorPriority.MIRROR_FIRST ->
-            listOfNotNull(mirrorSource, modrinthSearcher)
+            listOfNotNull(mirrorSource, modrinthSearcher, mirrorModrinthSearcher.takeIf { mirrorSource == null })
     }
 }
 

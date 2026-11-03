@@ -49,7 +49,11 @@ object CrashDoctor {
         MOD_CONFLICT(R.string.ona_crash_mixin, R.string.ona_crash_mixin_fix),
         WRONG_JAVA(R.string.ona_crash_java, R.string.ona_crash_java_fix),
         GRAPHICS(R.string.ona_crash_graphics, R.string.ona_crash_graphics_fix),
-        SHADER(R.string.ona_crash_shader, R.string.ona_crash_shader_fix)
+        SHADER(R.string.ona_crash_shader, R.string.ona_crash_shader_fix),
+        /** A mod ships a native library built for PC (x86) only */
+        PC_NATIVE(R.string.ona_crash_pc_native, R.string.ona_crash_pc_native_fix),
+        /** PhysX (Physics Mod) without an Android build for its version */
+        PHYSX_OLD(R.string.ona_crash_physx, R.string.ona_crash_physx_fix)
     }
 
     class Diagnosis(val cause: Cause, val detail: String?) {
@@ -107,6 +111,15 @@ object CrashDoctor {
     }.onFailure { Logger.warning(TAG, "Crash analysis failed", it) }.getOrNull()
 
     fun diagnose(text: String, hsErr: String?): Diagnosis? {
+        // A mod tried to load a desktop-only native library
+        if (text.contains("UnsatisfiedLinkError") && (text.contains("dlopen failed") || text.contains("wrong ELF class") ||
+                    text.contains("EM_X86_64") || text.contains("is for EM_"))
+        ) {
+            val mod = Regex("-- MOD ([\\w.-]+) --").find(text)?.groupValues?.get(1)
+                ?: Regex("Mod File: .*/([^/\\s]+\\.jar)").find(text)?.groupValues?.get(1)
+            val physx = text.contains("physx", ignoreCase = true)
+            return Diagnosis(if (physx) Cause.PHYSX_OLD else Cause.PC_NATIVE, mod)
+        }
         // Java level problems first, they explain a following native abort
         Regex("requires (?:any version|version [^ ]+(?: or later)?) of '?([\\w.-]+)'?, which is missing").findAll(text)
             .map { it.groupValues[1] }.distinct().toList().takeIf { it.isNotEmpty() }?.let {

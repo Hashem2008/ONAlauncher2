@@ -54,6 +54,8 @@ public class ModCompat {
         public String gameVersion;
         @Nullable public String loader;
         @Nullable public String loaderVersion;
+        /** Sinytra Connector is installed: Fabric mods load on (Neo)Forge too */
+        public boolean connector;
     }
 
     public static class Dependency {
@@ -124,8 +126,26 @@ public class ModCompat {
 
     // ---- Reading jars ----
 
+    /** ONA: jars do not change between checks, keep what was read keyed by size and time */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Object[]> READ_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Object NO_INFO = new Object();
+
     @Nullable
     public static ModInfo read(File jar) {
+        String key = jar.getAbsolutePath();
+        long length = jar.length();
+        long modified = jar.lastModified();
+        Object[] cached = READ_CACHE.get(key);
+        if (cached != null && (long) cached[0] == length && (long) cached[1] == modified) {
+            return cached[2] == NO_INFO ? null : (ModInfo) cached[2];
+        }
+        ModInfo info = readUncached(jar);
+        READ_CACHE.put(key, new Object[]{length, modified, info == null ? NO_INFO : info});
+        return info;
+    }
+
+    @Nullable
+    private static ModInfo readUncached(File jar) {
         ModInfo info = new ModInfo();
         info.file = jar;
         try (InputStream in = new FileInputStream(jar)) {
@@ -423,11 +443,11 @@ public class ModCompat {
         String madeFor;
         switch (environment.loader) {
             case "forge":
-                fits = info.hasForgeToml;
+                fits = info.hasForgeToml || environment.connector && info.hasFabricJson;
                 madeFor = info.hasNeoforgeToml ? "NeoForge" : "Fabric";
                 break;
             case "neoforge":
-                fits = info.hasNeoforgeToml || info.hasForgeToml;
+                fits = info.hasNeoforgeToml || info.hasForgeToml || environment.connector && info.hasFabricJson;
                 madeFor = "Fabric";
                 break;
             default:
@@ -463,6 +483,12 @@ public class ModCompat {
             if (info == null) continue;
             mods.add(info);
             provided.addAll(info.providedIds);
+        }
+        // Sinytra Connector runs the Fabric mods of a (Neo)Forge pack, they are not misplaced
+        if (provided.contains("connector") && !"fabric".equals(environment.loader) && !"quilt".equals(environment.loader)) {
+            Environment withConnector = of(environment.gameVersion, environment.loader, environment.loaderVersion);
+            withConnector.connector = true;
+            environment = withConnector;
         }
         Set<String> reportedMissing = new HashSet<>();
         for (ModInfo info : mods) {

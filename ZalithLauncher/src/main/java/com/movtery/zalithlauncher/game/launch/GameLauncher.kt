@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.game.launch
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
+import com.movtery.zalithlauncher.game.version.mod.PhysxSupport
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import android.app.Activity
@@ -272,6 +273,8 @@ class GameLauncher(
         if (Renderers.isCurrentRendererValid()) {
             args.add("-Dorg.lwjgl.opengl.libname=${getGameRendererLibrary(version)}")
         }
+        // ONA: PhysX mods load the Android ARM64 build of their physx-jni
+        args.addAll(runCatching { PhysxSupport.jvmArgs(version) }.getOrDefault(emptyList()))
     }
 
     private suspend fun launchGame(

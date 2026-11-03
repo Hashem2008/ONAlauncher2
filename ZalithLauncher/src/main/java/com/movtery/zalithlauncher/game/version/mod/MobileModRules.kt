@@ -119,11 +119,11 @@ object MobileModRules {
             ?.mapNotNull { jar -> riskyId(jar) }
             .orEmpty()
 
+    /** By file name only: reading 500 jars on every launch made launching slow */
     private fun riskyId(jar: File): String? {
         val name = jar.name.lowercase()
         GL4ES_UNSAFE.forEach { (id, hint) -> if (name.contains(hint)) return id }
-        val info = runCatching { ModCompat.read(jar) }.getOrNull() ?: return null
-        return GL4ES_UNSAFE.keys.firstOrNull { it in info.providedIds }
+        return null
     }
 
     /** What [apply] did, for the toast */
@@ -135,8 +135,9 @@ object MobileModRules {
      * then starts it with Kopper Zink or MobileGlues instead, and every mod stays on.
      */
     fun avoidGl4es(version: Version): Boolean {
-        val risky = runCatching { riskyMods(version.modsDir()) }.getOrDefault(emptyList())
-        return risky.any { it != NOTHIRIUM } || (NOTHIRIUM in risky && nothiriumFailedMarker(version).exists())
+        // Nothirium's chunk renderer flickers and leaves holes in the world under GL4ES even on
+        // its GL15 engine, so prefer a renderer with real desktop GL for it as well
+        return runCatching { riskyMods(version.modsDir()) }.getOrDefault(emptyList()).isNotEmpty()
     }
 
     /**

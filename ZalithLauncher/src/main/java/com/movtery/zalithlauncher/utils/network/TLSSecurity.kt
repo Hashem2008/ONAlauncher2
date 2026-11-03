@@ -115,27 +115,20 @@ object TLSSecurity {
     }
 
     /**
-     * 从平台默认信任管理器取回信任锚，剔除已泄露的公钥后重建信任库
-     * @return 加固的信任管理器
+     * ONA: the platform trust manager itself, wrapped by [ChainCheckingTrustManager] which still
+     * rejects any chain that uses a compromised eMudhra key.
+     *
+     * Upstream rebuilt a private KeyStore from `acceptedIssuers`. On newer Android (trust anchors
+     * delivered through the updatable Conscrypt module) that copy misses roots the system does
+     * trust, and Modrinth, CurseForge and meta.fabricmc.net failed with "Trust anchor for
+     * certification path not found". Validating with the system's own manager trusts exactly
+     * what Android trusts.
      */
     private fun createPlatformTrustManager(): X509TrustManager {
         val defaults = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         defaults.init(null as KeyStore?)
-        val systemManager = defaults.trustManagers.filterIsInstance<X509TrustManager>().firstOrNull()
+        return defaults.trustManagers.filterIsInstance<X509TrustManager>().firstOrNull()
             ?: throw GeneralSecurityException("No X509TrustManager in the default trust manager factory")
-
-        val store = KeyStore.getInstance(KeyStore.getDefaultType())
-        store.load(null, null)
-        systemManager.acceptedIssuers.forEachIndexed { index, certificate ->
-            if (!isBlockedCertificate(certificate)) {
-                store.setCertificateEntry("trusted-ca-$index", certificate)
-            }
-        }
-
-        val hardenedFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        hardenedFactory.init(store)
-        return hardenedFactory.trustManagers.filterIsInstance<X509TrustManager>().firstOrNull()
-            ?: throw GeneralSecurityException("No X509TrustManager in the hardened trust manager factory")
     }
 
     /**

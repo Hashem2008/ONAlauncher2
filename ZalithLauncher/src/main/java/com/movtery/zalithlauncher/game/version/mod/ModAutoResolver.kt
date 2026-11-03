@@ -30,6 +30,7 @@ import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.time.Duration.Companion.milliseconds
@@ -45,7 +46,7 @@ object ModAutoResolver {
     private const val TAG = "ModAutoResolver"
 
     /** New downloads can bring their own missing dependencies, so go a few rounds */
-    private const val MAX_ROUNDS = 4
+    private const val MAX_ROUNDS = 2
 
     class Result(val fixed: Int, val remaining: List<ModCompat.Problem>)
 
@@ -67,21 +68,58 @@ object ModAutoResolver {
             Logger.warning(TAG, "Modrinth is not reachable, leaving ${remaining.size} problem(s) to the user")
             return Result(0, remaining)
         }
+        // Problems that failed recently are not retried on every launch (that made launching slow)
+        val skipFile = File(version.getVersionPath(), UNFIXABLE_FILE)
+        val now = System.currentTimeMillis()
+        val skipped = readSkipped(skipFile, now)
+        val deadline = now + TIME_BUDGET_MS
         var fixed = 0
+        val failedNow = mutableSetOf<String>()
         for (round in 0 until MAX_ROUNDS) {
-            if (remaining.isEmpty()) break
+            val todo = remaining.filter { problemKey(it) !in skipped && problemKey(it) !in failedNow }
+            if (todo.isEmpty()) break
             var fixedThisRound = 0
-            remaining.forEach { problem ->
+            for (problem in todo) {
+                if (System.currentTimeMillis() > deadline) break
                 onProgress(if (problem.kind == ModCompat.PROBLEM_MISSING) problem.requiredId else problem.modName)
                 val result = ModCompat.fix(problem, modsDir, environment, false)
-                if (result != ModCompat.FIX_FAILED) fixedThisRound++
+                if (result != ModCompat.FIX_FAILED) fixedThisRound++ else failedNow.add(problemKey(problem))
             }
             fixed += fixedThisRound
             remaining = runCatching { ModCompat.analyze(modsDir, environment) }.getOrDefault(remaining)
-            if (fixedThisRound == 0) break
+            if (fixedThisRound == 0 || System.currentTimeMillis() > deadline) break
         }
+        writeSkipped(skipFile, skipped, failedNow, now)
+        // Problems already shown on an earlier launch do not stop this one again
+        remaining = remaining.filter { problemKey(it) !in skipped }
         Logger.info(TAG, "${version.getVersionName()}: fixed $fixed, ${remaining.size} left")
         return Result(fixed, remaining)
+    }
+
+    private const val UNFIXABLE_FILE = "ona_unfixable_mods.txt"
+    /** Do not retry a failed fix for this long */
+    private const val RETRY_AFTER_MS = 3L * 24 * 60 * 60 * 1000
+    /** Never hold the launch longer than this */
+    private const val TIME_BUDGET_MS = 45_000L
+
+    private fun problemKey(problem: ModCompat.Problem): String =
+        "${problem.kind}|${problem.file?.name}|${problem.requiredId}"
+
+    /** Keys that failed less than [RETRY_AFTER_MS] ago, file lines are "time<TAB>key" */
+    private fun readSkipped(file: File, now: Long): Map<String, Long> = runCatching {
+        file.readLines().mapNotNull { line ->
+            val time = line.substringBefore('\t').toLongOrNull() ?: return@mapNotNull null
+            val key = line.substringAfter('\t')
+            if (now - time < RETRY_AFTER_MS) key to time else null
+        }.toMap()
+    }.getOrDefault(emptyMap())
+
+    private fun writeSkipped(file: File, old: Map<String, Long>, failed: Set<String>, now: Long) {
+        runCatching {
+            val all = old + failed.associateWith { now }
+            if (all.isEmpty()) file.delete()
+            else file.writeText(all.entries.joinToString("\n") { "${it.value}\t${it.key}" })
+        }
     }
 
     /** Quick check so an offline launch never waits on a dozen network timeouts */

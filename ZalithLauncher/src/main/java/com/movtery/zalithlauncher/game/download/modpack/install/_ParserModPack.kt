@@ -111,6 +111,35 @@ suspend fun <T> withZipFile(
 }
 
 /**
+ * ONA: where the manifest sits. Some packs wrap everything in a top folder
+ * (`Pack-1.0/manifest.json`); the shallowest match wins and its folder becomes the prefix of
+ * every path in the pack.
+ * @return the prefix ("" for the zip root)
+ * @throws IOException with a clear message when there is no manifest, e.g. a server pack
+ */
+private fun findPackPrefix(entryNames: Sequence<String>, manifestPath: String, fileName: String): String {
+    val names = entryNames.toList()
+    val match = names
+        .filter { it == manifestPath || it.endsWith("/$manifestPath") }
+        .minByOrNull { it.count { c -> c == '/' } }
+    if (match != null) return match.removeSuffix(manifestPath)
+    val lower = names.map { it.lowercase() }
+    val serverPack = lower.any {
+        it.endsWith("server.properties") || it.endsWith("startserver.sh") || it.endsWith("startserver.bat") ||
+                it.endsWith("run.sh") || it.endsWith("user_jvm_args.txt") || it.endsWith("eula.txt")
+    }
+    throw IOException(
+        if (serverPack) {
+            "$fileName is a SERVER pack, not a client modpack. Pick a version without \"Server\" in its name.\n" +
+                    "هذا ملف سيرفر مش مودباك للعبة. اختار نسخة ما فيها كلمة Server."
+        } else {
+            "$manifestPath not found in $fileName, this file is not a ${if (manifestPath == "manifest.json") "CurseForge" else "Modrinth"} modpack.\n" +
+                    "الملف مش مودباك صالح. جرّب نسخة ثانية من المودباك."
+        }
+    )
+}
+
+/**
  * 通用整合包解析逻辑
  */
 private suspend fun <M, P : AbstractPack> parseModPackGeneric(
@@ -123,18 +152,20 @@ private suspend fun <M, P : AbstractPack> parseModPackGeneric(
     loaderJdk = { zip ->
         task.updateProgress(-1f)
 
-        val json = zip.readText(config.manifestPath)
+        val prefix = findPackPrefix(zip.entries().asSequence().map { it.name }, config.manifestPath, file.name)
+        val json = zip.readText(prefix + config.manifestPath)
         val manifest = GSON.fromJson(json, config.manifestType)
         val pack = config.createPack(manifest)
 
         config.readPack(pack, task, targetFolder) { internal, out ->
-            zip.extractFromZip(internal, out)
+            zip.extractFromZip(prefix + internal, out)
         }
     },
     loaderApache = { zip ->
         task.updateProgress(-1f)
 
-        val entry = zip.getEntry(config.manifestPath)
+        val prefix = findPackPrefix(zip.entries.asSequence().map { it.name }, config.manifestPath, file.name)
+        val entry = zip.getEntry(prefix + config.manifestPath)
             ?: throw IOException("${config.manifestPath} not found in ${file.name}")
 
         val json = zip.getInputStream(entry).bufferedReader().readText()
@@ -142,7 +173,7 @@ private suspend fun <M, P : AbstractPack> parseModPackGeneric(
         val pack = config.createPack(manifest)
 
         config.readPack(pack, task, targetFolder) { internal, out ->
-            zip.extractFromZip(internal, out)
+            zip.extractFromZip(prefix + internal, out)
         }
     }
 )

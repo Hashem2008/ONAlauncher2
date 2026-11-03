@@ -84,4 +84,12 @@
     <string name="ona_voxy_install_all">Install all</string>
     <string name="ona_voxy_restart_note">After installing, close ONA completely and open it again so it loads the plugins.</string>
     <string name="ona_voxy_download_failed">Download failed, check your connection and try again</string>
+    <string name="ona_skip_and_play">Skip and play now</string>
+    <string name="ona_physx_ready">Physics: using the Android ARM64 build of PhysX %1$s</string>
+    <string name="ona_physx_old">%1$s uses PhysX %2$s, which was only ever built for PC. Android builds exist from PhysX 2.3.1: a newer version of this mod / modpack (for example its 1.20.1 version) works on a phone.</string>
+    <string name="ona_physx_failed">Could not download PhysX for Android, check your connection and launch again</string>
+    <string name="ona_crash_pc_native">A mod uses a native library made only for PC (x86)</string>
+    <string name="ona_crash_pc_native_fix">This version of the mod cannot load on a phone CPU. A newer version of the mod may ship an ARM build.</string>
+    <string name="ona_crash_physx">Physics Mod: its PhysX version has no Android build</string>
+    <string name="ona_crash_physx_fix">ONA runs PhysX on Android for PhysX 2.3.1 and newer automatically. This Physics Mod version uses an older PhysX that was only built for PC; use a newer version of the mod or of the modpack (for example 1.20.1).</string>
 </resources>

@@ -100,8 +100,13 @@ object SmartRenderer : RendererInterface {
         val available = Renderers.getRenderers()
         // Render mods that break the GL4ES family keep running: pick another renderer for them
         val avoidGl4es = MobileModRules.avoidGl4es(version)
-        val usable = candidates.distinct().filter { renderer ->
-            !(avoidGl4es && MobileModRules.isGl4esFamily(renderer)) &&
+        // ...without ever leaving the version with nothing: GL4ES stays as the last resort
+        val ordered = if (avoidGl4es) {
+            val (gl4es, others) = candidates.distinct().partition { MobileModRules.isGl4esFamily(it) }
+            val extra = listOf(KopperZinkRenderer, MobileGluesRenderer).filter { it !in others }
+            others + extra + gl4es
+        } else candidates.distinct()
+        val usable = ordered.filter { renderer ->
             available.any { it.getUniqueIdentifier() == renderer.getUniqueIdentifier() } &&
                     renderer.getMinMCVersion()?.let { mc.isLowerVer(it) } != true &&
                     renderer.getMaxMCVersion()?.let { mc.isBiggerVer(it) } != true

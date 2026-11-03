@@ -24,6 +24,7 @@ import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.version.mod.ModPerformanceTuner
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.VoxyInstaller
+import com.movtery.zalithlauncher.game.version.mod.PhysxSupport
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.utils.device.DeviceTier
 import android.widget.Toast
@@ -534,6 +535,22 @@ fun LaunchGameOperation(
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
+                        // ONA: never hold the player back, launch right away if they want
+                        androidx.compose.material3.TextButton(
+                            modifier = Modifier.align(Alignment.End),
+                            onClick = {
+                                launchGameViewModel.updateOperation(
+                                    LaunchGameOperation.RealLaunch(
+                                        version = operation.version,
+                                        quickPlay = operation.quickPlay,
+                                        skipAccountRefresh = operation.skipAccountRefresh,
+                                        skipModCheck = true
+                                    )
+                                )
+                            }
+                        ) {
+                            Text(text = stringResource(R.string.ona_skip_and_play))
+                        }
                     }
                 }
             }
@@ -598,6 +615,18 @@ fun LaunchGameOperation(
                             Toast.LENGTH_LONG
                         )
                     }
+                }
+                // ONA: PhysX mods (Physics Mod) get the Android ARM64 PhysX of their version
+                val physx = withContext(Dispatchers.IO) {
+                    runCatching { PhysxSupport.prepare(version) }.getOrNull()
+                }
+                when (physx?.status) {
+                    PhysxSupport.Status.READY -> eventViewModel.sendToast(androidText(R.string.ona_physx_ready, physx?.physxVersion ?: ""))
+                    PhysxSupport.Status.UNSUPPORTED_OLD -> eventViewModel.sendToast(
+                        androidText(R.string.ona_physx_old, physx?.modFile ?: "", physx?.physxVersion ?: ""), Toast.LENGTH_LONG
+                    )
+                    PhysxSupport.Status.DOWNLOAD_FAILED -> eventViewModel.sendToast(androidText(R.string.ona_physx_failed), Toast.LENGTH_LONG)
+                    else -> {}
                 }
                 // ONA: Voxy's Android compatibility mod goes in by itself
                 val voxyCompatInstalled = withContext(Dispatchers.IO) {
