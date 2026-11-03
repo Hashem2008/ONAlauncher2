@@ -95,6 +95,11 @@ jobs:
         if: steps.physx-cache.outputs.cache-hit != 'true'
         continue-on-error: true
         run: |
+          # The project's NDK (r25, clang 14) is closer to what PhysX 4.1 was written for
+          ndk25="$ANDROID_HOME/ndk/25.2.9519653"
+          [ -f "$ndk25/source.properties" ] || sdkmanager --install "ndk;25.2.9519653" > /dev/null
+          [ -f "$ndk25/source.properties" ] && export ANDROID_NDK_HOME="$ndk25"
+          echo "PhysX port uses NDK $ANDROID_NDK_HOME"
           bash tools/physx4-android/build.sh "$RUNNER_TEMP/physx4" \
             ZalithLauncher/src/main/jniLibs/arm64-v8a/libPhysXJniBindings_64.so
 

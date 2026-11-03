@@ -41,6 +41,12 @@ sed -i 's/AttachCurrentThreadAsDaemon((void\*\*) &env, NULL)/AttachCurrentThread
   "$ROOT/physx/source/physxjnibindings/src/glue.h"
 grep -q 'AttachCurrentThreadAsDaemon(&env, NULL)' "$ROOT/physx/source/physxjnibindings/src/glue.h"
 
+# PhysX 4.1 NEON: V4SplatElement/U4SplatElement pass the template index straight to a lane
+# intrinsic inside an `index < 2` branch; newer clang range-checks that dead branch too.
+# `index & 1` is the same lane for 0/1 and always in range.
+sed -i 's/vdupq_lane_\(u32\|f32\)(vget_low_\1(a), index)/vdupq_lane_\1(vget_low_\1(a), index \& 1)/' \
+  "$ROOT/physx/source/foundation/include/unix/neon/PsUnixNeonInlineAoS.h"
+
 # Newer clang warns about things PhysX 4.1 predates; warnings must not stop the port
 sed -i 's/ -Werror//g; s/ -Wpedantic//g' "$CM/android/CMakeLists.txt"
 
