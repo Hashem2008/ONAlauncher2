@@ -30,7 +30,7 @@ import java.io.File
  * ONA: makes heavy client mods lighter through their own config files, never touching the
  * mods (Sound Physics Remastered, 3D Skin Layers, Entity Texture / Model Features, Dynamic
  * Lights, Subtle Effects, Distant Horizons, Embeddium, Create, Supplementaries, Falling Leaves,
- * LambDynamicLights, Effective, Particle Rain). Keys were checked against the configs these
+ * LambDynamicLights, Effective, Particle Rain, Voxy). Keys were checked against the configs these
  * mods write. Every file is backed up before the first change and put back exactly when
  * tuning is turned off.
  *
@@ -185,6 +185,17 @@ object ModPerformanceTuner {
                 "rainRippleDensity" to 2,
                 "fireflyDensity" to 0.5,
                 "sculkDustDensity" to 50.0
+            )
+        },
+        // Voxy: LOD distance and worker threads (it builds LODs on the CPU next to the game)
+        Patch.Json("config/voxy-config.json", "Voxy") { tier ->
+            mapOf<String, Any>(
+                "section_render_distance" to when (tier) {
+                    DeviceTier.FLAGSHIP -> 8.0
+                    DeviceTier.HIGH -> 6.0
+                    else -> 4.0
+                },
+                "service_threads" to if (strong(tier)) 3 else 2
             )
         },
         // Particle Rain: weather particle budget

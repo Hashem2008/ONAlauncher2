@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.game.launch
 
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
+import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import android.app.Activity
@@ -204,7 +205,11 @@ class GameLauncher(
         envMap["DRIVER_PATH"] = DriverPluginManager.getDriver(version.getDriver()).path
         // ONA: the bundled Turnip only on the Adreno generations it is known good on, the
         // system Vulkan driver on newer Adreno, Mali, Xclipse and PowerVR
-        if (AllSettings.smartDriver.getValue() && version.getDriver() == AllSettings.vulkanDriver.defaultValue) {
+        val voxy = VoxySupport.hasVoxy(version)
+        if (voxy) {
+            // Qualcomm's driver crashes compiling Voxy's shaders: Turnip, whatever the global switch says
+            envMap.remove("POJAV_ZINK_PREFER_SYSTEM_DRIVER")
+        } else if (AllSettings.smartDriver.getValue() && version.getDriver() == AllSettings.vulkanDriver.defaultValue) {
             DeviceProfiler.current()?.let { profile ->
                 if (!profile.turnipRecommended) envMap["POJAV_ZINK_PREFER_SYSTEM_DRIVER"] = "1"
             }
@@ -368,6 +373,9 @@ class GameLauncher(
             appendInfo("ONA Vulkan driver: ${if (profile.turnipRecommended || !AllSettings.smartDriver.getValue()) "launcher setting" else "system (smart)"}")
         }
         if (version.usesSmartRenderer()) appendInfo("ONA Smart renderer: ${SmartRenderer.lastReason}")
+        if (VoxySupport.hasVoxy(version)) {
+            appendInfo("ONA Voxy: renderer ${VoxySupport.preferredRenderer().getRendererName()}, Turnip plugin ${VoxySupport.turnipPluginDriverId() ?: "none (bundled)"}, compat mod ${VoxySupport.hasCompatMod(version)}")
+        }
         appendInfo("ONA Upscaler: ${AllSettings.upscalerMode.getValue()} (sharpness ${AllSettings.upscalerSharpness.getValue()}%), resolution ${AllSettings.resolutionRatio.getValue()}%")
     }
 

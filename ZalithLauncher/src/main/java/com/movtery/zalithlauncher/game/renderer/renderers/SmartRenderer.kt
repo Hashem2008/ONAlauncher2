@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.game.renderer.renderers
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.version.installed.Version
+import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
@@ -53,6 +54,13 @@ object SmartRenderer : RendererInterface {
 
     /** @return the unique identifier of the renderer this version should start with */
     fun choose(version: Version): String {
+        // Voxy needs desktop GL 4.6, only Kopper Zink on Turnip has it
+        if (VoxySupport.hasVoxy(version)) {
+            val zink = VoxySupport.preferredRenderer()
+            lastReason = "${version.getVersionName()} has Voxy -> ${zink.getRendererName()}"
+            Logger.info(TAG, lastReason)
+            return zink.getUniqueIdentifier()
+        }
         val mc = version.getVersionInfo()?.minecraftVersion ?: return NGGL4ESRenderer.getUniqueIdentifier()
         val gameDir = version.getGameDir()
         val modNames = File(gameDir, "mods").list()?.filter { it.endsWith(".jar") }?.map { it.lowercase() }.orEmpty()

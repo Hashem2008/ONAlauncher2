@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.version.installed
 
 import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
+import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import android.content.Context
 import android.os.Parcelable
 import androidx.annotation.Keep
@@ -227,7 +228,14 @@ class Version(
 
     fun isSfpewRelaxedContextEnabled(): Boolean = versionConfig.isSfpewRelaxedContextEnabled()
 
-    fun getDriver(): String = versionConfig.driver.getValueOrDefault(AllSettings.vulkanDriver.getValue())
+    fun getDriver(): String {
+        val configured = versionConfig.driver.getValueOrDefault(AllSettings.vulkanDriver.getValue())
+        // ONA: Voxy needs Turnip, use an installed Turnip plugin over the bundled default
+        if (configured == AllSettings.vulkanDriver.defaultValue && VoxySupport.hasVoxy(this)) {
+            VoxySupport.turnipPluginDriverId()?.let { return it }
+        }
+        return configured
+    }
 
     fun getGraphicsApi(): GraphicsApi = versionConfig.graphicsApi ?: AllSettings.graphicsApi.getValue()
 

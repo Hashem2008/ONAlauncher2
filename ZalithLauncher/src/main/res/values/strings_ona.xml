@@ -75,4 +75,5 @@
     <string name="ona_tune_mods_title">Lighten heavy mods</string>
     <string name="ona_tune_mods_summary">Before each launch, lightens heavy client mods through their own settings, based on your phone: Sound Physics Remastered, 3D Skin Layers, Entity Texture/Model Features, Dynamic Lights, Subtle Effects, Distant Horizons, Embeddium, Create, Supplementaries, Falling Leaves, LambDynamicLights, Effective and Particle Rain. The mods stay installed and keep working. The original settings are backed up and put back when you turn this off (on the next launch).</string>
     <string name="ona_tuned_mods">Lightened for more FPS: %1$s</string>
+    <string name="ona_voxy_needs_plugins">Voxy needs desktop OpenGL 4.6: install the Kopper Zink and Turnip plugins and the Voxy Android compatibility mod from %1$s (Adreno 7xx/8xx). ONA uses them automatically.</string>
 </resources>
