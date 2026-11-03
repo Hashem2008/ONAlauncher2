@@ -73,6 +73,17 @@ cae2d6f  - Hotbar touch box scaled by display/render ratio (taps missed below 10
            error) puts it in jniLibs/arm64-v8a/libPhysXJniBindings_64.so. Before launch PhysxSupport
            copies it to cache/de.fabmax.physx-jni/1.1.0/ (physx-jni 1.x only extracts its own copy
            when no file is there), so the unchanged mod loads the arm64 port.
+d036d58  - DeceasedCraft report (FPS 2-8, black block after breaking, log "Light updates disabled",
+           "Can't keep up! 18104ms behind", renderer MobileGlues):
+         - LightingFix.kt (game/version/mod): config/*extra*.json with render_settings.light_updates
+           = false -> true before every launch (Sodium/Rubidium/Embeddium Extra). Toast ona_lighting_fixed.
+         - jni/bigcoreaffinity.c: leaves out only cores < 70% of the fastest. Before, SM8850
+           (2x prime + 6x performance, no LITTLE) was pinned to 2 cores -> server starved.
+         - OnaTweaks.capSimulationDistance: 150+ mods -> max 6, 80+ -> max 8 (only lowers, only if
+           the key exists, only with tuneHeavyMods on). Called in GameLauncher after applyFpsOptions.
+         - Zink env: MESA_SHADER_CACHE_DIR + MESA_SHADER_CACHE_MAX_SIZE=1G.
+         - Per Adreno: Turnip stays for Adreno 6xx/7xx, system Vulkan for 8xx (8 Gen 4/8 Elite = 830,
+           SM8850 = 840). MobileGlues per-GPU options NOT changed (no device to test, risky).
 
 PHYSX PORT - BUILD LOG (newest last, keep appending)
 - 10de428: CI step failed at configure: appended INCLUDE glued to last line (file had no final
@@ -99,6 +110,8 @@ PHYSX PORT - BUILD LOG (newest last, keep appending)
 - Running the PhysX build locally is DENIED by auto mode (external code); only CI can build it.
 
 STATUS / OPEN ITEMS (check these first)
+0. d036d58: CI result -> see the line below this one (update it). Then ask the user for a new
+   DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
 1. (DONE in run #20: PhysX port builds.) CI of the newest commit: verify the step "Build PhysX 4.1 Android port (physx-jni 1.1.0, arm64)" really
    printed "Built ... JNI entry points" (it is continue-on-error, overall success hides failure).
    If it failed: read the job log, fix tools/physx4-android/build.sh (expect modern-clang compile
