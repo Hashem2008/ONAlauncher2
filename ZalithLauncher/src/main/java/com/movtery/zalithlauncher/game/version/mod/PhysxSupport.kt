@@ -38,8 +38,8 @@ import java.util.zip.ZipInputStream
  * launcher downloads that build for the exact version the mod carries and points the loader at
  * it, so the mod loads ARM64 PhysX instead of the x86 one.
  *
- * physx-jni 1.x (Physics Mod for 1.18.2 and older) has neither the properties nor an Android
- * build, which [status] reports so the user knows why.
+ * physx-jni 1.1.0 (Physics Mod for 1.18.2) has neither the properties nor an Android build:
+ * ONA ships its own arm64 port of it (see [PORTED_VERSIONS]). Other old versions are reported.
  */
 object PhysxSupport {
     private const val TAG = "PhysxSupport"
@@ -54,7 +54,40 @@ object PhysxSupport {
     private val VERSION_IN_PATH = Regex("physx-jni-(\\d+\\.\\d+\\.\\d+)")
     private val VERSION_STRING = Regex("(\\d+\\.\\d+\\.\\d+)")
 
-    enum class Status { NONE, READY, UNSUPPORTED_OLD, DOWNLOAD_FAILED }
+    enum class Status { NONE, READY, PORTED, UNSUPPORTED_OLD, DOWNLOAD_FAILED }
+
+    /**
+     * physx-jni versions ONA ships its own arm64 port of: the same PhysX + JNI glue sources,
+     * compiled for the phone CPU by tools/physx4-android in CI and bundled in the APK.
+     */
+    private val PORTED_VERSIONS = setOf("1.1.0")
+
+    private fun bundledPort(): File = File(PathManager.DIR_NATIVE_LIB, LIB_NAME)
+
+    /**
+     * physx-jni 1.x only copies its desktop library to java.io.tmpdir when no file is there yet,
+     * so the port placed there first is what it loads. Replaces an x86 copy left by an earlier try.
+     */
+    private fun placePort(physxVersion: String): Boolean {
+        val source = bundledPort()
+        if (physxVersion !in PORTED_VERSIONS || !source.isFile) return false
+        return runCatching {
+            val target = File(File(PathManager.DIR_CACHE, "de.fabmax.physx-jni"), "$physxVersion/$LIB_NAME")
+            if (!(target.isFile && target.length() == source.length() && sameBytes(source, target))) {
+                target.parentFile?.mkdirs()
+                source.copyTo(target, overwrite = true)
+                Logger.info(TAG, "Placed the arm64 PhysX port for physx-jni $physxVersion")
+            }
+            true
+        }.onFailure { Logger.warning(TAG, "Could not place the PhysX port", it) }.getOrDefault(false)
+    }
+
+    private fun sameBytes(a: File, b: File): Boolean {
+        val digest = { file: File ->
+            java.security.MessageDigest.getInstance("SHA-1").digest(file.readBytes()).joinToString("") { "%02x".format(it) }
+        }
+        return digest(a) == digest(b)
+    }
 
     class Result(val status: Status, val physxVersion: String?, val modFile: String?)
 
@@ -113,6 +146,7 @@ object PhysxSupport {
             detectVersion(jar)?.let { jar to it }
         } ?: return Result(Status.NONE, null, null)
         if (!isAndroidBuildAvailable(physxVersion)) {
+            if (placePort(physxVersion)) return Result(Status.PORTED, physxVersion, jar.name)
             Logger.warning(TAG, "${jar.name} uses physx-jni $physxVersion, which has no Android build")
             return Result(Status.UNSUPPORTED_OLD, physxVersion, jar.name)
         }
@@ -124,6 +158,11 @@ object PhysxSupport {
     /** JVM arguments that make physx-jni load the ARM64 library, empty when not prepared */
     fun jvmArgs(version: Version): List<String> {
         val physxVersion = candidates(version.modsDir()).firstNotNullOfOrNull { detectVersion(it) } ?: return emptyList()
+        // 1.x: no properties, the port just has to be in place (done again here for the game process)
+        if (!isAndroidBuildAvailable(physxVersion)) {
+            placePort(physxVersion)
+            return emptyList()
+        }
         if (!nativeLib(physxVersion).isFile) return emptyList()
         return listOf(
             "-Dphysxjni.nativeLibLocation=${nativeDir(physxVersion).absolutePath}",

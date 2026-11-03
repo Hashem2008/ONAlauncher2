@@ -83,6 +83,21 @@ jobs:
           test -f "$ndk/source.properties"
           echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
 
+      # ONA: PhysX 4.1 + physx-jni 1.1.0 glue compiled for arm64, so Physics Mod (1.18.2) runs
+      - name: Cache PhysX 4.1 Android port
+        id: physx-cache
+        uses: actions/cache@v4
+        with:
+          path: ZalithLauncher/src/main/jniLibs/arm64-v8a/libPhysXJniBindings_64.so
+          key: physx4-jni-android-${{ hashFiles('tools/physx4-android/build.sh') }}
+
+      - name: Build PhysX 4.1 Android port (physx-jni 1.1.0, arm64)
+        if: steps.physx-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        run: |
+          bash tools/physx4-android/build.sh "$RUNNER_TEMP/physx4" \
+            ZalithLauncher/src/main/jniLibs/arm64-v8a/libPhysXJniBindings_64.so
+
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew

@@ -621,7 +621,8 @@ fun LaunchGameOperation(
                     runCatching { PhysxSupport.prepare(version) }.getOrNull()
                 }
                 when (physx?.status) {
-                    PhysxSupport.Status.READY -> eventViewModel.sendToast(androidText(R.string.ona_physx_ready, physx?.physxVersion ?: ""))
+                    PhysxSupport.Status.READY, PhysxSupport.Status.PORTED ->
+                        eventViewModel.sendToast(androidText(R.string.ona_physx_ready, physx?.physxVersion ?: ""))
                     PhysxSupport.Status.UNSUPPORTED_OLD -> eventViewModel.sendToast(
                         androidText(R.string.ona_physx_old, physx?.modFile ?: "", physx?.physxVersion ?: ""), Toast.LENGTH_LONG
                     )
