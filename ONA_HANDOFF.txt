@@ -86,13 +86,20 @@ PHYSX PORT - BUILD LOG (newest last, keep appending)
   the JNI glue (PhysXJni.cpp) failed: no PxCudaContextManagerDesc / PxCudaBufferMemorySpace /
   PxCreateCudaContextManager (no CUDA on Android).
 - 51cddf7: PhysXJs.h includes the existing PhysXCudaMock.h (used by the macOS/web builds) also
-  for __ANDROID__ (sed handles the file's CRLF line endings). RESULT: pending (run #20).
+  for __ANDROID__ (sed handles the file's CRLF line endings).
+  RESULT run #20: SUCCESS. "Built .../libPhysXJniBindings_64.so (6878424 bytes, 2936 JNI entry
+  points)", ELF 64-bit ARM aarch64; APK built after it (BUILD SUCCESSFUL). 2936 = every JNIEXPORT
+  in glue.h. The .so is cached (key = hash of build.sh), later builds reuse it.
+- NEXT: device test. Launch DeceasedCraft 1.18.2: toast "PhysX 1.1.0 ready", and
+  cache/de.fabmax.physx-jni/1.1.0/libPhysXJniBindings_64.so must be the arm64 one. If Physics Mod
+  still crashes, read hs_err / latest log: possible runtime issues are missing symbols at dlopen,
+  JNI_OnLoad/JniThreadManager, or Physics Mod needing more natives.
 - How to read the step: get_job_logs(job_id, return_content) -> saved JSON file, field logs_content;
   search "PhysX port uses NDK", " error: ", "Built /". A 0-40 s step means it failed early.
 - Running the PhysX build locally is DENIED by auto mode (external code); only CI can build it.
 
 STATUS / OPEN ITEMS (check these first)
-1. CI of the newest commit: verify the step "Build PhysX 4.1 Android port (physx-jni 1.1.0, arm64)" really
+1. (DONE in run #20: PhysX port builds.) CI of the newest commit: verify the step "Build PhysX 4.1 Android port (physx-jni 1.1.0, arm64)" really
    printed "Built ... JNI entry points" (it is continue-on-error, overall success hides failure).
    If it failed: read the job log, fix tools/physx4-android/build.sh (expect modern-clang compile
    issues in PhysX 4.1; -Werror/-Wpedantic already removed; glue AttachCurrentThreadAsDaemon
