@@ -46,14 +46,14 @@
     <string name="ona_shaders_low">خفيفة</string>
     <string name="ona_shaders_medium">متوسطة</string>
     <string name="ona_shaders_high">عالية</string>
-    <string name="ona_device_recommended">أفضل إعدادات: الدقة %1$d%% + %2$s، الدرايفر %3$s، مسافة الرؤية حتى %4$d، حوالي %5$d مود تشتغل بأريحية، شيدرز حتى %6$s. العارض: ONA الذكي يختاره لكل نسخة.</string>
+    <string name="ona_device_recommended">أفضل إعدادات: الدقة %1$d%% + %2$s، الدرايفر %3$s، مسافة الرؤية حتى %4$d، حوالي %5$d مود تشتغل بأريحية، شيدرز حتى %6$s. العارض: ONA Hybrid يختاره لكل نسخة.</string>
     <string name="ona_device_apply">طبّق أفضل إعدادات</string>
     <string name="ona_device_applied">تم تطبيق أفضل إعدادات</string>
     <string name="ona_crash_header">طبيب الكراش من ONA:</string>
     <string name="ona_crash_renderer">اللعبة كرشت داخل العارض أو درايفر كرت الشاشة</string>
-    <string name="ona_crash_renderer_fix">مع العارض الذكي ONA، التشغيل الجاي لهاي النسخة رح يجرب عارض ثاني تلقائياً. إذا أنت مختار عارض بنفسك، غيّره لـ ONA الذكي أو عارض ثاني من إعدادات النسخة. تنزيل نسبة الدقة وإطفاء الشيدرز بساعد كمان.</string>
+    <string name="ona_crash_renderer_fix">مع عارض ONA Hybrid، التشغيل الجاي لهاي النسخة رح يجرب عارض ثاني تلقائياً. إذا أنت مختار عارض بنفسك، غيّره لـ ONA Hybrid أو عارض ثاني من إعدادات النسخة. تنزيل نسبة الدقة وإطفاء الشيدرز بساعد كمان.</string>
     <string name="ona_crash_native">اللعبة كرشت بكود نيتف</string>
-    <string name="ona_crash_native_fix">غالباً من العارض أو الدرايفر أو مود فيه كود نيتف. جرب عارض ثاني (ONA الذكي بغيّر تلقائياً)، وبعدين شيل آخر مودات نزلتها.</string>
+    <string name="ona_crash_native_fix">غالباً من العارض أو الدرايفر أو مود فيه كود نيتف. جرب عارض ثاني (ONA Hybrid بغيّر تلقائياً)، وبعدين شيل آخر مودات نزلتها.</string>
     <string name="ona_crash_oom">الرام خلصت على اللعبة</string>
     <string name="ona_crash_oom_fix">زيد الرام من إعدادات النسخة (أو شغّل الذاكرة الذكية)، نزّل مسافة الرؤية، أو شيل مودات أو شيدرز ثقيلة.</string>
     <string name="ona_crash_heap">الرام المعطاة للعبة أكثر من اللي يقدر الجهاز يحجزه</string>
@@ -67,7 +67,7 @@
     <string name="ona_crash_java">نسخة جافا غلط لهاي اللعبة أو المود</string>
     <string name="ona_crash_java_fix">شغّل الاختيار التلقائي للجافا، أو اختار جافا أحدث من إعدادات النسخة.</string>
     <string name="ona_crash_graphics">العارض ما قدر يفتح نافذة اللعبة</string>
-    <string name="ona_crash_graphics_fix">هذا العارض ما بدعم نسخة اللعبة. استخدم ONA الذكي أو عارض ثاني (MobileGlues للنسخ الجديدة، GL4ES للقديمة).</string>
+    <string name="ona_crash_graphics_fix">هذا العارض ما بدعم نسخة اللعبة. استخدم ONA Hybrid أو عارض ثاني (MobileGlues للنسخ الجديدة، GL4ES للقديمة).</string>
     <string name="ona_crash_shader">حزمة الشيدرز ما اشتغلت</string>
     <string name="ona_crash_shader_fix">اختار شيدرز أخف، حدّث Iris / Oculus، أو استخدم عارض MobileGlues.</string>
     <string name="ona_mobile_mods_off">تم إيقاف هذه المودات مع %2$s لأنها بتكرّشه على الجوال: %1$s. بترجع تشتغل مع أي عارض ثاني.</string>

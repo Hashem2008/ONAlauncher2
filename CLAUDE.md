@@ -6,4 +6,4 @@
 - The user writes Arabic: answer in short, simple Arabic.
 - Never disable or delete a user's mod; only make it work (configs, renderer choice, ports).
 - There is no Android SDK/NDK in the container: GitHub Actions (push_ci.yml -> build.yml) is the
-  compile check. Development branch: claude/upbeat-lovelace-cqpsmf.
+  compile check. Development branch: main (the old claude/upbeat-lovelace-cqpsmf is merged).

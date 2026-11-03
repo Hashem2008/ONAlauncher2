@@ -3,7 +3,8 @@ ONA LAUNCHER 2 - HANDOFF FOR THE NEXT SESSION
 (ملخص بالعربي بآخر الملف)
 
 Repo:    Hashem2008/ONAlauncher2  (fork of Zalith Launcher 2, Android Minecraft Java launcher)
-Branch:  claude/upbeat-lovelace-cqpsmf   (all work below is here, NOT merged to main yet)
+Branch:  main  (claude/upbeat-lovelace-cqpsmf was fast-forward merged into main on 2026-11-04, user approved;
+         CI run 41726564084 on main = SUCCESS). New work goes on main.
 Base:    main = 4ebcdfa (work of the session before this one, pushed straight to main)
 Package: com.onalauncher.app2(.debug)
 
@@ -119,6 +120,19 @@ PHYSX PORT - BUILD LOG (newest last, keep appending)
   search "PhysX port uses NDK", " error: ", "Built /". A 0-40 s step means it failed early.
 - Running the PhysX build locally is DENIED by auto mode (external code); only CI can build it.
 
+ONA HYBRID (2026-11-04, on main)
+- User asked for one renderer that merges MobileGlues + Krypton + others. A real merge is not possible
+  (Krypton's current source is closed, NG-GL4ES archived; both are full GL implementations), so
+  SmartRenderer became "ONA Hybrid (Auto)" (same ID 6f0c2a1e-ona-smart-auto):
+  * choose(): Sodium-like mods on MC 1.21+ now go to MobileGlues first (Krypton exposes GL 3.1,
+    Sodium 0.6 glitched there). SmartRenderer.situation(version) holds mc/shaders/sodium/modCount.
+  * mobileGluesTuning(): maxGlslCacheSize 64/128/256 (MB) by mods/shaders, merged UNDER the user's
+    explicit MG settings (MobileGluesRenderer.getConfiguredEnv(config, tuning)), only with Hybrid.
+  * gl4esTuning(): LIBGL_PSA_FOLDER = filesDir/gl4es (shader archive on internal storage), only with
+    Hybrid + GL4ES family. Wired in GameLauncher.setRendererEnv.
+  * Strings "ONA Smart" -> "ONA Hybrid" (EN + AR).
+  Not tested on a device.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -147,7 +161,8 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 
 -----------------------------------------------------------------
 ملخص بالعربي
-- كل الشغل على فرع claude/upbeat-lovelace-cqpsmf ولسا ما اندمج مع main.
+- الفرع claude/upbeat-lovelace-cqpsmf اندمج مع main (بموافقة المستخدم)، والشغل الجديد على main.
+- العارض الذكي صار اسمه ONA Hybrid: بيختار المحرك وبيضبط إعدادات كل محرك (كاش شيدرات أكبر).
 - انعمل: تنزيل متطلبات المودات تلقائياً، عارض ذكي ودرايفر ذكي، طبيب الكراش، أبسكيل
   (مطفي افتراضياً)، تخفيف المودات الثقيلة من إعداداتها، دعم Voxy، إصلاح الهوتبار والجزيئات
   البيضاء، إصلاح Modrinth و CurseForge (الشهادات)، تسريع التشغيل، وبورت PhysX لـ Physics Mod.

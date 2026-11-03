@@ -19,6 +19,8 @@ package com.movtery.zalithlauncher.game.renderer.renderers
 
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.Renderers
+import com.movtery.zalithlauncher.game.renderer.config.ConfigScalar
+import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.MobileModRules
@@ -44,8 +46,9 @@ object SmartRenderer : RendererInterface {
 
     override fun getRendererId(): String = NGGL4ESRenderer.getRendererId()
     override fun getUniqueIdentifier(): String = ID
-    override fun getRendererName(): String = "ONA Smart (Auto)"
-    override fun getRendererSummary(): String = "Picks the best renderer for each version, mod set and GPU"
+    override fun getRendererName(): String = "ONA Hybrid (Auto)"
+    override fun getRendererSummary(): String =
+        "Krypton + GL4ES + MobileGlues + Zink in one: best engine per version, mods and GPU, tuned for each"
     override fun getRendererEnv(): Lazy<Map<String, String>> = NGGL4ESRenderer.getRendererEnv()
     override fun getDlopenLibrary(): Lazy<List<String>> = NGGL4ESRenderer.getDlopenLibrary()
     override fun getRendererLibrary(): String = NGGL4ESRenderer.getRendererLibrary()
@@ -62,12 +65,11 @@ object SmartRenderer : RendererInterface {
             Logger.info(TAG, lastReason)
             return zink.getUniqueIdentifier()
         }
-        val mc = version.getVersionInfo()?.minecraftVersion ?: return NGGL4ESRenderer.getUniqueIdentifier()
-        val gameDir = version.getGameDir()
-        val modNames = File(gameDir, "mods").list()?.filter { it.endsWith(".jar") }?.map { it.lowercase() }.orEmpty()
-        val shaderMod = modNames.any { name -> SHADER_MODS.any { name.contains(it) } }
-        val shaderPacks = File(gameDir, "shaderpacks").listFiles()?.any { !it.name.endsWith(".txt") } == true
-        val shaders = shaderMod || shaderPacks && modNames.any { name -> SODIUM_LIKE.any { name.contains(it) } }
+        val situation = situation(version)
+        val mc = situation.mc ?: return NGGL4ESRenderer.getUniqueIdentifier()
+        val shaders = situation.shaders
+        // Sodium 0.6+ (1.21+) wants more than the GL 3.1 Krypton exposes: geometry spikes there
+        val modernSodium = situation.sodiumLike && !mc.isLowerVer("1.21")
         val profile = DeviceProfiler.current()
         val goodVulkan = profile?.let { it.vulkan && it.turnipRecommended } ?: false
         // Any Vulkan 1.1 GPU can run Zink on its own driver, kept as a later fallback
@@ -82,7 +84,7 @@ object SmartRenderer : RendererInterface {
                     if (anyVulkan) add(KopperZinkRenderer)
                     add(MobileGluesRenderer)
                 }
-                shaders || !mc.isLowerVer("1.21.5") -> {
+                shaders || modernSodium || !mc.isLowerVer("1.21.5") -> {
                     add(MobileGluesRenderer)
                     if (goodVulkan) add(KopperZinkRenderer)
                     add(NGGL4ESRenderer)
@@ -120,9 +122,52 @@ object SmartRenderer : RendererInterface {
             // Everything crashed once: start over instead of being stuck
             clearCrashes(version)
         }
-        lastReason = "${version.getVersionName()} ($mc, shaders=$shaders, vulkan=$goodVulkan, skipped=${crashed.size}) -> ${chosen.getRendererName()}"
+        lastReason = "${version.getVersionName()} ($mc, shaders=$shaders, sodium=${situation.sodiumLike}, mods=${situation.modCount}, vulkan=$goodVulkan, skipped=${crashed.size}) -> ${chosen.getRendererName()}"
         Logger.info(TAG, lastReason)
         return chosen.getUniqueIdentifier()
+    }
+
+    /** What a version runs, everything the choice and the per engine tuning depend on */
+    data class Situation(
+        val mc: String?,
+        val shaders: Boolean,
+        val sodiumLike: Boolean,
+        val modCount: Int
+    )
+
+    fun situation(version: Version): Situation {
+        val gameDir = version.getGameDir()
+        val modNames = File(gameDir, "mods").list()?.filter { it.endsWith(".jar") }?.map { it.lowercase() }.orEmpty()
+        val sodiumLike = modNames.any { name -> SODIUM_LIKE.any { name.contains(it) } }
+        val shaderMod = modNames.any { name -> SHADER_MODS.any { name.contains(it) } }
+        val shaderPacks = File(gameDir, "shaderpacks").listFiles()?.any { !it.name.endsWith(".txt") } == true
+        return Situation(
+            mc = version.getVersionInfo()?.minecraftVersion,
+            shaders = shaderMod || shaderPacks && sodiumLike,
+            sodiumLike = sodiumLike,
+            modCount = modNames.size
+        )
+    }
+
+    /**
+     * Hybrid: MobileGlues settings for the engine ONA Hybrid picked. Only what the user did not
+     * set themself, their explicit renderer settings always win.
+     */
+    fun mobileGluesTuning(situation: Situation): Map<String, ConfigScalar> = buildMap {
+        // A bigger translated shader cache: shader packs and big packs stutter less after the first run
+        val cacheMb = when {
+            situation.shaders -> 256
+            situation.modCount >= 80 -> 128
+            else -> 64
+        }
+        put("maxGlslCacheSize", ConfigScalar.IntValue(cacheMb))
+    }
+
+    /** Hybrid: environment for the GL4ES family (GL4ES, Krypton Wrapper) */
+    fun gl4esTuning(): Map<String, String> = buildMap {
+        // Keep the precompiled shader archive on internal storage instead of the slower shared one
+        val psa = File(PathManager.DIR_FILES_PRIVATE, "gl4es")
+        if (psa.isDirectory || psa.mkdirs()) put("LIBGL_PSA_FOLDER", psa.absolutePath)
     }
 
     /** Why the last choice was made, printed in the launch log */

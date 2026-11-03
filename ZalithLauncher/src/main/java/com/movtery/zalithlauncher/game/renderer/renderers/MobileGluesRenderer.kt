@@ -240,9 +240,13 @@ object MobileGluesRenderer : ConfigurableRenderer {
 
     override fun getRendererSummary(): String = "OpenGL 4.0"
 
-    override fun getConfiguredEnv(config: ResolvedRendererConfig): Map<String, String> {
+    override fun getConfiguredEnv(config: ResolvedRendererConfig): Map<String, String> =
+        getConfiguredEnv(config, emptyMap())
+
+    /** @param tuning ONA Hybrid defaults, the user's explicit settings override them */
+    fun getConfiguredEnv(config: ResolvedRendererConfig, tuning: Map<String, ConfigScalar>): Map<String, String> {
         val mgDir = File(PathManager.DIR_FILES_PRIVATE, "mobileglues")
-        writeMobileGluesConfig(mgDir, config.jsonFields)
+        writeMobileGluesConfig(mgDir, tuning + config.jsonFields)
         return config.environment + ("MG_DIR_PATH" to mgDir.absolutePath)
     }
 

@@ -46,14 +46,14 @@
     <string name="ona_shaders_low">low</string>
     <string name="ona_shaders_medium">medium</string>
     <string name="ona_shaders_high">high</string>
-    <string name="ona_device_recommended">Best settings: resolution %1$d%% + %2$s, driver %3$s, render distance up to %4$d, about %5$d mods run comfortably, shaders up to %6$s. Renderer: ONA Smart picks it per version.</string>
+    <string name="ona_device_recommended">Best settings: resolution %1$d%% + %2$s, driver %3$s, render distance up to %4$d, about %5$d mods run comfortably, shaders up to %6$s. Renderer: ONA Hybrid picks it per version.</string>
     <string name="ona_device_apply">Apply best settings</string>
     <string name="ona_device_applied">Best settings applied</string>
     <string name="ona_crash_header">ONA crash doctor:</string>
     <string name="ona_crash_renderer">The game crashed inside the renderer or the GPU driver</string>
-    <string name="ona_crash_renderer_fix">With the ONA Smart renderer the next launch of this version automatically uses another renderer. If you picked a renderer yourself, switch to ONA Smart or another renderer in the version settings. Lowering the resolution scale and turning shaders off also helps.</string>
+    <string name="ona_crash_renderer_fix">With the ONA Hybrid renderer the next launch of this version automatically uses another renderer. If you picked a renderer yourself, switch to ONA Hybrid or another renderer in the version settings. Lowering the resolution scale and turning shaders off also helps.</string>
     <string name="ona_crash_native">The game crashed in native code</string>
-    <string name="ona_crash_native_fix">Usually the renderer, the driver or a mod with native code. Try another renderer (ONA Smart switches automatically), then remove recently added mods.</string>
+    <string name="ona_crash_native_fix">Usually the renderer, the driver or a mod with native code. Try another renderer (ONA Hybrid switches automatically), then remove recently added mods.</string>
     <string name="ona_crash_oom">The game ran out of memory</string>
     <string name="ona_crash_oom_fix">Give the game more RAM in the version settings (or turn on smart memory), lower the render distance, or remove heavy mods / shader packs.</string>
     <string name="ona_crash_heap">The RAM given to the game is more than the phone can reserve</string>
@@ -67,7 +67,7 @@
     <string name="ona_crash_java">Wrong Java version for this game or mod</string>
     <string name="ona_crash_java_fix">Turn on automatic Java selection, or pick a newer Java in the version settings.</string>
     <string name="ona_crash_graphics">The renderer could not create the game window</string>
-    <string name="ona_crash_graphics_fix">This renderer does not support this game version. Use ONA Smart or another renderer (MobileGlues for new versions, GL4ES for old ones).</string>
+    <string name="ona_crash_graphics_fix">This renderer does not support this game version. Use ONA Hybrid or another renderer (MobileGlues for new versions, GL4ES for old ones).</string>
     <string name="ona_crash_shader">The shader pack failed to load</string>
     <string name="ona_crash_shader_fix">Pick a lighter shader pack, update Iris / Oculus, or use the MobileGlues renderer.</string>
     <string name="ona_mobile_mods_off">Switched off for %2$s (they crash it on phones): %1$s. They come back on with another renderer.</string>

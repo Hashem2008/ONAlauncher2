@@ -20,6 +20,8 @@ package com.movtery.zalithlauncher.game.launch
 
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
+import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.PhysxSupport
 import com.movtery.zalithlauncher.context.GlobalContext
@@ -126,7 +128,9 @@ class GameLauncher(
                         .apply { removeStaleEntries(rendererId, renderer.configSpec) }
                 } else null
                 val config = resolveRendererConfig(rendererId, renderer.configSpec, versionStore)
-                renderer.getConfiguredEnv(config)
+                if (renderer is MobileGluesRenderer && version.usesSmartRenderer()) {
+                    renderer.getConfiguredEnv(config, SmartRenderer.mobileGluesTuning(SmartRenderer.situation(version)))
+                } else renderer.getConfiguredEnv(config)
             } else null
         }
 
@@ -377,7 +381,7 @@ class GameLauncher(
             appendInfo("ONA Device: ${profile.socName} | ${profile.gpuName} | ${profile.ramMb} MB | ${profile.tier} (${profile.score})")
             appendInfo("ONA Vulkan driver: ${if (profile.turnipRecommended || !AllSettings.smartDriver.getValue()) "launcher setting" else "system (smart)"}")
         }
-        if (version.usesSmartRenderer()) appendInfo("ONA Smart renderer: ${SmartRenderer.lastReason}")
+        if (version.usesSmartRenderer()) appendInfo("ONA Hybrid renderer: ${SmartRenderer.lastReason}")
         if (VoxySupport.hasVoxy(version)) {
             appendInfo("ONA Voxy: renderer ${VoxySupport.preferredRenderer().getRendererName()}, Turnip plugin ${VoxySupport.turnipPluginDriverId() ?: "none (bundled)"}, compat mod ${VoxySupport.hasCompatMod(version)}")
         }
@@ -524,6 +528,11 @@ private fun setRendererEnv(
         envMap += checkNotNull(configuredRendererEnv) { "Renderer configuration has not been prepared" }
     } else {
         envMap += renderer.getRendererEnv().value
+    }
+
+    // ONA Hybrid: per engine tuning on top of the chosen renderer
+    if (version.usesSmartRenderer() && MobileModRules.isGl4esFamily(renderer)) {
+        envMap += SmartRenderer.gl4esTuning()
     }
 
     renderer.getRendererEGL()?.let { eglName ->
