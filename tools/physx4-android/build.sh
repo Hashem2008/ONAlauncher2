@@ -33,8 +33,9 @@ cat >> "$CM/android/PhysXJniBindings.cmake" <<'CMAKE'
 TARGET_LINK_LIBRARIES(PhysXJniBindings PUBLIC log dl m)
 SET_TARGET_PROPERTIES(PhysXJniBindings PROPERTIES OUTPUT_NAME PhysXJniBindings_64)
 CMAKE
+# (the file has no final newline, so start a new line first)
 grep -q 'android/PhysXJniBindings.cmake' "$CM/android/CMakeLists.txt" || \
-  echo 'INCLUDE(android/PhysXJniBindings.cmake)' >> "$CM/android/CMakeLists.txt"
+  printf '\nINCLUDE(android/PhysXJniBindings.cmake)\n' >> "$CM/android/CMakeLists.txt"
 # Android's jni.h takes JNIEnv** where the desktop one takes void**
 sed -i 's/AttachCurrentThreadAsDaemon((void\*\*) &env, NULL)/AttachCurrentThreadAsDaemon(\&env, NULL)/' \
   "$ROOT/physx/source/physxjnibindings/src/glue.h"
@@ -49,6 +50,7 @@ export PM_PxShared_PATH="$ROOT/pxshared"
 export PM_PATHS=""
 
 cmake -S "$ROOT/physx/compiler/public" -B "$WORK/build" -G "Unix Makefiles" --no-warn-unused-cli \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   -DTARGET_BUILD_PLATFORM=android \
   -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
   -DANDROID_ABI=arm64-v8a \
