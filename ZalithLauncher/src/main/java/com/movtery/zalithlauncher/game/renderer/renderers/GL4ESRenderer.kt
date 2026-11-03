@@ -29,7 +29,10 @@ object GL4ESRenderer : RendererInterface {
 
     override fun getMaxMCVersion(): String = "1.21.4"
 
-    override fun getRendererEnv(): Lazy<Map<String, String>> = lazy { emptyMap() }
+    // ONA: normalize normals in the fixed pipeline like Krypton does. Without it, lit geometry
+    // with byte normals (3D block break particles of Fancy Block Particles, item lighting)
+    // is over-lit to pure white
+    override fun getRendererEnv(): Lazy<Map<String, String>> = lazy { mapOf("LIBGL_NORMALIZE" to "1") }
 
     override fun getDlopenLibrary(): Lazy<List<String>> = lazy { emptyList() }
 

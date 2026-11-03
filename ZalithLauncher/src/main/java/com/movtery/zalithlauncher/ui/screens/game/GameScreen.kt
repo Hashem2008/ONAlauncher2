@@ -712,6 +712,8 @@ fun GameScreen(
                 },
                 isGrabbing = isGrabbing,
                 displayOffset = gameDisplayLayout.offset,
+                displayScale = gameDisplayLayout.renderSize.width.takeIf { it > 0 }
+                    ?.let { gameDisplayLayout.displaySize.width / it.toFloat() } ?: 1f,
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) }
             )

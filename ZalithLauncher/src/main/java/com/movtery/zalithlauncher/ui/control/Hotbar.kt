@@ -132,6 +132,7 @@ private val keyList = listOf(
  *
  * @param isGrabbing 处于鼠标抓获模式下，才会开启判定箱
  * @param displayOffset 游戏画面的黑边偏移，用于对齐自定义分辨率下的快捷栏位置
+ * @param displayScale screen pixels per game render pixel
  */
 @Composable
 fun BoxScope.MinecraftHotbar(
@@ -142,6 +143,7 @@ fun BoxScope.MinecraftHotbar(
     sendKeycode: (key: Int) -> Unit,
     isGrabbing: Boolean = false,
     displayOffset: IntOffset = IntOffset.Zero,
+    displayScale: Float = 1f,
     onOccupiedPointer: (PointerId) -> Unit,
     onReleasePointer: (PointerId) -> Unit
 ) {
@@ -157,10 +159,13 @@ fun BoxScope.MinecraftHotbar(
             val renderSize = rememberGameRenderSize(screenSize)
             LaunchedEffect(
                 isGrabbing, optionsChangeKey, screenSize, density,
-                renderSize, windowChangeKey
+                renderSize, windowChangeKey, displayScale
             ) {
                 val guiScale = getMCGuiScale(renderSize.width, renderSize.height)
-                val slotSize = guiScale * 20
+                // ONA: the slot size is in game render pixels; with a resolution scale below
+                // 100% (or the upscaler) the picture is stretched to the screen, so the touch
+                // box has to be stretched the same way or edge taps miss / hit the neighbour
+                val slotSize = guiScale * 20 * displayScale
 
                 with(density) {
                     hotbarSize = DpSize((slotSize * hotbarList.size).toDp(), slotSize.toDp())
