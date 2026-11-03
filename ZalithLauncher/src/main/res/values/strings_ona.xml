@@ -92,4 +92,5 @@
     <string name="ona_crash_pc_native_fix">This version of the mod cannot load on a phone CPU. A newer version of the mod may ship an ARM build.</string>
     <string name="ona_crash_physx">Physics Mod: its PhysX version has no Android build</string>
     <string name="ona_crash_physx_fix">ONA runs PhysX on Android for PhysX 2.3.1 and newer automatically. This Physics Mod version uses an older PhysX that was only built for PC; use a newer version of the mod or of the modpack (for example 1.20.1).</string>
+    <string name="ona_lighting_fixed">Light updates were off (broken blocks turned black), turned back on in: %1$s</string>
 </resources>

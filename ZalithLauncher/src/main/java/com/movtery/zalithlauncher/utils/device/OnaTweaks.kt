@@ -186,6 +186,33 @@ object OnaTweaks {
     }
 
     /**
+     * Big modpacks starve the integrated server on a phone ("Can't keep up! Running 18000ms
+     * behind"): block breaking lags and the frame rate drops with it. Simulation distance (how far
+     * entities, crops and machines tick, not how far you see) is lowered for them, never raised,
+     * and only on versions that have the option (1.18+).
+     */
+    fun capSimulationDistance(gameDir: File) {
+        val mods = File(gameDir, "mods").listFiles { file -> file.name.endsWith(".jar") }?.size ?: 0
+        val max = when {
+            mods >= 150 -> 6
+            mods >= 80 -> 8
+            else -> return
+        }
+        val options = File(gameDir, "options.txt")
+        if (!options.isFile) return
+        runCatching {
+            val lines = options.readLines().toMutableList()
+            val index = lines.indexOfFirst { it.startsWith("simulationDistance:") }
+            if (index < 0) return
+            val value = lines[index].substringAfter(':').trim().toIntOrNull() ?: return
+            if (value <= max) return
+            lines[index] = "simulationDistance:$max"
+            options.writeText(lines.joinToString("\n", postfix = "\n"))
+            Logger.info(TAG, "Simulation distance $value -> $max for $mods mods")
+        }.onFailure { Logger.warning(TAG, "Could not lower the simulation distance", it) }
+    }
+
+    /**
      * Give a fresh game folder lighter video settings on phones that are not high end, so the
      * first launch is playable. Never touches an existing options.txt.
      */

@@ -92,4 +92,5 @@
     <string name="ona_crash_pc_native_fix">هاي النسخة من المود ما بتقدر تشتغل على معالج الجوال. نسخة أحدث من المود ممكن يكون فيها نسخة ARM.</string>
     <string name="ona_crash_physx">Physics Mod: نسخة PhysX تبعه ما إلها نسخة أندرويد</string>
     <string name="ona_crash_physx_fix">ONA بيشغّل PhysX على أندرويد تلقائياً من نسخة 2.3.1 وطالع. نسخة Physics Mod هاي بتستخدم PhysX أقدم معمول للكمبيوتر بس؛ استخدم نسخة أحدث من المود أو من المودباك (مثلاً 1.20.1).</string>
+    <string name="ona_lighting_fixed">تحديث الإضاءة كان مطفي (البلوك المكسور بصير أسود)، رجعته شغال في: %1$s</string>
 </resources>

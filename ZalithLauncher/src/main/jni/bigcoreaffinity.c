@@ -56,14 +56,26 @@ void bigcore_set_affinity() {
         return;
     }
 
+    // ONA: only real LITTLE cores are left out, those well below the fastest core. Chips without
+    // LITTLE cores (Snapdragon 8 Elite / 8 Elite Gen 5: 2 prime + 6 performance cores) used to lose
+    // their 6 performance cores here because they are the slowest cluster, which starved the
+    // render, server and chunk threads of a heavy modpack.
+    unsigned long little_limit = max_freq / 10 * 7;
     cpu_set_t bigcore_affinity_set;
     CPU_ZERO(&bigcore_affinity_set);
     int big_core_count = 0;
+    int online_count = 0;
     for(long i = 0; i < corecnt; i++) {
-        if(core_freqs[i] > min_freq) {
+        if(core_freqs[i] == 0) continue;
+        online_count++;
+        if(core_freqs[i] >= little_limit) {
             CPU_SET(i, &bigcore_affinity_set);
             big_core_count++;
         }
+    }
+    if(big_core_count == 0 || big_core_count == online_count) {
+        printf("bigcore: no LITTLE cores (%d fast cores), keeping default affinity\n", online_count);
+        return;
     }
 
     if(sched_setaffinity(0, sizeof(cpu_set_t), &bigcore_affinity_set) != 0) {

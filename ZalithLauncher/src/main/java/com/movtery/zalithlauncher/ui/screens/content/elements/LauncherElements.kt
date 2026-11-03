@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import com.movtery.zalithlauncher.game.version.mod.ModCompat
 import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
+import com.movtery.zalithlauncher.game.version.mod.LightingFix
 import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.version.mod.ModPerformanceTuner
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
@@ -597,6 +598,13 @@ fun LaunchGameOperation(
             LaunchedEffect(Unit) {
                 val version = operation.version
                 val quickPlay = operation.quickPlay
+                // ONA: "Light updates" off in Sodium/Rubidium/Embeddium Extra leaves broken blocks black
+                val lightingFixed = withContext(Dispatchers.IO) {
+                    runCatching { LightingFix.apply(version) }.getOrDefault(emptyList())
+                }
+                if (lightingFixed.isNotEmpty()) {
+                    eventViewModel.sendToast(androidText(R.string.ona_lighting_fixed, lightingFixed.joinToString()), Toast.LENGTH_LONG)
+                }
                 // ONA: render mods that crash GL4ES based renderers are switched off for them
                 if (Renderers.isCurrentRendererValid()) {
                     val renderer = Renderers.getCurrentRenderer()

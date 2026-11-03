@@ -294,6 +294,8 @@ class GameLauncher(
             AllSettings.gameDisableVsync.getValue(),
             AllSettings.onaRenderDistance.getValue()
         )
+        // ONA: keep the integrated server of big modpacks from falling behind
+        if (AllSettings.tuneHeavyMods.getValue()) OnaTweaks.capSimulationDistance(gameDirPath)
         disableSplash(gameDirPath)
 
         if (version.getVersionInfo()?.hasLoader(ModLoader.NEOFORGE) == true) {
@@ -567,6 +569,10 @@ private fun setRendererEnv(
     if (!renderer.mesaBased) {
         envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
         envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
+        // ONA: newer Mesa reads this name; a bigger cache keeps big modpacks from recompiling
+        // their shaders (stutter) on every launch
+        envMap["MESA_SHADER_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
+        envMap["MESA_SHADER_CACHE_MAX_SIZE"] = "1G"
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"
         envMap["MESA_GLSL_VERSION_OVERRIDE"] = "460"
         envMap["force_glsl_extensions_warn"] = "true"
