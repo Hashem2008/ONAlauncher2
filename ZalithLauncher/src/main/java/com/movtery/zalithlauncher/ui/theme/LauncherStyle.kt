@@ -112,6 +112,41 @@ enum class LauncherStyle(
 
     /** True when the style forces its own dark colours whatever the dark mode setting says */
     val forcesDark: Boolean get() = pureBlack || darkBase != null
+
+    /** ONA: the home screen's whole layout (where things are and how buttons look) in this style */
+    val home: HomeLayout get() = when (this) {
+        ZALITH, CUSTOM -> HomeLayout.GRID
+        PC_LAUNCHER, HIGH_CONTRAST, CYBERPUNK -> HomeLayout.SIDEBAR
+        MODRINTH, AMOLED, COMPACT -> HomeLayout.RAIL
+        CONSOLE -> HomeLayout.DASHBOARD
+        MATERIAL_YOU, PIXEL, OCEAN, SUNSET, CHERRY, GLASS -> HomeLayout.MATERIAL
+        RETRO_PIXEL, NETHER, THE_END -> HomeLayout.RETRO
+        PS5 -> HomeLayout.PS5
+        PS4 -> HomeLayout.PS4
+        PS3 -> HomeLayout.XMB
+    }
+}
+
+/** ONA: home screen layouts the styles use */
+enum class HomeLayout {
+    /** Zalith's card grid with the side action menu */
+    GRID,
+    /** Row of game tiles on top, big title, white pill Play button, round side buttons */
+    PS5,
+    /** Function icons on top, a row of square tiles with the chosen one larger, Start button */
+    PS4,
+    /** Cross menu: categories across, their items down, waves behind */
+    XMB,
+    /** Desktop launcher: labelled side menu, big banner, Play bar at the bottom */
+    SIDEBAR,
+    /** Icon rail and a list of instances, each with its own Play button */
+    RAIL,
+    /** Console dashboard: one big tile and smaller tiles around it */
+    DASHBOARD,
+    /** Pixel / Material You: greeting, big round cards, chips, a large Play button */
+    MATERIAL,
+    /** Block game title menu: centred logo, stacked wide stone buttons */
+    RETRO,
 }
 
 private fun Color.lighten(amount: Float): Color = Color(

@@ -18,6 +18,8 @@
 
 package com.movtery.zalithlauncher.ui.activities
 
+import com.movtery.zalithlauncher.game.horizon.HorizonEngine
+import com.movtery.zalithlauncher.setting.enums.GameEngine
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
@@ -284,7 +286,14 @@ class MainActivity : BaseAppCompatActivity() {
                         showDownloadPlugins(event.link)
                     }
                     is EventViewModel.Event.Launch.Game -> {
-                        launchGameViewModel.tryLaunch(event.version)
+                        // ONA: the Rust engine switch sends Play to Horizon instead
+                        if (AllSettings.gameEngine.getValue() == GameEngine.RUST) {
+                            HorizonEngine.launch(this@MainActivity)?.let { reason ->
+                                Toast.makeText(this@MainActivity, getString(reason.textRes), Toast.LENGTH_LONG).show()
+                            }
+                        } else {
+                            launchGameViewModel.tryLaunch(event.version)
+                        }
                     }
                     is EventViewModel.Event.Launch.PlayServer -> {
                         launchGameViewModel.quickPlayServer(event.version, event.address)

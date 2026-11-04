@@ -128,6 +128,20 @@
             android:process=":game"
             android:launchMode="standard"
             android:screenOrientation="sensorLandscape" />
+        <!-- ONA: the Horizon (Rust) engine, MocLG/horizon-android (MIT). Its own process: the
+             game's event loop owns the process and ends it when the game closes. -->
+        <activity
+            android:name="com.lukagejak.horizon.HorizonActivity"
+            android:process=":horizon"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|layoutDirection|locale"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:theme="@style/OnaHorizon">
+            <meta-data android:name="android.app.lib_name" android:value="horizon" />
+        </activity>
         <activity android:name=".ui.activities.ErrorActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
             android:screenOrientation="sensorLandscape" />

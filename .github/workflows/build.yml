@@ -106,6 +106,29 @@ jobs:
           bash tools/physx4-android/build.sh "$RUNNER_TEMP/physx4" \
             ZalithLauncher/src/main/jniLibs/arm64-v8a/libPhysXJniBindings_64.so
 
+      # ONA: the Horizon (Rust) engine, built once by horizon.yml and published as a release of
+      # this repository. Without it the APK still builds; the Rust switch then says so.
+      - name: Add Horizon (Rust) engine
+        if: matrix.arch == 'arm64' || matrix.arch == 'all'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          commit=$(sed -n 's/^  HORIZON_COMMIT: //p' .github/workflows/horizon.yml)
+          tag="horizon-${commit:0:12}"
+          dir="$RUNNER_TEMP/horizon"
+          mkdir -p "$dir"
+          if gh release download "$tag" --repo "$GITHUB_REPOSITORY" -p horizon-android-libs.zip -D "$dir"; then
+            unzip -q -o "$dir/horizon-android-libs.zip" -d "$dir/x"
+            mkdir -p ZalithLauncher/src/main/jniLibs/arm64-v8a ZalithLauncher/src/main/assets
+            cp "$dir"/x/jniLibs/arm64-v8a/*.so ZalithLauncher/src/main/jniLibs/arm64-v8a/
+            cp "$dir/x/assets/horizon.zip" ZalithLauncher/src/main/assets/
+            cp "$dir/x/HORIZON_LICENSE.txt" "$dir/x/HORIZON_THIRD_PARTY_NOTICES.md" ZalithLauncher/src/main/assets/ || true
+            echo "Horizon engine $tag added"
+          else
+            echo "::warning::Horizon engine release $tag not found; this APK has no Rust engine"
+          fi
+
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew

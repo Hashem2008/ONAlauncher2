@@ -117,6 +117,11 @@ android {
         }
     }
 
+    // ONA: Horizon (Rust) reads assets/horizon.zip as a zip through the asset manager: store it
+    androidResources {
+        noCompress += listOf("zip")
+    }
+
     packaging {
         jniLibs {
             useLegacyPackaging = true

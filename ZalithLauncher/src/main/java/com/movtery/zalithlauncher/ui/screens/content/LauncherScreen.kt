@@ -101,6 +101,10 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
+import com.movtery.zalithlauncher.ui.screens.content.home.EngineSwitch
+import com.movtery.zalithlauncher.ui.screens.content.home.HomeActions
+import com.movtery.zalithlauncher.ui.screens.content.home.StyledHome
+import com.movtery.zalithlauncher.ui.theme.HomeLayout
 import com.movtery.zalithlauncher.ui.screens.content.home.HomeGrid
 import com.movtery.zalithlauncher.ui.screens.content.home.LocalActionMenuDrag
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragAnchor
@@ -140,119 +144,159 @@ fun LauncherScreen(
         screenKey = NormalNavKey.LauncherMain,
         currentKey = backStackViewModel.mainScreen.currentKey
     ) { isVisible ->
-        val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-        val dockedSide = AllSettings.launcherActionMenuSide.state
-        val dragState = rememberActionMenuDragState(
-            onCommit = { side -> AllSettings.launcherActionMenuSide.save(side) }
-        )
-        dragState.dockedSide = dockedSide
-        dragState.isRtl = isRtl
-
-        LaunchedEffect(isVisible) {
-            //屏幕切走时打断进行中的拖拽
-            if (!isVisible) dragState.onDragCancel()
-        }
-
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .onGloballyPositioned { coordinates ->
-                    dragState.parentOrigin = coordinates.positionInRoot()
-                }
-        ) {
-            val parentWidthPx = constraints.maxWidth.toFloat()
-            dragState.parentWidthPx = parentWidthPx
-            dragState.outerPaddingPx = with(LocalDensity.current) { ActionMenuOuterPadding.toPx() }
-            dragState.menuSpanPx = parentWidthPx * (ActionMenuWeight / (ActionMenuWeight + ContentWeight))
-
-            //拖拽期间以预览侧为准
-            val effectiveSide = dragState.previewSide ?: dockedSide
-
-            //卡片尺寸与停泊槽内容区保持一致
-            val cardWidth = maxWidth * (ActionMenuWeight / (ActionMenuWeight + ContentWeight)) - ActionMenuOuterPadding
-            val cardHeight = maxHeight - ActionMenuOuterPadding * 2
-
-            val toAccountManageScreen: () -> Unit = {
-                backStackViewModel.mainScreen.navigateTo(
-                    screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
-                )
-            }
-            val toVersionManageScreen: () -> Unit = {
-                backStackViewModel.mainScreen.removeAndNavigateTo(
-                    remove = NestedNavKey.VersionSettings::class,
-                    screenKey = NormalNavKey.VersionsManager
-                )
-            }
-            val toVersionSettingsScreen: () -> Unit = {
-                VersionsManager.currentVersion.value?.let { version ->
-                    navigateToVersions(version)
-                }
-            }
-
-            // 内容区域
-            Row(modifier = Modifier.fillMaxSize()) {
-                // ActionMenu 对接到了 Start，留出空位
-                if (dockedSide == ActionMenuSide.START) {
-                    Spacer(modifier = Modifier.weight(ActionMenuWeight))
-                }
-
-                CompositionLocalProvider(
-                    LocalUriHandler provides object : UriHandler {
-                        override fun openUri(uri: String) {
-                            onOpenLink(uri)
-                        }
-                    }
-                ) {
-                ContentMenu(
-                    modifier = Modifier
-                        .guideNode(
-                            key = GuideKeys.Main.Step.CardTip,
-                            holeRadius = 0.dp
+        // ONA: every style but Zalith's has a home screen of its own (see StyledHome)
+        val launcherStyle = AllSettings.launcherStyle.state
+        if (launcherStyle.home != HomeLayout.GRID) {
+            val styledCtx = rememberAnimatedContext(isVisible = isVisible)
+            StyledHome(
+                style = launcherStyle,
+                modifier = Modifier.fillMaxSize().animated(styledCtx),
+                actions = HomeActions(
+                    launch = onLaunchGame,
+                    versions = {
+                        backStackViewModel.mainScreen.removeAndNavigateTo(
+                            remove = NestedNavKey.VersionSettings::class,
+                            screenKey = NormalNavKey.VersionsManager
                         )
-                        .weight(ContentWeight)
-                        .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
-                    isVisible = isVisible,
-                    onLaunchGame = { version ->
-                        onLaunchGame(version)
                     },
-                    onQuickPlayServer = onQuickPlayServer,
-                    onOpenVersionSettings = navigateToVersions
+                    versionSettings = {
+                        VersionsManager.currentVersion.value?.let { version -> navigateToVersions(version) }
+                    },
+                    accounts = {
+                        backStackViewModel.mainScreen.navigateTo(
+                            screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+                        )
+                    },
+                    settings = {
+                        backStackViewModel.mainScreen.removeAndNavigateTo(
+                            removes = backStackViewModel.clearBeforeNavKeys,
+                            screenKey = backStackViewModel.settingsScreen
+                        )
+                    },
+                    download = { backStackViewModel.navigateToDownload() },
+                    multiplayer = {
+                        backStackViewModel.mainScreen.removeAndNavigateTo(
+                            removes = backStackViewModel.clearBeforeNavKeys,
+                            screenKey = NormalNavKey.Multiplayer
+                        )
+                    },
                 )
-                }
+            )
+        } else {
+            val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+            val dockedSide = AllSettings.launcherActionMenuSide.state
+            val dragState = rememberActionMenuDragState(
+                onCommit = { side -> AllSettings.launcherActionMenuSide.save(side) }
+            )
+            dragState.dockedSide = dockedSide
+            dragState.isRtl = isRtl
 
-                // ActionMenu 对接到了 End，留出空位
-                if (dockedSide == ActionMenuSide.END) {
-                    Spacer(modifier = Modifier.weight(ActionMenuWeight))
-                }
+            LaunchedEffect(isVisible) {
+                //屏幕切走时打断进行中的拖拽
+                if (!isVisible) dragState.onDragCancel()
             }
 
-            val isActionMenuTaller = maxHeight >= 600.dp
-            CompositionLocalProvider(LocalActionMenuDrag provides dragState) {
-                Box(
-                    modifier = Modifier
-                        .offset {
-                            val translation = if (dragState.floating) {
-                                dragState.cardPosition
-                            } else {
-                                dragState.landingOf(effectiveSide) + dragState.settleOffset.value
-                            }
-                            val x = if (isRtl) parentWidthPx - cardWidth.toPx() - translation.x else translation.x
-                            IntOffset(x.roundToInt(), translation.y.roundToInt())
-                        }
-                        .size(cardWidth, cardHeight)
-                ) {
-                    ActionMenu(
-                        modifier = Modifier.fillMaxSize(),
-                        isVisible = isVisible,
-                        isTaller = isActionMenuTaller,
-                        dockedSide = dockedSide,
-                        onLaunchGame = onLaunchGame,
-                        swapDirection = if (dockedSide == ActionMenuSide.END) AnimatedDirection.Right else AnimatedDirection.Left,
-                        pickUpScale = { dragState.scale },
-                        toAccountManageScreen = toAccountManageScreen,
-                        toVersionManageScreen = toVersionManageScreen,
-                        toVersionSettingsScreen = toVersionSettingsScreen
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onGloballyPositioned { coordinates ->
+                        dragState.parentOrigin = coordinates.positionInRoot()
+                    }
+            ) {
+                val parentWidthPx = constraints.maxWidth.toFloat()
+                dragState.parentWidthPx = parentWidthPx
+                dragState.outerPaddingPx = with(LocalDensity.current) { ActionMenuOuterPadding.toPx() }
+                dragState.menuSpanPx = parentWidthPx * (ActionMenuWeight / (ActionMenuWeight + ContentWeight))
+
+                //拖拽期间以预览侧为准
+                val effectiveSide = dragState.previewSide ?: dockedSide
+
+                //卡片尺寸与停泊槽内容区保持一致
+                val cardWidth = maxWidth * (ActionMenuWeight / (ActionMenuWeight + ContentWeight)) - ActionMenuOuterPadding
+                val cardHeight = maxHeight - ActionMenuOuterPadding * 2
+
+                val toAccountManageScreen: () -> Unit = {
+                    backStackViewModel.mainScreen.navigateTo(
+                        screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
                     )
+                }
+                val toVersionManageScreen: () -> Unit = {
+                    backStackViewModel.mainScreen.removeAndNavigateTo(
+                        remove = NestedNavKey.VersionSettings::class,
+                        screenKey = NormalNavKey.VersionsManager
+                    )
+                }
+                val toVersionSettingsScreen: () -> Unit = {
+                    VersionsManager.currentVersion.value?.let { version ->
+                        navigateToVersions(version)
+                    }
+                }
+
+                // 内容区域
+                Row(modifier = Modifier.fillMaxSize()) {
+                    // ActionMenu 对接到了 Start，留出空位
+                    if (dockedSide == ActionMenuSide.START) {
+                        Spacer(modifier = Modifier.weight(ActionMenuWeight))
+                    }
+
+                    CompositionLocalProvider(
+                        LocalUriHandler provides object : UriHandler {
+                            override fun openUri(uri: String) {
+                                onOpenLink(uri)
+                            }
+                        }
+                    ) {
+                    ContentMenu(
+                        modifier = Modifier
+                            .guideNode(
+                                key = GuideKeys.Main.Step.CardTip,
+                                holeRadius = 0.dp
+                            )
+                            .weight(ContentWeight)
+                            .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
+                        isVisible = isVisible,
+                        onLaunchGame = { version ->
+                            onLaunchGame(version)
+                        },
+                        onQuickPlayServer = onQuickPlayServer,
+                        onOpenVersionSettings = navigateToVersions
+                    )
+                    }
+
+                    // ActionMenu 对接到了 End，留出空位
+                    if (dockedSide == ActionMenuSide.END) {
+                        Spacer(modifier = Modifier.weight(ActionMenuWeight))
+                    }
+                }
+
+                val isActionMenuTaller = maxHeight >= 600.dp
+                CompositionLocalProvider(LocalActionMenuDrag provides dragState) {
+                    Box(
+                        modifier = Modifier
+                            .offset {
+                                val translation = if (dragState.floating) {
+                                    dragState.cardPosition
+                                } else {
+                                    dragState.landingOf(effectiveSide) + dragState.settleOffset.value
+                                }
+                                val x = if (isRtl) parentWidthPx - cardWidth.toPx() - translation.x else translation.x
+                                IntOffset(x.roundToInt(), translation.y.roundToInt())
+                            }
+                            .size(cardWidth, cardHeight)
+                    ) {
+                        ActionMenu(
+                            modifier = Modifier.fillMaxSize(),
+                            isVisible = isVisible,
+                            isTaller = isActionMenuTaller,
+                            dockedSide = dockedSide,
+                            onLaunchGame = onLaunchGame,
+                            swapDirection = if (dockedSide == ActionMenuSide.END) AnimatedDirection.Right else AnimatedDirection.Left,
+                            pickUpScale = { dragState.scale },
+                            toAccountManageScreen = toAccountManageScreen,
+                            toVersionManageScreen = toVersionManageScreen,
+                            toVersionSettingsScreen = toVersionSettingsScreen
+                        )
+                    }
                 }
             }
         }
@@ -481,6 +525,11 @@ private fun VersionsContent(
             }
         }
 
+        EngineSwitch(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(bottom = 6.dp)
+        )
         ScalingActionButton(
             modifier = Modifier
                 .fillMaxWidth()

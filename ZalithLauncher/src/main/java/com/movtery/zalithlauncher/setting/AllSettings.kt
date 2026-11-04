@@ -32,6 +32,7 @@ import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
 import com.movtery.zalithlauncher.setting.enums.AppLanguage
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.GameColorProfile
+import com.movtery.zalithlauncher.setting.enums.GameEngine
 import com.movtery.zalithlauncher.setting.enums.UpscalerMode
 import com.movtery.zalithlauncher.setting.enums.DarkMode
 import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
@@ -488,6 +489,9 @@ object AllSettings : SettingsRegistry() {
 
     /** ONA: look of the launcher (colours, corners, text), every feature stays in every style */
     val launcherStyle = enumSetting("onaLauncherStyle", LauncherStyle.ZALITH)
+
+    /** ONA: what Play starts: the Java game, or Horizon (Minecraft 26.3 in Rust) */
+    val gameEngine = enumSetting("onaGameEngine", GameEngine.JAVA)
 
     /** ONA: corner size of the Custom style, dp */
     val launcherStyleRadius = intSetting("onaLauncherStyleRadius", 16, 0..32)
