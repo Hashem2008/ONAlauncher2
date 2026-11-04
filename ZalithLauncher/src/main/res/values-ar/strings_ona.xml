@@ -217,4 +217,46 @@
     <string name="ona_rust_mods_error">ما قدرنا نجيب قائمة Horizon: %1$s</string>
     <string name="ona_rust_mods_empty">لسا ما في اشي هون</string>
     <string name="ona_rust_mods_no_modpacks">لسا ما في مودباكات بقائمة Horizon. رح يطلعوا هون لما ينزلوا</string>
+    <!-- ONA: صفحة Rust (Horizon) -->
+    <string name="ona_rust_home_subtitle">ماينكرافت جافا 26.3 مكتوبة من جديد بلغة Rust. محرك لحاله ومودات إلها لحالها، منفصلة عن جافا.</string>
+    <string name="ona_rust_home_ready">Horizon جاهز على هالجوال</string>
+    <string name="ona_rust_home_vulkan">Vulkan 1.1 ومعالج ARM 64</string>
+    <string name="ona_rust_home_java_ok">جافا 25 منزّلة (Horizon بستخدمها مرة وحدة لتجهيز 26.3)</string>
+    <string name="ona_rust_home_java_missing">جافا 25 مش منزّلة لسا: Horizon بجيبها لما يجهز 26.3</string>
+    <string name="ona_rust_home_touch_on">أزرار اللمس شغالة</string>
+    <string name="ona_rust_home_touch_off">أزرار اللمس طافية (من أزرار اللمس)</string>
+    <string name="ona_rust_home_play">العب Horizon</string>
+    <string name="ona_rust_home_play_hint">أول مرة بسجل دخول وبنزل 26.3 وبجهزها مرة وحدة. جوا العالم، الكورة اللي فوق بتفتح القائمة.</string>
+    <string name="ona_rust_home_content">المحتوى</string>
+    <string name="ona_rust_home_game">اللعبة</string>
+    <string name="ona_rust_home_mods_hint">مودات معمولة لـHorizon</string>
+    <string name="ona_rust_home_modpacks_hint">حزم مودات جاهزة</string>
+    <string name="ona_rust_home_shaders_hint">شيدرز لـHorizon</string>
+    <string name="ona_rust_home_packs_hint">تكستشرز وأصوات</string>
+    <string name="ona_rust_home_controls">أزرار اللمس</string>
+    <string name="ona_rust_home_controls_hint">الأزرار، الحجم، الشفافية، الجيروسكوب</string>
+    <string name="ona_rust_home_logs">السجل</string>
+    <string name="ona_rust_home_logs_hint">احفظ وابعت سجل Horizon</string>
+    <string name="ona_rust_home_logs_saved">انحفظ في %1$s</string>
+    <string name="ona_rust_home_logs_failed">ما قدرت أحفظ سجل Horizon</string>
+    <string name="ona_rust_home_launcher_settings">إعدادات اللانشر</string>
+    <string name="ona_rust_home_launcher_settings_hint">الشكل، اللغة، التنزيلات</string>
+    <string name="ona_rust_home_about">عن Horizon</string>
+    <string name="ona_rust_home_about_hint">شو هو، والرخصة</string>
+    <string name="ona_rust_about_text">Horizon هو ماينكرافت جافا 26.3 مكتوب من جديد بلغة Rust من فريقه (MocLG/horizon-android، رخصة MIT). ONA بحطه جوا اللانشر وبعطيه جافا 25 ومجلد .minecraft اللي عندك. مودات جافا وفورج وفابريك ما بتشتغل فيه: إله مودات لحاله.</string>
+    <string name="ona_rust_controls_subtitle">بتنطبق أول ما يشتغل Horizon المرة الجاية. جوا العالم، الكورة اللي فوق بتفتح قائمة Horizon لتعديل مكان الأزرار.</string>
+    <string name="ona_rust_controls_touch">أزرار اللمس</string>
+    <string name="ona_rust_controls_touch_summary">أزرار على الشاشة وجويستك وكورة القائمة، زي جافا</string>
+    <string name="ona_rust_controls_size">حجم الأزرار</string>
+    <string name="ona_rust_controls_size_summary">0 = تلقائي حسب الشاشة</string>
+    <string name="ona_rust_controls_opacity">شفافية الأزرار</string>
+    <string name="ona_rust_controls_gestures">الإيماءات</string>
+    <string name="ona_rust_controls_gestures_summary">اضغط مطوّل تكسر، ضغطة وحدة تحط، بدون أزرار</string>
+    <string name="ona_rust_controls_gyroscope">الجيروسكوب</string>
+    <string name="ona_rust_controls_gyroscope_summary">تطلّع حواليك بتحريك الجوال</string>
+    <string name="ona_rust_controls_larger">واجهة أكبر</string>
+    <string name="ona_rust_controls_larger_summary">قوائم وكتابة أكبر في Horizon</string>
+    <string name="ona_rust_controls_reset_ball">رجّع كورة القائمة لمكانها</string>
+    <string name="ona_rust_controls_reset_layout">ترتيب الأزرار الأصلي</string>
+    <string name="ona_rust_controls_done">تمام، بتنطبق المرة الجاية لما يشتغل Horizon</string>
 </resources>

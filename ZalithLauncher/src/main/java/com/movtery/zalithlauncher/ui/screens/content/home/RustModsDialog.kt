@@ -112,13 +112,19 @@ private fun kindLabel(kind: HorizonMods.Kind): Int = when (kind) {
  * Horizon does not run them.
  */
 @Composable
-fun RustModsDialog(onDismiss: () -> Unit) {
+fun RustModsDialog(onDismiss: () -> Unit, initialKind: HorizonMods.Kind? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var projects by remember { mutableStateOf<List<HorizonMods.Project>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var reload by remember { mutableIntStateOf(0) }
-    var filter by remember { mutableStateOf(RustFilter.PHONE) }
+    var filter by remember {
+        mutableStateOf(
+            initialKind?.let { kind ->
+                RustFilter.entries.firstOrNull { it != RustFilter.PHONE && it != RustFilter.ALL && it.accepts(kind) }
+            } ?: RustFilter.PHONE
+        )
+    }
     var query by remember { mutableStateOf("") }
     val busy = remember { mutableStateMapOf<String, Boolean>() }
     val installed = remember { mutableStateMapOf<String, Boolean>() }

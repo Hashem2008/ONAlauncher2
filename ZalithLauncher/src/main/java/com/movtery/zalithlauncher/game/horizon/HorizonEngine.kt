@@ -52,6 +52,10 @@ object HorizonEngine {
         else -> State.READY
     }
 
+    /** Java 25, which Horizon needs once to prepare 26.3 */
+    fun hasJava25(): Boolean = runCatching { RuntimesManager.getRuntimeHome(Jre.JRE_25.jreName) }
+        .getOrNull()?.let { File(it, "lib").isDirectory } ?: false
+
     private fun hasVulkan11(context: Context): Boolean =
         context.packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, 0x401000)
 
@@ -68,6 +72,8 @@ object HorizonEngine {
         runCatching { getGameHome() }.getOrNull()
             ?.takeIf { File(it).isDirectory }
             ?.let { intent.putExtra("minecraft_dir", it) }
+        // The Rust page's touch settings (controls on, size, opacity...) into Horizon's horizon.txt
+        HorizonSettings.applyFromLauncher(context)
         if (context !is android.app.Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
         return null

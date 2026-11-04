@@ -499,6 +499,16 @@ object AllSettings : SettingsRegistry() {
     /** ONA: what Play starts: the Java game, or Horizon (Minecraft 26.3 in Rust) */
     val gameEngine = enumSetting("onaGameEngine", GameEngine.JAVA)
 
+    /** ONA Rust page: Horizon's touch settings, written to its horizon.txt before each start */
+    val rustTouchControls = boolSetting("onaRustTouchControls", true)
+    val rustTouchGestures = boolSetting("onaRustTouchGestures", false)
+    val rustTouchGyroscope = boolSetting("onaRustTouchGyroscope", false)
+    val rustLargerInterface = boolSetting("onaRustLargerInterface", false)
+    /** Percent, 10 - 100 */
+    val rustTouchOpacity = intSetting("onaRustTouchOpacity", 100, 10..100)
+    /** Percent, 30 - 200, 0 = Auto (fitted to the screen) */
+    val rustTouchSize = intSetting("onaRustTouchSize", 0, 0..200)
+
     /** ONA: corner size of the Custom style, dp */
     val launcherStyleRadius = intSetting("onaLauncherStyleRadius", 16, 0..32)
 

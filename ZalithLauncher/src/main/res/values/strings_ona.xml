@@ -217,4 +217,46 @@
     <string name="ona_rust_mods_error">Could not load Horizon\'s list: %1$s</string>
     <string name="ona_rust_mods_empty">Nothing here yet</string>
     <string name="ona_rust_mods_no_modpacks">Horizon has no modpacks in its list yet. They will show here when they come</string>
+    <!-- ONA: the Rust (Horizon) home -->
+    <string name="ona_rust_home_subtitle">Minecraft Java 26.3 rewritten in Rust. Its own engine, its own mods, separate from Java.</string>
+    <string name="ona_rust_home_ready">Horizon is ready on this phone</string>
+    <string name="ona_rust_home_vulkan">Vulkan 1.1 and 64-bit ARM</string>
+    <string name="ona_rust_home_java_ok">Java 25 installed (Horizon uses it once to prepare 26.3)</string>
+    <string name="ona_rust_home_java_missing">Java 25 not installed yet: Horizon gets it when it prepares 26.3</string>
+    <string name="ona_rust_home_touch_on">Touch controls on</string>
+    <string name="ona_rust_home_touch_off">Touch controls off (Touch controls)</string>
+    <string name="ona_rust_home_play">Play Horizon</string>
+    <string name="ona_rust_home_play_hint">The first start signs in, downloads 26.3 and prepares it once. In a world, the ball at the top opens the menu.</string>
+    <string name="ona_rust_home_content">Content</string>
+    <string name="ona_rust_home_game">Game</string>
+    <string name="ona_rust_home_mods_hint">Mods made for Horizon</string>
+    <string name="ona_rust_home_modpacks_hint">Ready packs of mods</string>
+    <string name="ona_rust_home_shaders_hint">Shader packs for Horizon</string>
+    <string name="ona_rust_home_packs_hint">Textures and sounds</string>
+    <string name="ona_rust_home_controls">Touch controls</string>
+    <string name="ona_rust_home_controls_hint">Buttons, size, opacity, gyroscope</string>
+    <string name="ona_rust_home_logs">Logs</string>
+    <string name="ona_rust_home_logs_hint">Save and send the Horizon log</string>
+    <string name="ona_rust_home_logs_saved">Saved to %1$s</string>
+    <string name="ona_rust_home_logs_failed">Could not save the Horizon log</string>
+    <string name="ona_rust_home_launcher_settings">Launcher settings</string>
+    <string name="ona_rust_home_launcher_settings_hint">Look, language, downloads</string>
+    <string name="ona_rust_home_about">About Horizon</string>
+    <string name="ona_rust_home_about_hint">What it is, licence</string>
+    <string name="ona_rust_about_text">Horizon is Minecraft Java 26.3 rewritten in Rust by its own team (MocLG/horizon-android, MIT licence). ONA builds it into the launcher and gives it the Java 25 runtime and the .minecraft folder it already has. Java mods, Forge and Fabric do not run in it: it has its own mods.</string>
+    <string name="ona_rust_controls_subtitle">Used the next time Horizon starts. In a world, the ball at the top opens the Horizon menu to edit the layout.</string>
+    <string name="ona_rust_controls_touch">Touch controls</string>
+    <string name="ona_rust_controls_touch_summary">On-screen buttons, joystick and the menu ball, like Java</string>
+    <string name="ona_rust_controls_size">Button size</string>
+    <string name="ona_rust_controls_size_summary">0 = Auto, fitted to the screen</string>
+    <string name="ona_rust_controls_opacity">Button opacity</string>
+    <string name="ona_rust_controls_gestures">Gestures</string>
+    <string name="ona_rust_controls_gestures_summary">Hold to break, tap to place, without buttons</string>
+    <string name="ona_rust_controls_gyroscope">Gyroscope</string>
+    <string name="ona_rust_controls_gyroscope_summary">Look around by moving the phone</string>
+    <string name="ona_rust_controls_larger">Larger interface</string>
+    <string name="ona_rust_controls_larger_summary">Bigger menus and text in Horizon</string>
+    <string name="ona_rust_controls_reset_ball">Reset the menu ball</string>
+    <string name="ona_rust_controls_reset_layout">Default button layout</string>
+    <string name="ona_rust_controls_done">Done, used the next time Horizon starts</string>
 </resources>

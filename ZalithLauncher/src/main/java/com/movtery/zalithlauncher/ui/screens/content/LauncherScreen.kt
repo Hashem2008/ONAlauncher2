@@ -102,6 +102,8 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoL
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.home.EngineSwitch
+import com.movtery.zalithlauncher.ui.screens.content.home.RustHome
+import com.movtery.zalithlauncher.setting.enums.GameEngine
 import com.movtery.zalithlauncher.ui.screens.content.home.HomeActions
 import com.movtery.zalithlauncher.ui.screens.content.home.StyledHome
 import com.movtery.zalithlauncher.ui.theme.HomeLayout
@@ -146,7 +148,19 @@ fun LauncherScreen(
     ) { isVisible ->
         // ONA: every style but Zalith's has a home screen of its own (see StyledHome)
         val launcherStyle = AllSettings.launcherStyle.state
-        if (launcherStyle.home != HomeLayout.GRID) {
+        if (AllSettings.gameEngine.state == GameEngine.RUST) {
+            // ONA: Rust (Horizon) has a home of its own, separate from Java's
+            val rustCtx = rememberAnimatedContext(isVisible = isVisible)
+            RustHome(
+                modifier = Modifier.fillMaxSize().animated(rustCtx),
+                openSettings = {
+                    backStackViewModel.mainScreen.removeAndNavigateTo(
+                        removes = backStackViewModel.clearBeforeNavKeys,
+                        screenKey = backStackViewModel.settingsScreen
+                    )
+                },
+            )
+        } else if (launcherStyle.home != HomeLayout.GRID) {
             val styledCtx = rememberAnimatedContext(isVisible = isVisible)
             StyledHome(
                 style = launcherStyle,
