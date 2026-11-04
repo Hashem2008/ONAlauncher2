@@ -248,6 +248,25 @@ FORGELIN FIX, RUST MODS LIST, GC/HEAP TUNING (2026-11-04, on main)
 - Public release: user first asked for it, then decided to keep BOTH the APK and the source PRIVATE.
   Do not publish anything. (APK-public + source-private was refused: Zalith is GPL-3.)
 
+APK ON THE BUILD PAGE + FPS REDUCER FIX (2026-11-05, on main)
+- User wants the APK private AND on the Actions build page. build.yml (arm64 only): deletes older
+  ONA-debug-arm64 artifacts (listed in the run summary: run + commit), then uploads ONA-debug-arm64
+  (retention 7 days, ~246 MB, fits the ~500 MB). The "all" APK stays only in release ona-latest.
+  Callers push_ci.yml / release_ci.yml got `actions: write` (fa18b40).
+- Ultra Realisim (76 mods) showed "FPS: 4": FPS Reducer (bre2el) uses Display.isActive(), unreliable
+  under the launcher, so it thinks the game is in the background. FpsReducerFix.kt (77ebdfd) sets
+  B:reducingInBackground and B:suppressSound to false in config/fpsreducer*.cfg + config/fpsreducer/*.cfg
+  before every launch, toast ona_fpsreducer_fixed. Mod stays on. Forgelin fix CONFIRMED (lag.log).
+- CI: fa18b40 run 41913116051 SUCCESS, 77ebdfd run 41914645502 SUCCESS (APKs in ona-latest). The
+  artifact upload still said "storage quota has been hit" although 0 artifacts exist: GitHub recounts
+  storage every 6-12 h after the deletions; the next builds should show ONA-debug-arm64. Check that.
+- Launcher log for a version: Android/data/com.onalauncher.app2.debug/files/.minecraft/versions/
+  <version>/ONALauncher2/latest_game.log (header "Launch Minecraft", renderer). Asked the user for it.
+- OPEN: same pack shows a white hotbar/bars, black squares as toast text and a black square in the
+  world. Renderer unknown (game log only); earlier 111.log was GL4ES + GSR 85%. lag.log has a glslang
+  "texture2D ... Vulkan api only" shader error (unknown mod, maybe Terrarium). Need the LAUNCHER log
+  (header "Launch Minecraft") to see the renderer, then try MobileGlues / other renderer for this pack.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
