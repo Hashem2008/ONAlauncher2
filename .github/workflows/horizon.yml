@@ -1,0 +1,96 @@
+# ONA: builds the Horizon engine (Minecraft Java 26.3 rewritten in Rust; Android port
+# MocLG/horizon-android, MIT) for arm64 once, and publishes its libraries as a release of this
+# repository. build.yml puts them in the APK, where the "Horizon (Rust)" engine switch uses them.
+# Run it by hand (Actions > Horizon engine > Run workflow) after changing the pinned commit.
+name: Horizon engine
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  HORIZON_REPO: MocLG/horizon-android
+  HORIZON_COMMIT: a69321a00de03daa5ab3a42397ceea83895d6733
+  # The same NDK as ONA's own native code, so both use one libc++_shared.so
+  NDK_VERSION: 25.2.9519653
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: Checkout ONA
+        uses: actions/checkout@v6
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/.ghcup \
+            /usr/local/lib/node_modules "$AGENT_TOOLSDIRECTORY/CodeQL" || true
+          df -h /
+
+      - name: Checkout Horizon Android
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.HORIZON_REPO }}
+          ref: ${{ env.HORIZON_COMMIT }}
+          path: horizon
+
+      - name: Patch Horizon for ONA
+        run: python3 -I tools/horizon/patch_horizon.py horizon
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Install tools and NDK r25
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q clang lld llvm zip
+          sdkm=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)
+          yes | "$sdkm" --install "ndk;$NDK_VERSION" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: Build the game library and the java launcher
+        working-directory: horizon
+        run: |
+          . android/tools/env.sh
+          export HORIZON_ANDROID_BUILD="0.1.0+ona-${HORIZON_COMMIT:0:12}"
+          export HORIZON_MSA_CLIENT_ID="5be5d759-7f2f-4790-be62-438977cdc7a5"
+          strip=$(command -v llvm-strip || ls /usr/bin/llvm-strip-* | sort -V | tail -1)
+          cargo build -p horizon-client --example horizon --target aarch64-linux-android \
+            --profile release -j 4 --no-default-features --features audio,android
+          cargo build --manifest-path android/java-launcher/Cargo.toml --release --target aarch64-linux-android
+          out="$GITHUB_WORKSPACE/dist/jniLibs/arm64-v8a"
+          mkdir -p "$out" "$GITHUB_WORKSPACE/dist/assets"
+          "$strip" --strip-debug -o "$out/libhorizon.so" target/aarch64-linux-android/release/examples/libhorizon.so
+          cp android/java-launcher/target/aarch64-linux-android/release/horizon-java-launcher "$out/libhorizonjava.so"
+          cp android/java-launcher/target/aarch64-linux-android/release/horizon-java-launcher "$out/libhorizonjavac.so"
+          ls -la "$out"
+
+      - name: Horizon's version folder
+        working-directory: horizon
+        run: |
+          root="$RUNNER_TEMP/horizon-root"
+          mkdir -p "$root"
+          cp --parents -r research-lock.json LICENSE crates/horizon-prepare/Cargo.toml \
+            crates/horizon-prepare/build.rs crates/horizon-prepare/src \
+            mods/horizon/src/test/java/dev/horizonlab/parity "$root/"
+          (cd "$root" && zip -qr -X "$GITHUB_WORKSPACE/dist/assets/horizon.zip" .)
+          cp LICENSE "$GITHUB_WORKSPACE/dist/HORIZON_LICENSE.txt"
+          cp THIRD_PARTY_NOTICES.md "$GITHUB_WORKSPACE/dist/HORIZON_THIRD_PARTY_NOTICES.md"
+          echo "$HORIZON_REPO@$HORIZON_COMMIT" > "$GITHUB_WORKSPACE/dist/HORIZON_SOURCE.txt"
+
+      - name: Publish as a release of this repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="horizon-${HORIZON_COMMIT:0:12}"
+          (cd dist && zip -qr -X ../horizon-android-libs.zip .)
+          ls -la horizon-android-libs.zip
+          gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$tag" horizon-android-libs.zip --prerelease \
+            --title "Horizon engine ${HORIZON_COMMIT:0:12}" \
+            --notes "Horizon (Rust, Minecraft Java 26.3) for arm64, built from $HORIZON_REPO@$HORIZON_COMMIT with tools/horizon/patch_horizon.py. MIT. Used by build.yml."
