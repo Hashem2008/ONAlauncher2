@@ -156,6 +156,22 @@ SHADERS + VOXY + BEST GAME SETTINGS (2026-11-04, on main)
   NOT tested on a device. Next: user tests shader packs (BSL, Complementary Low, Sildur...) and
   Voxyris; ask for logs, look for "[ONA GLFix]" and "LwjglLinkerHook: libc.so.6 -> libc.so".
 
+FORGELIN + GUIDE + SHADER PACK SETTINGS (2026-11-04, on main)
+- Ultra Realisim (1.12.2 Forge): BetterFoliage crashed, NoClassDefFoundError kotlin/reflect/...
+  1.12 mods declare Forgelin only in code (ModCompat reads no mcmod.info). LegacyKotlinSupport.kt:
+  forge < 1.13, a jar with META-INF/*.kotlin_module (or name betterfoliage) and no jar with
+  kotlin/Unit.class -> installs Modrinth "forgelin-continuous" (LGPL). Called before launch
+  (LauncherElements, toast ona_forgelin_installed) and in ModAutoResolver.scheduleAfterDownloads.
+  Commit 1081579, CI 41747683514 SUCCESS.
+- ATM10 log (latest44444): no crash, game started in 184 s, log just ends. Nothing fixed there.
+- OnaGuideCard.kt: collapsible "ONA guide" at the top of Renderer settings (device card moved to
+  Middle): what + how-to for Hybrid, upscaler, device check, best settings, heavy mods, shaders,
+  requirements, crashes (strings ona_guide_*, EN + AR).
+- BestGameSettings: selected shader pack (iris/oculus.properties or optionsshaders.txt shaderPack=)
+  -> shaderpacks/<pack>.txt shadowMapResolution 1024/512, shadowDistance 96/64 (added if missing,
+  else only lowered, once per pack). optionsshaders.txt shadowResMul 0.5/0.25, antialiasingLevel 0.
+  Commit 702a16b, CI 41856667844 SUCCESS. NOT tested on a device.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
