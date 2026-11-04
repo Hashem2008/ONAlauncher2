@@ -6,6 +6,11 @@ name: Horizon engine
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - tools/horizon/**
+      - .github/workflows/horizon.yml
 
 permissions:
   contents: write
