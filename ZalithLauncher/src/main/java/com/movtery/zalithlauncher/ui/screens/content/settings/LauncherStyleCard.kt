@@ -153,6 +153,7 @@ private fun StyleDot(style: LauncherStyle) {
     val color = style.seed ?: MaterialTheme.colorScheme.primary
     val background = when {
         style.pureBlack -> Color.Black
+        style.darkBase != null -> style.darkBase
         style.glass -> color.copy(alpha = 0.4f)
         else -> color
     }

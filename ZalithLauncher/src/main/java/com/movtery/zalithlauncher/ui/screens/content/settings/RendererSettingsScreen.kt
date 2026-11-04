@@ -122,6 +122,11 @@ fun RendererSettingsScreen(
                         position = CardPosition.Middle
                     )
 
+                    OnaAdvisorCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle
+                    )
+
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,

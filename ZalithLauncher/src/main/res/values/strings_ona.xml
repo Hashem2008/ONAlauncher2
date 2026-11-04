@@ -116,6 +116,10 @@
     <string name="ona_style_cyberpunk">Cyberpunk neon</string>
     <string name="ona_style_contrast">High contrast</string>
     <string name="ona_style_compact">Compact</string>
+    <string name="ona_style_ps5">PS5</string>
+    <string name="ona_style_ps4">PS4</string>
+    <string name="ona_style_ps3">PS3</string>
+    <string name="ona_style_pixel">Pixel</string>
     <string name="ona_style_custom">Custom theme</string>
     <string name="ona_style_custom_radius">Corner size</string>
     <string name="ona_style_custom_font">Text size</string>
@@ -147,4 +151,14 @@
     <string name="ona_guide_crash_title">When the game crashes</string>
     <string name="ona_guide_crash_what">The launcher reads the crash, explains the cause and fixes what it can (renderer, memory, requirements, PhysX, Voxy).</string>
     <string name="ona_guide_crash_how">Start again once. If it still crashes, send the latest game log.</string>
+    <string name="ona_advisor_title">What do you want to play?</string>
+    <string name="ona_advisor_summary">Write what you want (kind, version, loader, style) and get modpacks, mods or shaders that fit it and run well on your phone. Smooth ones come first.</string>
+    <string name="ona_advisor_modpacks">Modpacks</string>
+    <string name="ona_advisor_mods">Mods</string>
+    <string name="ona_advisor_shaders">Shaders</string>
+    <string name="ona_advisor_hint">Example: light tech pack 1.20.1 fabric</string>
+    <string name="ona_advisor_button">Suggest</string>
+    <string name="ona_advisor_failed">Could not reach Modrinth. Check the internet and try again.</string>
+    <string name="ona_advisor_none">Nothing found. Try fewer or other words.</string>
+    <string name="ona_advisor_install_hint">Tap one to see it. To install it, open Download and search its name.</string>
 </resources>

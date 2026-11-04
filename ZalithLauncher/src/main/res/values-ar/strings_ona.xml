@@ -116,6 +116,10 @@
     <string name="ona_style_cyberpunk">نيون سايبربنك</string>
     <string name="ona_style_contrast">تباين عالي</string>
     <string name="ona_style_compact">مضغوط</string>
+    <string name="ona_style_ps5">PS5</string>
+    <string name="ona_style_ps4">PS4</string>
+    <string name="ona_style_ps3">PS3</string>
+    <string name="ona_style_pixel">Pixel</string>
     <string name="ona_style_custom">ثيم مخصص</string>
     <string name="ona_style_custom_radius">حجم الزوايا</string>
     <string name="ona_style_custom_font">حجم الخط</string>
@@ -147,4 +151,14 @@
     <string name="ona_guide_crash_title">لما اللعبة تكرش</string>
     <string name="ona_guide_crash_what">الـ launcher بيقرأ الكراش، وبيشرحلك السبب، وبيصلّح اللي بيقدر عليه (العارض، الذاكرة، المتطلبات، PhysX، Voxy).</string>
     <string name="ona_guide_crash_how">شغّل مرة ثانية. إذا ضل يكرش، ابعت آخر لوغ للعبة.</string>
+    <string name="ona_advisor_title">شو بدك تلعب؟</string>
+    <string name="ona_advisor_summary">اكتب شو بدك (النوع، النسخة، اللودر، الستايل)، وبيقترحلك مودباكات أو مودات أو شيدرات بتناسب طلبك وبتمشي منيح على جهازك. الأخف بيطلع أول.</string>
+    <string name="ona_advisor_modpacks">مودباكات</string>
+    <string name="ona_advisor_mods">مودات</string>
+    <string name="ona_advisor_shaders">شيدرات</string>
+    <string name="ona_advisor_hint">مثلاً: مودباك تكنو خفيف 1.20.1 fabric</string>
+    <string name="ona_advisor_button">اقترح</string>
+    <string name="ona_advisor_failed">ما قدرت أوصل لـ Modrinth. تأكد من النت وجرب كمان مرة.</string>
+    <string name="ona_advisor_none">ما لقيت إشي. جرب كلمات أقل أو غيرها.</string>
+    <string name="ona_advisor_install_hint">اضغط على أي واحد لتشوفه. عشان تنزله، افتح التنزيل وابحث عن اسمه.</string>
 </resources>
