@@ -291,6 +291,37 @@ FRAME GENERATION, CHIP SUPPORT, DYNAMIC FPS, SHADER SHADOWS (2026-11-05, on main
   only"). Theory: a mod's fallback path leaves GL state broken. Asked the user to try Krypton
   Wrapper for this version and report. Not changed automatically (no proof yet).
 
+
+KRYPTON FOR OLD PACKS WITH OWN SHADERS + SHADER PROFILES (2026-11-05, on main)
+- Commit 5597294, CI run 41923149258 SUCCESS (APKs in ona-latest).
+- CONFIRMED by the user: Ultra Realisim on Krypton Wrapper = correct HUD, 140-177 FPS (FPS 4 -> 140
+  was the FPS Reducer fix). White HUD cause: BloodMagic's legacy GLSL half converted by GL4ES VGPU.
+- MobileModRules.modsWithOwnShaders(version): jars with assets/<non-minecraft>/*.vsh|fsh|vert|frag|glsl.
+  SmartRenderer: MC < 1.17 + such mods -> Krypton (NGGL4ES) first, then GL4ES, Zink, MobileGlues.
+- ShaderProfileTuner.kt: active Iris/Oculus/OptiFine pack -> its own profile.LOW/MEDIUM/VERY_LOW from
+  shaders/shaders.properties (keeps lighting and colours) written once into shaderpacks/<pack>.txt
+  (backup .ona-backup, restored with tuning off). Flagship MEDIUM (LOW at 60+ mods), high LOW,
+  mid/low VERY_LOW. Called from ModPerformanceTuner.
+
+RUST (HORIZON) HOME + TOUCH CONTROLS (2026-11-05, on main)
+- Commit 9c0938f, CI run 41925284232 SUCCESS (APKs in ona-latest). NOT tested on a device.
+- User: in a Horizon world there were NO touch controls at all, not even the menu ball. Upstream
+  android.rs (MocLG/horizon-android a69321a) draws them when horizon.txt touchControls != "false"
+  (default on); log line "Horizon: touch controls on/off ..." in the Horizon log tells which.
+  Root cause still unknown (same build features as upstream android/build.sh; debug not minified).
+- game/horizon/HorizonSettings.kt: writes touchControls / touchGestures / touchGyroscope /
+  largerInterface (true/false), touchOpacity (0.1-1.0), touchSize (0.3-2.0, removed = Auto) into
+  filesDir/horizon-rust/game/horizon.txt (key:value lines, other lines kept) before every
+  HorizonEngine.launch. Settings AllSettings.rustTouch* (onaRustTouch*), touch ON by default.
+  Reset menu ball (removes touchMenuBall) and default layout (removes controlLayout).
+  exportLogs(): every *.log / last-crash.txt / horizon.txt under filesDir/horizon-rust into
+  externalFiles/horizon-rust/logs/horizon-log-<time>.txt, then shareFile.
+- ui/screens/content/home/RustHome.kt: own page while AllSettings.gameEngine == RUST (LauncherScreen
+  picks it before StyledHome/grid). Status (ready, Vulkan, Java 25, touch), Play Horizon, tiles:
+  Mods, Modpacks, Shaders, Resource packs (RustModsDialog(initialKind)), Touch controls dialog,
+  Logs (export + share), Launcher settings, About. EngineSwitch at the bottom goes back to Java.
+- NEXT: ask the user for the Horizon log (Rust page -> Logs) after entering a world; check the
+  "touch controls" line and whether draw_touch runs.
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
