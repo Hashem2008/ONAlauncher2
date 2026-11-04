@@ -75,8 +75,20 @@ object SmartRenderer : RendererInterface {
         // Any Vulkan 1.1 GPU can run Zink on its own driver, kept as a later fallback
         val anyVulkan = profile?.vulkan ?: false
 
+        // Old packs whose mods compile their own GLSL: Krypton rejects what GL4ES half converts
+        val ownShaders = if (mc.isLowerVer("1.17")) {
+            runCatching { MobileModRules.modsWithOwnShaders(version) }.getOrDefault(emptyList())
+        } else emptyList()
+        if (ownShaders.isNotEmpty()) Logger.info(TAG, "Mods with their own shaders: $ownShaders -> Krypton before GL4ES")
+
         val candidates = buildList {
             when {
+                mc.isLowerVer("1.17") && ownShaders.isNotEmpty() -> {
+                    add(NGGL4ESRenderer)
+                    add(GL4ESRenderer)
+                    if (anyVulkan) add(KopperZinkRenderer)
+                    add(MobileGluesRenderer)
+                }
                 mc.isLowerVer("1.17") -> {
                     add(GL4ESRenderer)
                     add(NGGL4ESRenderer)
@@ -122,7 +134,7 @@ object SmartRenderer : RendererInterface {
             // Everything crashed once: start over instead of being stuck
             clearCrashes(version)
         }
-        lastReason = "${version.getVersionName()} ($mc, shaders=$shaders, sodium=${situation.sodiumLike}, mods=${situation.modCount}, vulkan=$goodVulkan, skipped=${crashed.size}) -> ${chosen.getRendererName()}"
+        lastReason = "${version.getVersionName()} ($mc, shaders=$shaders, sodium=${situation.sodiumLike}, mods=${situation.modCount}, own-shader mods=${ownShaders.size}, vulkan=$goodVulkan, skipped=${crashed.size}) -> ${chosen.getRendererName()}"
         Logger.info(TAG, lastReason)
         return chosen.getUniqueIdentifier()
     }

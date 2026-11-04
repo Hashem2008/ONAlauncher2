@@ -251,6 +251,12 @@ object ModPerformanceTuner {
                 if (File(file.path + BACKUP_SUFFIX).exists()) touched.add(patch.relativePath)
             }.onFailure { Logger.warning(TAG, "Could not tune ${patch.label}", it) }
         }
+        // The active shader pack: its own lighter quality profile, once per pack
+        runCatching {
+            val modCount = File(gameDir, "mods").list()?.count { it.endsWith(".jar") } ?: 0
+            ShaderProfileTuner.apply(gameDir, tier, modCount)?.let { tuned.add("Shader $it") }
+            touched.addAll(ShaderProfileTuner.tunedFiles(gameDir))
+        }.onFailure { Logger.warning(TAG, "Could not tune the shader pack", it) }
         if (touched.isNotEmpty()) {
             runCatching { File(version.getVersionPath(), TUNED_LIST).writeText(touched.joinToString("\n")) }
         }

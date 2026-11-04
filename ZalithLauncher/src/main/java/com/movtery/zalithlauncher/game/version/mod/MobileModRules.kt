@@ -141,6 +141,31 @@ object MobileModRules {
     }
 
     /**
+     * Mods that compile GLSL shaders of their own (Blood Magic and others in old packs). GL4ES'
+     * shader converter can half convert such a shader (VGPU "gl_TexCoord ... MaxTextureCoords (0)")
+     * and leave the GL state broken: white hotbar and bars, text as black squares (Ultra Realisim,
+     * 1.12.2, Adreno 840). Krypton Wrapper rejects the same shader cleanly, the mod falls back to
+     * its plain path and the picture is right (checked on the same pack: correct HUD, 140-177 FPS).
+     * @return names of the mod jars that bring their own shaders
+     */
+    fun modsWithOwnShaders(version: Version): List<String> {
+        val jars = version.modsDir().listFiles { file -> file.isFile && file.name.endsWith(".jar") }.orEmpty()
+        return jars.filter { jar ->
+            runCatching {
+                java.util.zip.ZipFile(jar).use { zip ->
+                    zip.entries().asSequence().any { entry ->
+                        val name = entry.name.lowercase()
+                        name.startsWith("assets/") && !name.startsWith("assets/minecraft/") &&
+                            SHADER_EXTENSIONS.any { name.endsWith(it) }
+                    }
+                }
+            }.getOrDefault(false)
+        }.map { it.name }
+    }
+
+    private val SHADER_EXTENSIONS = listOf(".vsh", ".fsh", ".vert", ".frag", ".glsl")
+
+    /**
      * Make risky render mods work with the renderer. Mods are never switched off or deleted:
      * Nothirium gets its GL15 engine under a GL4ES renderer, the others are handled by the
      * renderer choice ([avoidGl4es]). Jars an older ONA build switched off are put back.
