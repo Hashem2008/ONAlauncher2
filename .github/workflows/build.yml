@@ -21,6 +21,9 @@ jobs:
   build:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    # ONA: contents write publishes the debug APK as the ona-latest release
+    permissions:
+      contents: write
     strategy:
       matrix:
         arch: ["all", "arm64"]
@@ -157,3 +160,20 @@ jobs:
         with:
           name: debug apk (${{ matrix.arch }})
           path: ZalithLauncher/build/outputs/apk/debug/*.apk
+          retention-days: 3
+
+      # ONA: artifact storage fills up (each build is ~640 MB), so the debug APK also goes to one
+      # release, ona-latest, whose files every build replaces. Download it from Releases.
+      - name: Publish Debug APK to the ona-latest release
+        if: inputs.variant == 'Debug' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk=$(ls ZalithLauncher/build/outputs/apk/debug/*.apk | head -1)
+          out="$RUNNER_TEMP/ONA-debug-${{ matrix.arch }}.apk"
+          cp "$apk" "$out"
+          notes="Latest debug build of main ($GITHUB_SHA). ONA-debug-arm64.apk is for most phones; ONA-debug-all.apk has every CPU type."
+          gh release view ona-latest --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 ||             gh release create ona-latest --repo "$GITHUB_REPOSITORY" --prerelease --target main               --title "ONA latest debug build" --notes "$notes" || true
+          gh release upload ona-latest "$out" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit ona-latest --repo "$GITHUB_REPOSITORY" --notes "$notes" || true
