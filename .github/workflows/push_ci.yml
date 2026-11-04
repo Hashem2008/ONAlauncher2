@@ -10,6 +10,7 @@ jobs:
   Build:
     permissions:
       contents: write
+      actions: write
     uses: ./.github/workflows/build.yml
     with:
       variant: Debug

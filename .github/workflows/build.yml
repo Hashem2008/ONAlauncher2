@@ -24,6 +24,7 @@ jobs:
     # ONA: contents write publishes the debug APK as the ona-latest release
     permissions:
       contents: write
+      actions: write
     strategy:
       matrix:
         arch: ["all", "arm64"]
@@ -180,3 +181,32 @@ jobs:
             echo ""
             echo "Release page: https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # ONA: the arm64 APK (~246 MB) also on this build page, as the user wants it there. Free
+      # private storage is ~500 MB, so only the newest one is kept: older ones are deleted first
+      # and listed in this build's summary (run + commit, to rebuild one: push the commit to
+      # restore-<commit7>). The "all" APK (~446 MB) does not fit: it stays in the release only.
+      - name: Remove the previous APK from older build pages
+        if: inputs.variant == 'Debug' && matrix.arch == 'arm64'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          old=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=ONA-debug-arm64&per_page=100" \
+            --jq '.artifacts[] | select(.expired|not) | "\(.id) \(.workflow_run.id) \(.workflow_run.head_sha[0:7]) \(.created_at)"')
+          [ -z "$old" ] && exit 0
+          echo "### Older APKs removed from build pages (still rebuildable from their commit)" >> "$GITHUB_STEP_SUMMARY"
+          echo "$old" | while read -r id run sha date; do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$id" && \
+              echo "- run $run, commit $sha, $date" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Upload APK to this build page (arm64)
+        if: inputs.variant == 'Debug' && matrix.arch == 'arm64'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: ONA-debug-arm64
+          path: ZalithLauncher/build/outputs/apk/debug/*.apk
+          retention-days: 7
+          compression-level: 0
