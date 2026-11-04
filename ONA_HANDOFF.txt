@@ -184,6 +184,39 @@ STYLES LIKE THEIR NAMES + WISH ADVISOR (2026-11-04, on main)
   performance tags), smooth first; tap opens the Modrinth page, install via Download search.
 - Commit 02ef930, CI 41869797643 SUCCESS. NOT tested on a device.
 
+FULL HOME LAYOUT PER STYLE + HORIZON (RUST) ENGINE (2026-11-04, on main)
+- User: a style must change the WHOLE launcher (layout, buttons), not only colours.
+  LauncherStyle.home -> HomeLayout; ui/screens/content/home/StyledHome.kt draws it, LauncherScreen
+  shows it instead of Zalith's grid for every style except ZALITH and CUSTOM:
+  PS5 (tile row, white pill Play), PS4 (function icons, square tiles, Start), XMB for PS3
+  (categories across, items down, waves), SIDEBAR for PC launcher / High contrast / Cyberpunk,
+  RAIL for Modrinth / AMOLED / Compact (instance list with Play per row), DASHBOARD for Console,
+  MATERIAL for Pixel / Material You / Ocean / Sunset / Cherry / Glass, RETRO for Retro pixel /
+  Nether / The End (centred logo, stone buttons). The top bar stays.
+- Friend: "merge horizon rust with a switch like DroidBridge". Horizon = Minecraft Java 26.3
+  rewritten in Rust (horizon-rust/horizon, MIT; desktop only). Its Android port
+  MocLG/horizon-android (MIT) is used, pinned a69321a00de0 (fits ONA: Zalith's jre-25, Zalith
+  control layouts, NativeActivity).
+  - .github/workflows/horizon.yml (runs when tools/horizon/** or itself changes, or by hand) builds
+    libhorizon.so + libhorizonjava/javac.so with NDK r25 (same libc++_shared as ONA) and
+    horizon.zip, applies tools/horizon/patch_horizon.py (files in filesDir/horizon-rust and
+    externalFiles/horizon-rust, ONA's Internal-25 runtime via platform "jre_dir", ONA's .minecraft
+    via "minecraft_dir", ndk-clang lib64 fix) and publishes release horizon-a69321a00de0
+    (run 41879213909 SUCCESS, 16 min). build.yml adds it to arm64 and all APKs.
+  - com.lukagejak.horizon.HorizonActivity (their Java side, JNI names need that package): process
+    ":horizon", theme OnaHorizon; self-update off. Manifest does NOT require Vulkan.
+  - Setting gameEngine (JAVA/RUST), EngineSwitch on every home layout (and Zalith's action menu).
+    MainActivity: Launch.Game with RUST -> HorizonEngine.launch (checks arm64, lib, Vulkan 1.1).
+    Horizon's own page then signs in, gets 26.3, prepares once (Java 25), plays. Java mods do NOT
+    run in Horizon (only its .hmod WASM mods).
+- Commit 64c81fc, CI 41883319168 SUCCESS but the APK was NOT uploaded: artifact storage quota
+  full (~19.6 GB of old artifacts). Fix 209ec03: artifacts keep 3 days and the debug APK is also
+  published to the release "ona-latest" (ONA-debug-arm64.apk / ONA-debug-all.apk), replaced every
+  build. Old artifacts were NOT deleted (needs the user's OK).
+  CI 41886682385 SUCCESS: ona-latest has ONA-debug-arm64.apk (246 MB, with Horizon) and
+  ONA-debug-all.apk (446 MB): https://github.com/Hashem2008/ONAlauncher2/releases/tag/ona-latest
+- NOT tested on a device: layouts, the switch, Horizon start.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
