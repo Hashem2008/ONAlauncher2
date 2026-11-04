@@ -112,9 +112,14 @@ fun RendererSettingsScreen(
                         .fillMaxWidth()
                         .animated(ctx)
                 ) {
-                    OnaDeviceCard(
+                    OnaGuideCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top
+                    )
+
+                    OnaDeviceCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle
                     )
 
                     ListSettingsCard(

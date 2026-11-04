@@ -120,4 +120,31 @@
     <string name="ona_style_custom_radius">Corner size</string>
     <string name="ona_style_custom_font">Text size</string>
     <string name="ona_style_custom_mono">Monospace (pixel) text</string>
+    <string name="ona_guide_title">ONA guide</string>
+    <string name="ona_guide_summary">What the launcher does for you and how to use each feature. Tap to open.</string>
+    <string name="ona_guide_how_prefix">How to use:</string>
+    <string name="ona_guide_hybrid_title">ONA Hybrid renderer</string>
+    <string name="ona_guide_hybrid_what">Picks the best engine for every launch by itself: Krypton for older versions, MobileGlues for shaders, Sodium and new versions, GL4ES for very old versions and Zink for Voxy. If one crashes, the next launch uses another.</string>
+    <string name="ona_guide_hybrid_how">Renderer settings, Renderer, choose ONA Hybrid (Auto). Leave it there for all versions.</string>
+    <string name="ona_guide_upscaler_title">Upscaler (GSR / ASR)</string>
+    <string name="ona_guide_upscaler_what">The game is drawn at a lower resolution, then the upscaler enlarges it to your screen and sharpens it. Fewer pixels to draw means much more FPS with almost the same look. GSR is made for Adreno (Snapdragon), ASR works on every phone.</string>
+    <string name="ona_guide_upscaler_how">Upscaler = Auto, then lower the Resolution scale to 67-85%. Sharpness 40-60% looks best. Applies on the next game start.</string>
+    <string name="ona_guide_device_title">Device check</string>
+    <string name="ona_guide_device_what">Reads your chip, GPU and RAM, gives your phone a score and says which versions, modpacks and shaders run well on it.</string>
+    <string name="ona_guide_device_how">Open the device card above and press the button to apply the recommended settings once.</string>
+    <string name="ona_guide_best_title">Best game settings</string>
+    <string name="ona_guide_best_what">Sets the settings inside the game for high FPS on your phone: render distance, clouds, particles, Sodium / Embeddium, OptiFine, and the shadow quality of shaders (Iris, Oculus, OptiFine and the selected shader pack). Each file is set once, what you change later in game stays.</string>
+    <string name="ona_guide_best_how">Keep Best game settings on. Pick your shader pack in game, it is tuned on the next launch.</string>
+    <string name="ona_guide_mods_title">Lighten heavy mods</string>
+    <string name="ona_guide_mods_what">Lowers the cost of heavy mods (Distant Horizons, Sound Physics, Create, Voxy, dynamic lights...) through their own settings, based on your phone. The mods stay and keep working.</string>
+    <string name="ona_guide_mods_how">Keep Lighten heavy mods on. Turn it off to put the original settings back.</string>
+    <string name="ona_guide_shaders_title">Shaders</string>
+    <string name="ona_guide_shaders_what">Installing a shader pack also installs Iris or Oculus. Shader render targets the phone cannot draw into are converted when possible. Light packs run best: BSL, Complementary (Potato / Low), Sildur Vibrant Lite, MakeUp Ultra Fast.</string>
+    <string name="ona_guide_shaders_how">Download a shader pack into the version, use ONA Hybrid, then pick the pack in game (Options, Video, Shader Packs).</string>
+    <string name="ona_guide_deps_title">Mods and their requirements</string>
+    <string name="ona_guide_deps_what">When you install a mod or start a version, missing required mods are downloaded by themselves from Modrinth, also hidden ones like Forgelin for old Forge Kotlin mods. Mods are never deleted or turned off.</string>
+    <string name="ona_guide_deps_how">Nothing to do. If a toast says something was installed, just start again.</string>
+    <string name="ona_guide_crash_title">When the game crashes</string>
+    <string name="ona_guide_crash_what">The launcher reads the crash, explains the cause and fixes what it can (renderer, memory, requirements, PhysX, Voxy).</string>
+    <string name="ona_guide_crash_how">Start again once. If it still crashes, send the latest game log.</string>
 </resources>

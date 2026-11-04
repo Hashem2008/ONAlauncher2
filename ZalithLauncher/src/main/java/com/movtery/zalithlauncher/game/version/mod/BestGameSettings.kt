@@ -50,7 +50,10 @@ object BestGameSettings {
     }
 
     /** Keys whose current value is only lowered */
-    private val LOWER_ONLY = setOf("renderDistance", "simulationDistance", "maxShadowRenderDistance")
+    private val LOWER_ONLY = setOf(
+        "renderDistance", "simulationDistance", "maxShadowRenderDistance",
+        "shadowMapResolution", "shadowDistance", "shadowResMul"
+    )
 
     private fun sodiumLike(tier: DeviceTier): Map<String, Any> = mapOf(
         "quality.weather_quality" to "FAST",
@@ -126,8 +129,66 @@ object BestGameSettings {
         },
         Target.Properties("config/oculus.properties", "Oculus") { tier ->
             mapOf("maxShadowRenderDistance" to if (tier == DeviceTier.FLAGSHIP) "16" else "8")
+        },
+        // OptiFine shaders: smaller shadow map, no shader anti aliasing
+        Target.Properties("optionsshaders.txt", "OptiFine shaders") { tier ->
+            mapOf(
+                "shadowResMul" to if (tier == DeviceTier.FLAGSHIP) "0.5" else "0.25",
+                "antialiasingLevel" to "0"
+            )
         }
     )
+
+    /**
+     * Options of the selected shader pack (shaderpacks/<pack>.txt, where Iris, Oculus and
+     * OptiFine keep the pack settings): the shadow map and the shadow distance are the biggest
+     * cost of nearly every pack. A pack without such an option simply ignores it.
+     */
+    private fun shaderPackValues(tier: DeviceTier): Map<String, String> = mapOf(
+        "shadowMapResolution" to if (tier == DeviceTier.FLAGSHIP || tier == DeviceTier.HIGH) "1024" else "512",
+        "shadowDistance" to if (tier == DeviceTier.FLAGSHIP || tier == DeviceTier.HIGH) "96" else "64"
+    )
+
+    /** The pack picked in Iris / Oculus / OptiFine, or null */
+    private fun selectedShaderPack(gameDir: File): String? {
+        val sources = listOf(
+            File(gameDir, "config/iris.properties"),
+            File(gameDir, "config/oculus.properties"),
+            File(gameDir, "optionsshaders.txt")
+        )
+        for (source in sources) {
+            if (!source.isFile) continue
+            val line = runCatching { source.readLines() }.getOrDefault(emptyList())
+                .firstOrNull { it.trimStart().startsWith("shaderPack=") } ?: continue
+            // Java properties escape ':' '=' and spaces with a backslash
+            val pack = line.substringAfter('=').trim().replace(Regex("""\\(.)"""), "$1")
+            if (pack.isNotEmpty() && pack != "OFF" && pack != "(internal)") return pack
+        }
+        return null
+    }
+
+    /** @return the pack name when its options were changed */
+    private fun applyShaderPack(gameDir: File, tier: DeviceTier, applied: MutableSet<String>): String? {
+        val pack = selectedShaderPack(gameDir) ?: return null
+        val relative = "shaderpacks/$pack.txt"
+        if (relative in applied) return null
+        if (!File(gameDir, "shaderpacks/$pack").exists()) return null
+        val file = File(gameDir, relative)
+        return runCatching {
+            val original = if (file.isFile) file.readText() else ""
+            val values = shaderPackValues(tier)
+            // keys the file does not have yet are added, the others only lowered
+            val missing = values.filterKeys { key -> original.lines().none { it.trimStart().startsWith("$key=") } }
+            val patched = patchLines(original, values - missing.keys, "=") ?: original
+            val lines = patched.lines().filter { it.isNotBlank() } + missing.map { (key, value) -> "$key=$value" }
+            val updated = lines.joinToString("\n", postfix = "\n")
+            applied.add(relative)
+            if (updated.trim() != original.trim()) {
+                file.writeText(updated)
+                pack
+            } else null
+        }.onFailure { Logger.warning(TAG, "Could not set the shader pack $pack", it) }.getOrNull()
+    }
 
     /**
      * Set every settings file of the version that was not set before.
@@ -156,6 +217,7 @@ object BestGameSettings {
                 applied.add(target.relativePath)
             }.onFailure { Logger.warning(TAG, "Could not set ${target.label}", it) }
         }
+        applyShaderPack(gameDir, tier, applied)?.let { labels.add(it) }
         runCatching { listFile.writeText(applied.joinToString("\n")) }
         if (labels.isNotEmpty()) Logger.info(TAG, "Best settings for $tier: $labels")
         return labels
@@ -181,8 +243,8 @@ object BestGameSettings {
             // versions before 1.14 keep smooth lighting as a number (ao:2): leave those alone
             if (key == "ao" && bare.toBooleanStrictOrNull() == null) return@forEach
             if (key in LOWER_ONLY) {
-                val now = bare.toIntOrNull() ?: return@forEach
-                if (now <= (wanted.toIntOrNull() ?: return@forEach)) return@forEach
+                val now = bare.toDoubleOrNull() ?: return@forEach
+                if (now <= (wanted.toDoubleOrNull() ?: return@forEach)) return@forEach
             }
             val replacement = prefix + if (quoted) "\"$wanted\"" else wanted
             if (replacement != line) {
