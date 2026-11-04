@@ -4841,6 +4841,9 @@ public final class GLCapabilities {
 
         PojavRendererInit.onCreateCapabilities(provider);
 
+        // ONA: shader pack render target formats OpenGL ES can draw into
+        provider = PojavRendererInit.wrapProvider(provider);
+
         PointerBuffer caps = bufferFactory.apply(ADDRESS_BUFFER_SIZE);
 
         OpenGL11 = check_GL11(provider, caps, ext, fc);

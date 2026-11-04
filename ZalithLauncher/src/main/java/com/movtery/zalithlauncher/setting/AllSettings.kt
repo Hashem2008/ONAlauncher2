@@ -142,6 +142,12 @@ object AllSettings : SettingsRegistry() {
     val tuneHeavyMods = boolSetting("onaTuneHeavyMods", true)
 
     /**
+     * ONA: the game's own video settings (vanilla, Sodium / Embeddium / Rubidium, OptiFine,
+     * Iris / Oculus shadows) set once for high FPS on this phone
+     */
+    val bestGameSettings = boolSetting("onaBestGameSettings", true)
+
+    /**
      * ONA: highest render distance written to options.txt on launch (only ever lowers it),
      * 0 leaves it alone. Set from the device recommendation.
      */

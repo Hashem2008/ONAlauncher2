@@ -75,6 +75,9 @@
     <string name="ona_tune_mods_title">Lighten heavy mods</string>
     <string name="ona_tune_mods_summary">Before each launch, lightens heavy client mods through their own settings, based on your phone: Sound Physics Remastered, 3D Skin Layers, Entity Texture/Model Features, Dynamic Lights, Subtle Effects, Distant Horizons, Embeddium, Create, Supplementaries, Falling Leaves, LambDynamicLights, Effective and Particle Rain. The mods stay installed and keep working. The original settings are backed up and put back when you turn this off (on the next launch).</string>
     <string name="ona_tuned_mods">Lightened for more FPS: %1$s</string>
+    <string name="ona_best_settings_title">Best game settings</string>
+    <string name="ona_best_settings_summary">Sets the video settings of the game itself once for high FPS on your phone: Minecraft (render distance, clouds, particles, shadows, V-Sync), Sodium / Embeddium / Rubidium, OptiFine and the shadow distance of Iris / Oculus shaders. Distances are only lowered. Anything you change in game afterwards stays.</string>
+    <string name="ona_best_settings_done">Game settings set for high FPS: %1$s</string>
     <string name="ona_voxy_needs_plugins">Voxy needs desktop OpenGL 4.6: install the Kopper Zink and Turnip plugins and the Voxy Android compatibility mod from %1$s (Adreno 7xx/8xx). ONA uses them automatically.</string>
     <string name="ona_voxy_compat_installed">Installed the Voxy Android compatibility mod</string>
     <string name="ona_voxy_setup_title">Voxy setup</string>

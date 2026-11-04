@@ -75,6 +75,9 @@
     <string name="ona_tune_mods_title">تخفيف المودات الثقيلة</string>
     <string name="ona_tune_mods_summary">قبل كل تشغيل بخفف المودات الثقيلة من إعداداتها حسب قوة جهازك: Sound Physics Remastered و 3D Skin Layers و Entity Texture/Model Features و Dynamic Lights و Subtle Effects و Distant Horizons و Embeddium و Create و Supplementaries و Falling Leaves و LambDynamicLights و Effective و Particle Rain. المودات بتضل منزلة وشغالة. الإعدادات الأصلية بتنحفظ وبترجع لما تطفي هذا الخيار (بالتشغيل الجاي).</string>
     <string name="ona_tuned_mods">تم تخفيف هذه المودات لفريمات أعلى: %1$s</string>
+    <string name="ona_best_settings_title">أفضل إعدادات للعبة</string>
+    <string name="ona_best_settings_summary">بيضبط إعدادات اللعبة نفسها مرة وحدة لأعلى فريمات حسب جهازك: ماينكرافت (مسافة الرؤية، الغيوم، الجزيئات، الظلال، V-Sync) و Sodium / Embeddium / Rubidium و OptiFine ومسافة ظلال شيدرات Iris / Oculus. المسافات بتنزل بس وما بتزيد. أي إشي بتغيره جوا اللعبة بعدها بضل زي ما هو.</string>
+    <string name="ona_best_settings_done">انضبطت إعدادات اللعبة لفريمات أعلى: %1$s</string>
     <string name="ona_voxy_needs_plugins">مود Voxy بيحتاج OpenGL 4.6 تبع الكمبيوتر: نزّل إضافات Kopper Zink و Turnip ومود Voxy Android Compatibility من %1$s (لأدرينو 7xx/8xx). ONA بيستخدمهم تلقائياً.</string>
     <string name="ona_voxy_compat_installed">تم تنزيل مود Voxy Android Compatibility</string>
     <string name="ona_voxy_setup_title">تجهيز Voxy</string>

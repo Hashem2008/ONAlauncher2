@@ -22,6 +22,7 @@ import com.movtery.zalithlauncher.game.version.mod.ModCompat
 import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
 import com.movtery.zalithlauncher.game.version.mod.LightingFix
 import com.movtery.zalithlauncher.game.version.mod.MobileModRules
+import com.movtery.zalithlauncher.game.version.mod.BestGameSettings
 import com.movtery.zalithlauncher.game.version.mod.ModPerformanceTuner
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.VoxyInstaller
@@ -657,6 +658,20 @@ fun LaunchGameOperation(
                 }
                 if (tunedMods.isNotEmpty()) {
                     eventViewModel.sendToast(androidText(R.string.ona_tuned_mods, tunedMods.joinToString()), Toast.LENGTH_LONG)
+                }
+                // ONA: the game's own video settings set once for high FPS (vanilla, Sodium, OptiFine...)
+                val bestSettings = withContext(Dispatchers.IO) {
+                    runCatching {
+                        if (AllSettings.bestGameSettings.getValue()) {
+                            BestGameSettings.apply(version, DeviceProfiler.current()?.tier ?: DeviceTier.HIGH)
+                        } else {
+                            BestGameSettings.reset(version)
+                            emptyList()
+                        }
+                    }.getOrDefault(emptyList())
+                }
+                if (bestSettings.isNotEmpty()) {
+                    eventViewModel.sendToast(androidText(R.string.ona_best_settings_done, bestSettings.joinToString()), Toast.LENGTH_LONG)
                 }
                 if (!operation.skipModCheck) {
                     // Broken mod setups get their requirements installed automatically first

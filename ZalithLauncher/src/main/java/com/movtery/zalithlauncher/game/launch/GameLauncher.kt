@@ -535,6 +535,13 @@ private fun setRendererEnv(
         envMap += SmartRenderer.gl4esTuning()
     }
 
+    // ONA: shader pack render targets in formats OpenGL ES can draw into (Iris / Oculus
+    // "Unexpected error while creating framebuffer ... Status: 36054"). Mesa (Zink, VirGL,
+    // Freedreno, Panfrost) is desktop OpenGL and needs no help.
+    if (renderer is MobileGluesRenderer || MobileModRules.isGl4esFamily(renderer)) {
+        envMap["ONA_GL_FORMAT_FIX"] = "1"
+    }
+
     renderer.getRendererEGL()?.let { eglName ->
         envMap["POJAVEXEC_EGL"] = eglName
 

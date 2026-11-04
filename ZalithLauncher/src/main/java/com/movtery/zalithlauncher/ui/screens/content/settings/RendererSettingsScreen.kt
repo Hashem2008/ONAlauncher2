@@ -147,10 +147,18 @@ fun RendererSettingsScreen(
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
+                        position = CardPosition.Middle,
                         unit = AllSettings.tuneHeavyMods,
                         title = stringResource(R.string.ona_tune_mods_title),
                         summary = stringResource(R.string.ona_tune_mods_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.bestGameSettings,
+                        title = stringResource(R.string.ona_best_settings_title),
+                        summary = stringResource(R.string.ona_best_settings_summary)
                     )
                 }
             }
