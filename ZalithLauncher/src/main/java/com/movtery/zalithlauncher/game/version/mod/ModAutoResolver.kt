@@ -199,6 +199,7 @@ object ModAutoResolver {
                         task.updateMessage(androidText(R.string.mod_auto_deps_installing, "Iris / Oculus"))
                         ensureShaderLoader(version)
                     }
+                    runCatching { LegacyKotlinSupport.ensure(version) }
                     resolve(version) { name ->
                         task.updateMessage(androidText(R.string.mod_auto_deps_installing, name))
                     }

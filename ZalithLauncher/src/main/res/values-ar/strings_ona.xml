@@ -80,6 +80,7 @@
     <string name="ona_best_settings_done">انضبطت إعدادات اللعبة لفريمات أعلى: %1$s</string>
     <string name="ona_voxy_needs_plugins">مود Voxy بيحتاج OpenGL 4.6 تبع الكمبيوتر: نزّل إضافات Kopper Zink و Turnip ومود Voxy Android Compatibility من %1$s (لأدرينو 7xx/8xx). ONA بيستخدمهم تلقائياً.</string>
     <string name="ona_voxy_compat_installed">تم تنزيل مود Voxy Android Compatibility</string>
+    <string name="ona_forgelin_installed">تم تنزيل %1$s: مكتبة Kotlin اللي بتحتاجها مودات Forge 1.12 (زي Better Foliage)</string>
     <string name="ona_voxy_setup_title">تجهيز Voxy</string>
     <string name="ona_voxy_setup_body">مود Voxy بيحتاج OpenGL 4.6 تبع الكمبيوتر. على الجوال بيجي من 3 إضافات (لأدرينو 7xx/8xx) بتنزل من مشروع zalith-voxy. اضغط تثبيت، ووافق على مثبت أندرويد، وبعدين سكّر ONA وافتحه. ONA بيستخدمهم لـ Voxy تلقائياً.</string>
     <string name="ona_voxy_install">تثبيت</string>

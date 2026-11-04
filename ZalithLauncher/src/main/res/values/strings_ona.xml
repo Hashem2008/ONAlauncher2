@@ -80,6 +80,7 @@
     <string name="ona_best_settings_done">Game settings set for high FPS: %1$s</string>
     <string name="ona_voxy_needs_plugins">Voxy needs desktop OpenGL 4.6: install the Kopper Zink and Turnip plugins and the Voxy Android compatibility mod from %1$s (Adreno 7xx/8xx). ONA uses them automatically.</string>
     <string name="ona_voxy_compat_installed">Installed the Voxy Android compatibility mod</string>
+    <string name="ona_forgelin_installed">Installed %1$s: the Kotlin runtime your Forge 1.12 Kotlin mods (Better Foliage...) need</string>
     <string name="ona_voxy_setup_title">Voxy setup</string>
     <string name="ona_voxy_setup_body">Voxy needs desktop OpenGL 4.6. On a phone that comes from three plugin apps (Adreno 7xx/8xx), downloaded from the zalith-voxy project. Tap install, accept Android\'s installer, then restart ONA. ONA then uses them for Voxy automatically.</string>
     <string name="ona_voxy_install">Install</string>

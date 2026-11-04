@@ -23,6 +23,7 @@ import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
 import com.movtery.zalithlauncher.game.version.mod.LightingFix
 import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.version.mod.BestGameSettings
+import com.movtery.zalithlauncher.game.version.mod.LegacyKotlinSupport
 import com.movtery.zalithlauncher.game.version.mod.ModPerformanceTuner
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.VoxyInstaller
@@ -644,6 +645,13 @@ fun LaunchGameOperation(
                 }
                 if (voxyCompatInstalled) {
                     eventViewModel.sendToast(androidText(R.string.ona_voxy_compat_installed))
+                }
+                // ONA: Forge 1.12 Kotlin mods (Better Foliage...) get the Kotlin runtime (Forgelin)
+                val forgelin = withContext(Dispatchers.IO) {
+                    runCatching { LegacyKotlinSupport.ensure(version) }.getOrNull()
+                }
+                if (forgelin != null) {
+                    eventViewModel.sendToast(androidText(R.string.ona_forgelin_installed, forgelin), Toast.LENGTH_LONG)
                 }
                 // ONA: lighten heavy mods through their configs, or put the configs back
                 val tunedMods = withContext(Dispatchers.IO) {
