@@ -1,0 +1,73 @@
+DELETED BUILDS LOG (سجل البنيات المحذوفة)
+===========================================
+Every time old build files (GitHub Actions artifacts) are deleted to free space, they are written
+here first: which repo, which build, which commit and what that commit had. The user asked for this
+so any old version can be brought back.
+
+كل مرة بنحذف ملفات بناء قديمة عشان المساحة، بنكتبها هون قبل الحذف: أي مستودع، أي بناء، أي
+commit، وشو كان فيه. عشان لو بدك ترجع أي نسخة قديمة.
+
+HOW TO GET ONE BACK (كيف ترجع نسخة)
+- The APK file itself cannot be undeleted, but the code of that commit is still in git, so the same
+  APK can be built again:
+    git push origin <commit>:refs/heads/restore-<commit7>
+  Build CI runs on that branch and puts the APK in the release "ona-restore-<commit7>"
+  (ONAlauncher2). Or just ask Claude: "رجعلي نسخة <commit7>".
+- ملف الـ APK نفسه ما برجع، بس الكود موجود، فبنعيد بناء نفس النسخة من نفس الـ commit.
+
+-----------------------------------------------------------------
+2026-11-04 (2): ONAlauncher2 - 2 files, 607 MB
+-----------------------------------------------------------------
+  debug apk (all)    399 MB  + debug apk (arm64) 208 MB
+  run 41856667844, commit 702a16b (2026-11-04 15:27)
+  "ONA guide card, shader pack settings per device"
+  Replaced by newer builds in the release ona-latest.
+
+-----------------------------------------------------------------
+2026-11-04 (2): ONAlauncher (old project) - 14 files, 2.15 GB
+-----------------------------------------------------------------
+Each build had ONAlauncher-debug (recommended) ~158-163 MB + ONAlauncher-release ~147-151 MB.
+  run 41342150817  commit 5416238  2026-11-01 19:31  Mod problem checker with Fix/Fix all, in-app CurseForge key, newest loader versions first
+  run 41338566252  commit cc1af0d  2026-11-01 18:49  Content browser: pick the target profile, add data packs and worlds
+  run 41337416086  commit 8c2e86c  2026-11-01 18:35  Add CurseForge as a source in the content browser
+  run 41336454493  commit c6af459  2026-11-01 18:24  Add Modrinth content browser, fix SDL mouse buttons and GL on 26.x
+  run 41327959818  commit 6e0f73a  2026-11-01 16:45  Use TextureView for SDL3 games (Minecraft 26.x)
+  run 41326095064  commit 7afe613  2026-11-01 16:23  Fix Minecraft 26.x (SDL3 renderer) failing to start
+  run 41320471279  commit 2085287  2026-11-01 15:17  Fix release signing config fallback parsed as method call
+  (To rebuild one: same push command in the ONAlauncher repo; its own CI builds it.)
+
+-----------------------------------------------------------------
+2026-11-04 (1): ONAlauncher2 - 60 files (debug apk all + arm64 of each build)
+-----------------------------------------------------------------
+Deleted before this log existed; rebuilt from the run list (the runs and commits still exist).
+  run          commit   date (UTC)        what the commit did
+  41747683514  1081579  2026-11-04 00:33  Forge 1.12 Kotlin mods get Forgelin-Continuous by themselves
+  41745919715  c7ac2c5  2026-11-04 00:19  ONA Hybrid: compute shaders + GL 4.3 in MobileGlues when a shader pack is on
+  41745219840  b669782  2026-11-04 00:13  Shader framebuffer fix, Voxy libc.so.6 load, best game settings option
+  41729617967  13a8e82  2026-11-03 22:18  ONA Hybrid: one auto renderer that picks and tunes each engine
+  41726564084  13e21c6  2026-11-03 21:58  Launcher styles: 16 looks + custom (colours, corners, text)
+  41719616435  13e21c6  2026-11-03 21:12  (same commit, earlier run)
+  41717061483  c6a68e7  2026-11-03 20:55  Handoff: lighting fix, big core affinity, simulation distance
+  41717008134  d036d58  2026-11-03 20:55  Fix black blocks after breaking (light updates), use all fast cores
+  41678302845  1ed1637  2026-11-03 16:50  Handoff: PhysX 1.1.0 arm64 port builds (2936 JNI entry points)
+  41600933708  e7a899c  2026-11-03 08:07  Handoff: PhysX port progress
+  41600878656  51cddf7  2026-11-03 08:06  PhysX port: use the CUDA stand-ins on Android
+  41599085081  5012950  2026-11-03 07:51  Handoff: PhysX port build log, always-update rule, CLAUDE.md
+  41598909212  5336721  2026-11-03 07:49  PhysX port CI: call sdkmanager by its full path
+  41597722794  cd7a9d6  2026-11-03 07:39  PhysX port: fix NEON lane index for newer clang
+  41596206108  3f367a2  2026-11-03 07:25  PhysX port: fix CMake include on a file without final newline
+  41594561616  262e0eb  2026-11-03 07:10  Add handoff notes for the next session
+  41594253541  10de428  2026-11-03 07:07  Port Physics Mod's PhysX (physx-jni 1.1.0) to arm64
+  41593240867  73f2a2a  2026-11-03 06:58  Fix TLS for Modrinth/CurseForge/Fabric, slow launches, Connector packs
+  41554523814  cae2d6f  2026-11-03 00:40  Fix hotbar taps below 100% resolution and white 3D particles on GL4ES
+  41553658676  fad1ef3  2026-11-03 00:33  Never switch mods off; one tap Voxy setup
+  41553076118  b3c80ca  2026-11-03 00:28  Voxy support: Zink + Turnip automatically
+  41552595147  8da7a6f  2026-11-03 00:24  Lighten 9 more heavy mods through their configs
+  41551975822  93a4f7c  2026-11-03 00:19  Lighten heavy mods through their own configs (opt-in), fully reversible
+  41550844689  6d7939c  2026-11-03 00:09  Make Nothirium compatible with GL4ES renderers
+  41550466586  cad4758  2026-11-03 00:06  Fix GL4ES crashes from render-engine mods, smarter renderer fallback
+  41549491855  6aaa0ff  2026-11-02 23:59  Crash doctor, automatic renderer fallback after native crashes
+  41545922646  20afa95  2026-11-02 23:30  Auto-install mod requirements, smart renderer/driver, device advisor
+  41508472117  4ebcdfa  2026-11-02 19:16  Fix mod checker false positives, washed colors, SDL context crash
+  41351707365  d129cf9  2026-11-01 21:22  Fix Minecraft 26.x graphics backend and Forge 26.3 install, new icon
+  41345250639  d30ca39  2026-11-01 20:07  ONA Launcher 2: merge ONAlauncher features into Zalith Launcher 2
