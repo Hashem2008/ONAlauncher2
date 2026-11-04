@@ -134,6 +134,28 @@ ONA HYBRID (2026-11-04, on main)
   Commit 13a8e82: CI run 41729617967 SUCCESS (APK given to the user). Not tested on a device yet:
   ask for a log, it must show the line "ONA Hybrid renderer: ...".
 
+SHADERS + VOXY + BEST GAME SETTINGS (2026-11-04, on main)
+- Iris/Oculus "Unexpected error while creating framebuffer: Draw buffers [0, 1] Status: 36054"
+  (GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT): render target formats GLES cannot draw into.
+  Fix: jni/ona_glfix.c + PojavRendererInit.wrapProvider (LWJGL 3.3.3 + 3.4.1 GLCapabilities ctor
+  wraps the FunctionProvider). Wraps glTexImage2D (only pixels==NULL), glTexStorage2D,
+  glRenderbufferStorage(Multisample): RGB16F/RGB16/RGBA16/R16/RG16/SNORM/RGB9_E5/RGB12 -> 16F,
+  RGB32F -> RGBA32F, RGB int -> RGBA int, SRGB8 -> SRGB8_ALPHA8, RGB10 -> RGB10_A2.
+  glCheckFramebufferStatus logs incomplete FBOs as "[ONA GLFix] ..." with attachment formats.
+  On only when env ONA_GL_FORMAT_FIX=1 (GameLauncher.setRendererEnv: MobileGlues or GL4ES family).
+- Voxy 0.2.13 (MC 1.21.11, Kopper Zink) crashed: ThreadUtils loads "libc.so.6" ->
+  "undefined symbol Java_org_lwjgl_system_linux_DynamicLinkLoader_ndlerror".
+  Fix: lwjgl_dlopen_hook.c falls back libc.so.6/libm.so.6/libdl.so.2/libpthread.so.0/librt.so.1
+  to bionic names and registers ndlerror (dlerror). Mod untouched.
+- BestGameSettings.kt + switch AllSettings.bestGameSettings (default on, Renderer settings, under
+  "Lighten heavy mods"): options.txt, sodium/embeddium/rubidium-options.json, optionsof.txt,
+  iris/oculus.properties maxShadowRenderDistance, by DeviceTier. Once per file (list in
+  versions/<v>/ona_best_settings.txt), distances only lowered, existing keys only. Off = list reset.
+- SmartRenderer.mobileGluesTuning: with shaders also enableExtComputeShader=1, customGLVersion=43.
+- Commits b669782 (CI 41745219840 SUCCESS), c7ac2c5 (CI 41745919715 SUCCESS).
+  NOT tested on a device. Next: user tests shader packs (BSL, Complementary Low, Sildur...) and
+  Voxyris; ask for logs, look for "[ONA GLFix]" and "LwjglLinkerHook: libc.so.6 -> libc.so".
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
