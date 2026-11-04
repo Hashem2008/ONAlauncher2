@@ -57,7 +57,11 @@ import java.util.concurrent.TimeUnit
  */
 class GameUpscaler private constructor(
     private val output: SurfaceTexture,
-    requested: UpscalerMode
+    requested: UpscalerMode,
+    /** ONA: show a generated picture between every two game frames, see [FrameGenerator] */
+    private val frameGeneration: Boolean,
+    /** Screen refresh rate, frame generation only runs when the game is below about half of it */
+    refreshHz: Float
 ) {
     /** GSR or ASR once the GPU is known */
     @Volatile var mode: UpscalerMode = requested
@@ -93,6 +97,18 @@ class GameUpscaler private constructor(
     @Volatile var gradeMatrix: FloatArray? = null
 
     private val texMatrix = FloatArray(16)
+
+    // ONA: frame generation state, only touched on the upscaler thread
+    private var generator: FrameGenerator? = null
+    private val refreshNs = (1_000_000_000.0 / refreshHz.coerceIn(30f, 240f)).toLong()
+    private var lastFrameNs = 0L
+    private var frameIntervalNs = 0L
+    private var generating = false
+    private var realFramePending = false
+    private var statsSinceNs = 0L
+    private var statsGame = 0
+    private var statsMade = 0
+    private val presentRealFrame = Runnable { showPendingRealFrame() }
     private val quad: FloatBuffer = ByteBuffer.allocateDirect(8 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer().apply {
         put(floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f))
         position(0)
@@ -155,8 +171,18 @@ class GameUpscaler private constructor(
             val renderer = GLES20.glGetString(GLES20.GL_RENDERER).orEmpty()
             mode = if (renderer.contains("adreno", ignoreCase = true)) UpscalerMode.GSR else UpscalerMode.ASR
         }
-        program = buildProgram(VERTEX, if (mode == UpscalerMode.GSR) FRAGMENT_GSR else FRAGMENT_ASR)
+        program = buildProgram(
+            VERTEX,
+            when (mode) {
+                UpscalerMode.GSR -> FRAGMENT_GSR
+                UpscalerMode.OFF -> FRAGMENT_COPY // only frame generation asked for this pass
+                else -> FRAGMENT_ASR
+            }
+        )
         if (program == 0) return false
+        if (frameGeneration) {
+            generator = FrameGenerator().takeIf { it.init() }
+        }
         aPos = GLES20.glGetAttribLocation(program, "aPos")
         uTexMatrix = GLES20.glGetUniformLocation(program, "uTexMatrix")
         uInSize = GLES20.glGetUniformLocation(program, "uInSize")
@@ -176,7 +202,7 @@ class GameUpscaler private constructor(
         inputTexture = SurfaceTexture(texture).apply {
             setOnFrameAvailableListener({ drawFrame(latch = true) }, handler)
         }
-        Logger.info(TAG, "Upscaler ready: $mode")
+        Logger.info(TAG, "Upscaler ready: $mode, frame generation ${if (generator != null) "on" else "off"}")
         return true
     }
 
@@ -189,29 +215,115 @@ class GameUpscaler private constructor(
             val size = IntArray(2)
             EGL14.eglQuerySurface(display, surface, EGL14.EGL_WIDTH, size, 0)
             EGL14.eglQuerySurface(display, surface, EGL14.EGL_HEIGHT, size, 1)
-            GLES20.glViewport(0, 0, size[0], size[1])
-
-            GLES20.glUseProgram(program)
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-            GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture)
-            GLES20.glUniformMatrix4fv(uTexMatrix, 1, false, texMatrix, 0)
-            GLES20.glUniform2f(uInSize, inputWidth.toFloat(), inputHeight.toFloat())
-            GLES20.glUniform1f(uSharp, sharpness)
-            val grade = gradeMatrix
-            if (grade != null) {
-                GLES20.glUniformMatrix4fv(uGrade, 1, false, grade, 0)
-                GLES20.glUniform1f(uGradeOn, 1f)
-            } else {
-                GLES20.glUniform1f(uGradeOn, 0f)
+            val fg = generator
+            if (fg == null) {
+                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+                drawUpscaled(size[0], size[1])
+                EGL14.eglSwapBuffers(display, surface)
+                return
             }
-            GLES20.glEnableVertexAttribArray(aPos)
-            GLES20.glVertexAttribPointer(aPos, 2, GLES20.GL_FLOAT, false, 0, quad)
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
-            EGL14.eglSwapBuffers(display, surface)
+
+            // A real frame still waiting for its turn goes out first
+            showPendingRealFrame()
+            val now = System.nanoTime()
+            if (latch) trackFrameRate(fg, now)
+
+            fg.ensureSize(size[0], size[1])
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fg.beginFrame(latch))
+            drawUpscaled(size[0], size[1])
+            fg.endFrame(latch)
+
+            if (latch && generating && fg.canGenerate) {
+                fg.drawGenerated(size[0], size[1])
+                EGL14.eglSwapBuffers(display, surface)
+                statsMade++
+                // The real frame half a game frame later, so both stay on screen equally long
+                realFramePending = true
+                handler.postDelayed(presentRealFrame, (frameIntervalNs / 2_000_000L).coerceIn(1L, 50L))
+            } else {
+                fg.drawNewest(size[0], size[1])
+                EGL14.eglSwapBuffers(display, surface)
+            }
         } catch (e: Exception) {
             // The game surface was abandoned while the activity goes away
             Logger.warning(TAG, "Upscaler frame dropped", e)
         }
+    }
+
+    /** The upscale (+ colour grade) pass into the bound framebuffer */
+    private fun drawUpscaled(width: Int, height: Int) {
+        GLES20.glViewport(0, 0, width, height)
+        GLES20.glUseProgram(program)
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture)
+        GLES20.glUniformMatrix4fv(uTexMatrix, 1, false, texMatrix, 0)
+        GLES20.glUniform2f(uInSize, inputWidth.toFloat(), inputHeight.toFloat())
+        GLES20.glUniform1f(uSharp, sharpness)
+        val grade = gradeMatrix
+        if (grade != null) {
+            GLES20.glUniformMatrix4fv(uGrade, 1, false, grade, 0)
+            GLES20.glUniform1f(uGradeOn, 1f)
+        } else {
+            GLES20.glUniform1f(uGradeOn, 0f)
+        }
+        GLES20.glEnableVertexAttribArray(aPos)
+        GLES20.glVertexAttribPointer(aPos, 2, GLES20.GL_FLOAT, false, 0, quad)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+    }
+
+    /**
+     * Frame generation only where it helps: the game must be below ~60% of the screen refresh
+     * rate (else the extra pictures would never reach the screen) and above ~12 FPS (bigger
+     * steps than that cannot be guessed well). A stall (pause screen, loading) starts over.
+     */
+    private fun trackFrameRate(fg: FrameGenerator, now: Long) {
+        val delta = if (lastFrameNs == 0L) 0L else now - lastFrameNs
+        lastFrameNs = now
+        if (delta <= 0L || delta > 250_000_000L) {
+            fg.resetHistory()
+            frameIntervalNs = 0L
+            generating = false
+            return
+        }
+        frameIntervalNs = if (frameIntervalNs == 0L) delta else (frameIntervalNs * 3 + delta) / 4
+        val ratio = frameIntervalNs.toDouble() / refreshNs
+        generating = if (generating) {
+            ratio > 1.45 && frameIntervalNs < 90_000_000L
+        } else {
+            ratio > 1.7 && frameIntervalNs < 80_000_000L
+        }
+
+        statsGame++
+        if (statsSinceNs == 0L) statsSinceNs = now
+        val window = now - statsSinceNs
+        if (window >= 10_000_000_000L) {
+            val seconds = window / 1e9
+            Logger.info(
+                TAG,
+                "Frame generation: game %.1f FPS, shown %.1f FPS (%s)".format(
+                    statsGame / seconds, (statsGame + statsMade) / seconds,
+                    if (generating) "generating" else "not needed or too slow"
+                )
+            )
+            statsSinceNs = now
+            statsGame = 0
+            statsMade = 0
+        }
+    }
+
+    private fun showPendingRealFrame() {
+        if (!realFramePending) return
+        realFramePending = false
+        handler.removeCallbacks(presentRealFrame)
+        val fg = generator ?: return
+        if (released) return
+        runCatching {
+            val size = IntArray(2)
+            EGL14.eglQuerySurface(display, surface, EGL14.EGL_WIDTH, size, 0)
+            EGL14.eglQuerySurface(display, surface, EGL14.EGL_HEIGHT, size, 1)
+            fg.drawNewest(size[0], size[1])
+            EGL14.eglSwapBuffers(display, surface)
+        }.onFailure { Logger.warning(TAG, "Real frame dropped", it) }
     }
 
     private val releaseRequested = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -221,7 +333,10 @@ class GameUpscaler private constructor(
         val latch = CountDownLatch(1)
         handler.post {
             released = true
+            handler.removeCallbacks(presentRealFrame)
             runCatching {
+                generator?.release()
+                generator = null
                 if (::inputTexture.isInitialized) {
                     inputTexture.setOnFrameAvailableListener(null)
                     inputTexture.release()
@@ -280,11 +395,18 @@ class GameUpscaler private constructor(
         /**
          * @param mode the user setting, AUTO picks GSR on Adreno and ASR elsewhere
          * @param sharpness 0..1
-         * @return null when upscaling is off or the GPU refused the context
+         * @param frameGeneration ONA frame generation (see [FrameGenerator]), runs even when upscaling is off
+         * @return null when upscaling and frame generation are off or the GPU refused the context
          */
-        fun create(output: SurfaceTexture, mode: UpscalerMode, sharpness: Float): GameUpscaler? {
-            if (mode == UpscalerMode.OFF) return null
-            val upscaler = GameUpscaler(output, mode)
+        fun create(
+            output: SurfaceTexture,
+            mode: UpscalerMode,
+            sharpness: Float,
+            frameGeneration: Boolean = false,
+            refreshHz: Float = 60f
+        ): GameUpscaler? {
+            if (mode == UpscalerMode.OFF && !frameGeneration) return null
+            val upscaler = GameUpscaler(output, mode, frameGeneration, refreshHz)
             return if (upscaler.start(sharpness)) {
                 upscaler
             } else {
@@ -419,6 +541,13 @@ void main() {
     vec3 amp = clamp(min(mn, 1.0 - mx) / max(mx, vec3(1.0e-4)), 0.0, 1.0);
     c += (c - avg) * sqrt(amp) * uSharp * 0.6;
     gl_FragColor = vec4(grade(c), 1.0);
+}
+"""
+
+        /** Plain bilinear scale + colour grade, for frame generation without an upscaler */
+        private const val FRAGMENT_COPY = COMMON + """
+void main() {
+    gl_FragColor = vec4(grade(fetch(vUv)), 1.0);
 }
 """
 

@@ -958,7 +958,10 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
             upscaler = GameUpscaler.create(
                 output = surface,
                 mode = AllSettings.upscalerMode.getValue(),
-                sharpness = AllSettings.upscalerSharpness.getValue() / 100f
+                sharpness = AllSettings.upscalerSharpness.getValue() / 100f,
+                frameGeneration = AllSettings.frameGeneration.getValue(),
+                // The highest mode the screen can switch to (the launcher asks for it)
+                refreshHz = currentDisplay()?.let { maxRefreshRateMode(it).refreshRate } ?: 60f
             )?.also { created ->
                 val size = lastWindowSize ?: IntSize(width, height)
                 created.setInputSize(size.width, size.height)

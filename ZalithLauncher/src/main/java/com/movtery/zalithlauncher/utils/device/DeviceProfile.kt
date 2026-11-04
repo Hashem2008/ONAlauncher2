@@ -92,12 +92,21 @@ object DeviceProfiler {
         val vendor = when {
             gpuName.contains("adreno", true) || vendorString?.contains("qualcomm", true) == true -> GpuVendor.ADRENO
             gpuName.contains("xclipse", true) -> GpuVendor.XCLIPSE
-            gpuName.contains("mali", true) || gpuName.contains("immortalis", true) -> GpuVendor.MALI
+            // ONA: Huawei Maleoon (Kirin 9000S / 9010 / 9020 / 8000) grew out of Mali and its
+            // drivers behave like Mali's, so it takes the Mali paths
+            gpuName.contains("mali", true) || gpuName.contains("immortalis", true) ||
+                gpuName.contains("maleoon", true) -> GpuVendor.MALI
             gpuName.contains("powervr", true) || gpuName.contains("img", true) -> GpuVendor.POWERVR
             else -> GpuVendor.OTHER
         }
         val modelRegex = if (vendor == GpuVendor.MALI) Regex("G(\\d{2,3})") else Regex("(\\d{3})")
-        val model = modelRegex.find(gpuName)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        val model = when {
+            // Maleoon 910 / 920 keep their own number
+            gpuName.contains("maleoon", true) -> Regex("(\\d{3})").find(gpuName)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+            // Mali-G1-Ultra / Premium / Pro (Dimensity 9500 and later) have no number to read
+            vendor == GpuVendor.MALI && Regex("G1-", RegexOption.IGNORE_CASE).containsMatchIn(gpuName) -> 1000
+            else -> modelRegex.find(gpuName)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        }
 
         val ramMb = runCatching { getTotalMemory(context).bytesToMB().toLong() }.getOrDefault(4096L)
         val cores = Runtime.getRuntime().availableProcessors()
@@ -138,7 +147,7 @@ object DeviceProfiler {
             listOf(Build.SOC_MANUFACTURER, Build.SOC_MODEL).filter { it.isNotBlank() && it != Build.UNKNOWN }.joinToString(" ")
         } else ""
         return DeviceProfile(
-            socName = soc.ifBlank { Build.HARDWARE },
+            socName = SocNames.describe(soc.ifBlank { Build.HARDWARE }),
             gpuVendor = vendor,
             gpuName = gpuName,
             gpuModel = model,
@@ -168,6 +177,19 @@ object DeviceProfiler {
             else -> 30
         }
         GpuVendor.MALI -> when {
+            // Huawei Maleoon: 910 (Kirin 9000S) about a Mali-G710, 920 (9010/9020) above it
+            name.contains("maleoon", true) -> when {
+                model >= 930 -> 82
+                model >= 920 -> 74
+                model >= 910 -> 66
+                else -> 52
+            }
+            // Mali-G1 generation (Dimensity 9500 / 8500 class)
+            model >= 1000 -> when {
+                name.contains("ultra", true) -> 96
+                name.contains("premium", true) -> 80
+                else -> 66
+            }
             name.contains("immortalis", true) -> 88
             model >= 900 -> 85
             model >= 720 -> 78
@@ -179,13 +201,26 @@ object DeviceProfiler {
             model >= 51 && model < 57 -> 18
             else -> 15
         }
+        // Samsung Exynos (AMD RDNA based)
         GpuVendor.XCLIPSE -> when {
-            model >= 950 -> 88
-            model >= 940 -> 80
-            model >= 930 -> 70
+            model >= 960 -> 95 // Exynos 2600
+            model >= 950 -> 88 // Exynos 2500
+            model >= 940 -> 80 // Exynos 2400
+            model >= 930 -> 70 // Exynos 2300
+            model >= 900 -> 64 // Exynos 2200
+            model >= 500 -> 46 // Exynos 1480 / 1580 (Xclipse 530 / 540)
             else -> 58
         }
-        GpuVendor.POWERVR -> 22
+        // Imagination: MediaTek Helio (GE8320 in Helio G35 / G37 / P35), Dimensity (BXM),
+        // Google Tensor G5 (DXT)
+        GpuVendor.POWERVR -> when {
+            name.contains("dxt", true) -> 72
+            name.contains("cxt", true) -> 55
+            name.contains("bxm", true) -> 36
+            name.contains("gm9", true) -> 26
+            name.contains("ge8", true) -> 14
+            else -> 22
+        }
         GpuVendor.OTHER -> 40
     }
 
@@ -245,5 +280,79 @@ object DeviceProfiler {
     private fun checkVulkanSupportSafe(context: Context): Boolean {
         val pm = context.packageManager
         return pm.hasSystemFeature(android.content.pm.PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, 0x401000) // Vulkan 1.1
+    }
+}
+
+/**
+ * ONA: the marketing name of the chip next to the code the system reports, so the device card
+ * and the launch log say "Snapdragon 8s Gen 4 (SM8735)" instead of only "QTI SM8735".
+ * Only codes that are certain are listed; anything else is shown as reported.
+ */
+object SocNames {
+    private val NAMES = mapOf(
+        // Qualcomm Snapdragon
+        "SM8850" to "Snapdragon 8 Elite Gen 5",
+        "SM8750" to "Snapdragon 8 Elite",
+        "SM8735" to "Snapdragon 8s Gen 4",
+        "SM8650" to "Snapdragon 8 Gen 3",
+        "SM8635" to "Snapdragon 8s Gen 3",
+        "SM8550" to "Snapdragon 8 Gen 2",
+        "SM8475" to "Snapdragon 8+ Gen 1",
+        "SM8450" to "Snapdragon 8 Gen 1",
+        "SM8350" to "Snapdragon 888",
+        "SM8250" to "Snapdragon 865",
+        "SM8150" to "Snapdragon 855",
+        "SM7675" to "Snapdragon 7+ Gen 3",
+        "SM7550" to "Snapdragon 7 Gen 3",
+        "SM7475" to "Snapdragon 7+ Gen 2",
+        "SM7435" to "Snapdragon 7s Gen 2",
+        "SM7325" to "Snapdragon 778G",
+        "SM6375" to "Snapdragon 695",
+        "SM6225" to "Snapdragon 680",
+        "SM4450" to "Snapdragon 4 Gen 2",
+        // MediaTek Dimensity / Helio
+        "MT6991" to "Dimensity 9400",
+        "MT6989" to "Dimensity 9300",
+        "MT6985" to "Dimensity 9200",
+        "MT6983" to "Dimensity 9000",
+        "MT6897" to "Dimensity 8300",
+        "MT6896" to "Dimensity 8200",
+        "MT6895" to "Dimensity 8100",
+        "MT6886" to "Dimensity 7200",
+        "MT6878" to "Dimensity 7300",
+        "MT6789" to "Helio G99",
+        "MT6785" to "Helio G90 / G95",
+        "MT6781" to "Helio G96",
+        "MT6769" to "Helio G85 / G88",
+        "MT6768" to "Helio G85 / P65",
+        "MT6765" to "Helio P35 / G35 / G37",
+        "MT6762" to "Helio P22 / G25",
+        // Samsung Exynos
+        "S5E9955" to "Exynos 2500",
+        "S5E9945" to "Exynos 2400",
+        "S5E9935" to "Exynos 2300",
+        "S5E9925" to "Exynos 2200",
+        "S5E9840" to "Exynos 2100",
+        "S5E8855" to "Exynos 1580",
+        "S5E8845" to "Exynos 1480",
+        "S5E8835" to "Exynos 1380",
+        "S5E8825" to "Exynos 1280",
+        "S5E3830" to "Exynos 850",
+        // Huawei HiSilicon Kirin
+        "HI36A0" to "Kirin 9000",
+        "HI3690" to "Kirin 990",
+        "HI3680" to "Kirin 980",
+        "HI6260" to "Kirin 710"
+    )
+
+    fun describe(reported: String): String {
+        if (reported.isBlank()) return reported
+        val upper = reported.uppercase()
+        // Huawei reports the name itself, e.g. "Kirin9000S"
+        Regex("KIRIN\\s*(\\d{3,4}[A-Z]?)").find(upper)?.let { return "Kirin ${it.groupValues[1]}" }
+        val code = Regex("(SM\\d{4}|MT\\d{4}|S5E\\d{4}|HI\\d{2}[0-9A-F]\\d)").find(upper)?.value
+            ?: return reported
+        val name = NAMES[code] ?: return reported
+        return "$name ($code)"
     }
 }

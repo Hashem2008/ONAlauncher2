@@ -100,7 +100,9 @@
     <string name="ona_crash_kotlin">مود Forge 1.12 مكتوب بـ Kotlin ناقصه مكتبة Kotlin (Forgelin)</string>
     <string name="ona_crash_kotlin_fix">ONA بنزل Forgelin-Continuous لحاله لما تكبس تشغيل. شغل النت وشغل اللعبة مرة ثانية؛ ولا مود بينحذف أو بينطفى.</string>
     <string name="ona_lighting_fixed">تحديث الإضاءة كان مطفي (البلوك المكسور بصير أسود)، رجعته شغال في: %1$s</string>
-    <string name="ona_fpsreducer_fixed">مود FPS Reducer كان ينزّل الفريمات (كان فاكر الجوال بالخلفية). ظبطته من إعداداته، والمود ضل شغال</string>
+    <string name="ona_fpsreducer_fixed">مود (FPS Reducer أو Dynamic FPS) كان ينزّل الفريمات لأنه فاكر الجوال بالخلفية. ظبطته من إعداداته، والمود ضل شغال</string>
+    <string name="ona_frame_generation_title">توليد الفريمات (Frame generation)</string>
+    <string name="ona_frame_generation_summary">بيعمل صورة جديدة بين كل فريمين من اللعبة (بيحسب الحركة من الصورة نفسها)، فالـ40 فريم بتبين زي 80 على شاشة 90/120 هيرتز. بيشتغل بس لما اللعبة أقل من تقريباً 60% من سرعة الشاشة. بيزيد تأخير اللمس نص فريم، والحركة السريعة أو الواجهة فوق الأشياء المتحركة ممكن تتلطخ شوي. بيشتغل مع كل الرندررات وكل النسخ</string>
     <string name="ona_style_title">ستايل اللانشر</string>
     <string name="ona_style_summary">غيّر شكل اللانشر. كل الميزات موجودة بكل ستايل.</string>
     <string name="ona_style_selected">المختار: %1$s</string>

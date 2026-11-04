@@ -206,8 +206,23 @@ object ModPerformanceTuner {
                 "perf.particleStormDensity" to if (strong(tier)) 120 else 80,
                 "perf.particleDistance" to 12
             )
+        },
+        // Shader packs (Iris, and Oculus on Forge): the shadow pass draws the world a second
+        // time out to this many chunks (Iris default 32), the biggest cost of every shader pack.
+        // Key checked in IrisConfig (iris.properties); Oculus is the Forge port with the same file.
+        Patch.Properties("config/iris.properties", "Iris shaders") { tier ->
+            mapOf("maxShadowRenderDistance" to shadowDistance(tier))
+        },
+        Patch.Properties("config/oculus.properties", "Oculus shaders") { tier ->
+            mapOf("maxShadowRenderDistance" to shadowDistance(tier))
         }
     )
+
+    private fun shadowDistance(tier: DeviceTier) = when (tier) {
+        DeviceTier.FLAGSHIP -> "16"
+        DeviceTier.HIGH -> "12"
+        else -> "8"
+    }
 
     /**
      * Tune every heavy mod config found in the version.

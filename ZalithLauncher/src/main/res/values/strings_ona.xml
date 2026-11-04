@@ -100,7 +100,9 @@
     <string name="ona_crash_kotlin">A Forge 1.12 Kotlin mod is missing the Kotlin runtime (Forgelin)</string>
     <string name="ona_crash_kotlin_fix">ONA downloads Forgelin-Continuous by itself when you press Play. Connect to the internet and launch again; no mod is removed or switched off.</string>
     <string name="ona_lighting_fixed">Light updates were off (broken blocks turned black), turned back on in: %1$s</string>
-    <string name="ona_fpsreducer_fixed">FPS Reducer held the game at a low FPS (it thought the phone was in the background). Fixed in its settings; the mod stays on</string>
+    <string name="ona_fpsreducer_fixed">A mod (FPS Reducer / Dynamic FPS) held the game at a low FPS because it thought the phone was in the background. Fixed in its settings; the mod stays on</string>
+    <string name="ona_frame_generation_title">Frame generation</string>
+    <string name="ona_frame_generation_summary">Adds a generated picture between every two game frames (motion estimated from the picture itself), so 40 FPS look like 80 on a 90/120 Hz screen. Runs only while the game is below about 60% of the screen refresh rate. Costs half a frame of input delay; fast motion and the HUD over moving parts may smear a little. Works with every renderer and version</string>
     <string name="ona_style_title">Launcher style</string>
     <string name="ona_style_summary">Change the look of the launcher. All features are available in every style.</string>
     <string name="ona_style_selected">Selected: %1$s</string>

@@ -131,6 +131,12 @@ object AllSettings : SettingsRegistry() {
     val upscalerSharpness = intSetting("onaUpscalerSharpness", 50, 0..100)
 
     /**
+     * ONA: frame generation, one generated picture between every two game frames when the game
+     * runs below about 60% of the screen refresh rate (see FrameGenerator)
+     */
+    val frameGeneration = boolSetting("onaFrameGeneration", false)
+
+    /**
      * ONA: pick the Vulkan driver for Zink from the GPU (bundled Turnip on Adreno 6xx/7xx,
      * the system driver everywhere else) when the version uses the default driver
      */

@@ -150,6 +150,14 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
+                        unit = AllSettings.frameGeneration,
+                        title = stringResource(R.string.ona_frame_generation_title),
+                        summary = stringResource(R.string.ona_frame_generation_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
                         unit = AllSettings.smartDriver,
                         title = stringResource(R.string.ona_smart_driver_title),
                         summary = stringResource(R.string.ona_smart_driver_summary)

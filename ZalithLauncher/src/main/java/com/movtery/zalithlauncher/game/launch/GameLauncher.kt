@@ -386,6 +386,7 @@ class GameLauncher(
             appendInfo("ONA Voxy: renderer ${VoxySupport.preferredRenderer().getRendererName()}, Turnip plugin ${VoxySupport.turnipPluginDriverId() ?: "none (bundled)"}, compat mod ${VoxySupport.hasCompatMod(version)}")
         }
         appendInfo("ONA Upscaler: ${AllSettings.upscalerMode.getValue()} (sharpness ${AllSettings.upscalerSharpness.getValue()}%), resolution ${AllSettings.resolutionRatio.getValue()}%")
+        appendInfo("ONA Frame generation: ${if (AllSettings.frameGeneration.getValue()) "on" else "off"}")
     }
 
     /**
