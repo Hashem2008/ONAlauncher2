@@ -171,3 +171,12 @@ jobs:
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 ||             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --target "$GITHUB_SHA"               --title "ONA debug build ($GITHUB_REF_NAME)" --notes "$notes" || true
           gh release upload "$tag" "$out" --repo "$GITHUB_REPOSITORY" --clobber
           gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes "$notes" || true
+          # The build page shows no Artifacts any more: put the download link on it instead
+          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/ONA-debug-${{ matrix.arch }}.apk"
+          {
+            echo "### APK (${{ matrix.arch }}) - تحميل التطبيق"
+            echo ""
+            echo "[ONA-debug-${{ matrix.arch }}.apk]($url)"
+            echo ""
+            echo "Release page: https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"
+          } >> "$GITHUB_STEP_SUMMARY"
