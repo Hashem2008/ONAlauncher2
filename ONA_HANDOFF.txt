@@ -218,6 +218,15 @@ FULL HOME LAYOUT PER STYLE + HORIZON (RUST) ENGINE (2026-11-04, on main)
   ONA-debug-all.apk (446 MB): https://github.com/Hashem2008/ONAlauncher2/releases/tag/ona-latest
 - NOT tested on a device: layouts, the switch, Horizon start.
 
+ARTIFACT STORAGE FIXED (2026-11-04, on main)
+- Free private plan = ~500 MB artifact storage, one build ~650 MB -> "Failed to CreateArtifact" (red).
+- build.yml no longer uploads a debug APK artifact. "Publish Debug APK to a release": main -> ona-latest,
+  any other branch -> ona-<branch> (restore an old build: push <commit> to restore-<commit7>).
+- Commit f44e028, CI run 41908780137 SUCCESS, 0 errors (only Node 20 warnings + Ubuntu notice).
+- Deleted (with the user's OK) all artifacts: ONAlauncher2 2 (607 MB), old ONAlauncher 14 (2.15 GB).
+  RULE: before deleting any build, log it in DELETED_BUILDS.txt (repo, run, commit, what it did).
+- The old ONAlauncher repo still uploads artifacts on its own builds (not changed).
+
 FORGELIN FIX, RUST MODS LIST, GC/HEAP TUNING (2026-11-04, on main)
 - Commit c656785, CI run 41903384413 SUCCESS (arm64 + all). APKs in the PRIVATE release ona-latest.
 - Ultra Realisim (Forge 1.12.2, 62 mods) crashed: NoClassDefFoundError kotlin/reflect/KDeclarationContainer
