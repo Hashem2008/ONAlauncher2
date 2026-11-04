@@ -24,6 +24,7 @@ import com.movtery.zalithlauncher.game.version.mod.LightingFix
 import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.version.mod.BestGameSettings
 import com.movtery.zalithlauncher.game.version.mod.LegacyKotlinSupport
+import com.movtery.zalithlauncher.game.version.mod.FpsReducerFix
 import com.movtery.zalithlauncher.game.version.mod.ModPerformanceTuner
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.VoxyInstaller
@@ -606,6 +607,13 @@ fun LaunchGameOperation(
                 }
                 if (lightingFixed.isNotEmpty()) {
                     eventViewModel.sendToast(androidText(R.string.ona_lighting_fixed, lightingFixed.joinToString()), Toast.LENGTH_LONG)
+                }
+                // ONA: FPS Reducer thinks the phone is in the background and holds the game at its idle FPS
+                val fpsReducerFixed = withContext(Dispatchers.IO) {
+                    runCatching { FpsReducerFix.apply(version) }.getOrDefault(emptyList())
+                }
+                if (fpsReducerFixed.isNotEmpty()) {
+                    eventViewModel.sendToast(androidText(R.string.ona_fpsreducer_fixed), Toast.LENGTH_LONG)
                 }
                 // ONA: render mods that crash GL4ES based renderers are switched off for them
                 if (Renderers.isCurrentRendererValid()) {

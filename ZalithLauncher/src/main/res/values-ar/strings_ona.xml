@@ -100,6 +100,7 @@
     <string name="ona_crash_kotlin">مود Forge 1.12 مكتوب بـ Kotlin ناقصه مكتبة Kotlin (Forgelin)</string>
     <string name="ona_crash_kotlin_fix">ONA بنزل Forgelin-Continuous لحاله لما تكبس تشغيل. شغل النت وشغل اللعبة مرة ثانية؛ ولا مود بينحذف أو بينطفى.</string>
     <string name="ona_lighting_fixed">تحديث الإضاءة كان مطفي (البلوك المكسور بصير أسود)، رجعته شغال في: %1$s</string>
+    <string name="ona_fpsreducer_fixed">مود FPS Reducer كان ينزّل الفريمات (كان فاكر الجوال بالخلفية). ظبطته من إعداداته، والمود ضل شغال</string>
     <string name="ona_style_title">ستايل اللانشر</string>
     <string name="ona_style_summary">غيّر شكل اللانشر. كل الميزات موجودة بكل ستايل.</string>
     <string name="ona_style_selected">المختار: %1$s</string>
