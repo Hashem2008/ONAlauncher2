@@ -267,6 +267,30 @@ APK ON THE BUILD PAGE + FPS REDUCER FIX (2026-11-05, on main)
   "texture2D ... Vulkan api only" shader error (unknown mod, maybe Terrarium). Need the LAUNCHER log
   (header "Launch Minecraft") to see the renderer, then try MobileGlues / other renderer for this pack.
 
+FRAME GENERATION, CHIP SUPPORT, DYNAMIC FPS, SHADER SHADOWS (2026-11-05, on main)
+- Commit 3669b87, CI run 41918536919 SUCCESS (APKs in ona-latest; build page artifact still hit the
+  storage quota recount, 0 artifacts exist).
+- utils/device/FrameGenerator.kt: in GameUpscaler's GLES 2 context. Real frames kept at screen size
+  (2 slots) -> quarter luma -> block matching motion field (1 vector / 16x16 px, coarse +-12 step 3,
+  fine +-1, zero bias) -> middle picture (half way along the vector from both frames, leans to the
+  newer frame where they disagree). Shown: generated now, real frame half an interval later
+  (handler.postDelayed). Only while game interval > 1.7x refresh (off below 1.45x) and < 80 ms.
+  Logs "Frame generation: game X FPS, shown Y FPS" every 10 s (tag GameUpscaler). Setting
+  AllSettings.frameGeneration (onaFrameGeneration, default OFF), switch in RendererSettingsScreen;
+  the upscaler now also starts with mode OFF when frame generation is on (FRAGMENT_COPY pass).
+  NOT tested on a device: ask the user for the FPS line from the launcher log.
+- DeviceProfile: Huawei Maleoon -> Mali vendor with own scores (910=66, 920=74), Mali-G1 Ultra/
+  Premium/Pro (Dimensity 9500) scored (was 15), Xclipse 5xx/9xx table, PowerVR GE8/GM9/BXM/CXT/DXT.
+  SocNames.describe: "Snapdragon 8s Gen 4 (SM8735)", Dimensity/Helio/Exynos/Kirin codes (display only).
+- FpsReducerFix also lifts Dynamic FPS "unfocused"/"hovered" caps (dynamic_fps.json v3 states.*.
+  frame_rate_target -> -1, v2 reduceFPSWhenUnfocused -> false). Toast text now names both mods.
+- ModPerformanceTuner: config/iris.properties + oculus.properties maxShadowRenderDistance 16/12/8 by tier
+  (key verified in IrisConfig, default 32).
+- White HUD in Ultra Realisim: latest_game.log = GL4ES (LIBGL_ES=2, Adreno 840, SM8850). Some mod
+  shaders fail (VGPU "gl_TexCoord ... gl_MaxTextureCoords (0)", glslang "texture2D ... Vulkan api
+  only"). Theory: a mod's fallback path leaves GL state broken. Asked the user to try Krypton
+  Wrapper for this version and report. Not changed automatically (no proof yet).
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
