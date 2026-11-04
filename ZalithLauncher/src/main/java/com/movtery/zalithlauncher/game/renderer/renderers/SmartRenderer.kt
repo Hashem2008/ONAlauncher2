@@ -161,6 +161,12 @@ object SmartRenderer : RendererInterface {
             else -> 64
         }
         put("maxGlslCacheSize", ConfigScalar.IntValue(cacheMb))
+        if (situation.shaders) {
+            // Newer shader packs (Complementary, Photon, Bliss...) use compute shaders, which Iris /
+            // Oculus only run on OpenGL 4.3+: expose MobileGlues' compute support and report 4.3
+            put("enableExtComputeShader", ConfigScalar.IntValue(1))
+            put("customGLVersion", ConfigScalar.IntValue(43))
+        }
     }
 
     /** Hybrid: environment for the GL4ES family (GL4ES, Krypton Wrapper) */
