@@ -212,7 +212,8 @@ FULL HOME LAYOUT PER STYLE + HORIZON (RUST) ENGINE (2026-11-04, on main)
 - Commit 64c81fc, CI 41883319168 SUCCESS but the APK was NOT uploaded: artifact storage quota
   full (~19.6 GB of old artifacts). Fix 209ec03: artifacts keep 3 days and the debug APK is also
   published to the release "ona-latest" (ONA-debug-arm64.apk / ONA-debug-all.apk), replaced every
-  build. Old artifacts were NOT deleted (needs the user's OK).
+  build. With the user's OK, 60 old artifacts were deleted from Hashem2008/ONAlauncher2 only;
+  the newest pair (run 41856667844) and the ona-latest / horizon releases were kept.
   CI 41886682385 SUCCESS: ona-latest has ONA-debug-arm64.apk (246 MB, with Horizon) and
   ONA-debug-all.apk (446 MB): https://github.com/Hashem2008/ONAlauncher2/releases/tag/ona-latest
 - NOT tested on a device: layouts, the switch, Horizon start.
