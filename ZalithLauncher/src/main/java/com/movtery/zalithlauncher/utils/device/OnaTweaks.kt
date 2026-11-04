@@ -123,14 +123,21 @@ object OnaTweaks {
             mods >= 80 -> 4096
             mods >= 30 -> 3072
             else -> 0
-        } + if (shaders && mods >= 30) 512 else 0
+        } + (if (shaders && mods >= 30) 512 else 0)
         val deviceRam = getTotalMemory(context).bytesToMB().toInt()
+        // Phones with 8 GB and more: big modpacks get room to breathe (fewer GC stutters)
+        val roomy = if (deviceRam >= 7500 && mods >= 30) 1024 else 0
+        // The last launch ran out of memory: give it one more step this time
+        val afterOom = if (oomMarker(gameDir).isFile) 1024 else 0
         // Leave more than half of the phone to Android, the GPU driver and the renderer
         val ceiling = (deviceRam * 0.45).toInt()
-        val heap = maxOf(configured, min(wanted, ceiling))
+        val heap = maxOf(configured, min(maxOf(wanted, configured) + roomy + afterOom, ceiling))
         if (heap != configured) Logger.info(TAG, "Raised heap to ${heap}M for $mods mods${if (shaders) " and shaders" else ""}")
         return heap
     }
+
+    /** Written when the game died with OutOfMemoryError, removed after a launch that ends well */
+    fun oomMarker(gameDir: File) = File(gameDir, ".ona_out_of_memory")
 
     /**
      * G1 tuned for short pauses unless the user picked a collector. Fewer and shorter GC
@@ -148,7 +155,19 @@ object OnaTweaks {
             "-XX:InitiatingHeapOccupancyPercent=20",
             "-XX:+ParallelRefProcEnabled",
             "-XX:+DisableExplicitGC",
-            "-XX:+PerfDisableSharedMem"
+            "-XX:+PerfDisableSharedMem",
+            // Aikar's flags: short lived garbage (chunk meshes, packets) dies young instead of
+            // filling the old generation, and mixed collections run in small steps
+            "-XX:G1MaxNewSizePercent=40",
+            "-XX:G1HeapWastePercent=5",
+            "-XX:G1MixedGCCountTarget=4",
+            "-XX:G1MixedGCLiveThresholdPercent=90",
+            "-XX:SurvivorRatio=32",
+            "-XX:MaxTenuringThreshold=1",
+            // Hundreds of mods keep many copies of the same strings (ids, names)
+            "-XX:+UseStringDeduplication",
+            // A Java that does not know one of these flags skips it instead of not starting
+            "-XX:+IgnoreUnrecognizedVMOptions"
         )
     }
 

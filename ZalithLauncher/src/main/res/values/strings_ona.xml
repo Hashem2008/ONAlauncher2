@@ -81,6 +81,7 @@
     <string name="ona_voxy_needs_plugins">Voxy needs desktop OpenGL 4.6: install the Kopper Zink and Turnip plugins and the Voxy Android compatibility mod from %1$s (Adreno 7xx/8xx). ONA uses them automatically.</string>
     <string name="ona_voxy_compat_installed">Installed the Voxy Android compatibility mod</string>
     <string name="ona_forgelin_installed">Installed %1$s: the Kotlin runtime your Forge 1.12 Kotlin mods (Better Foliage...) need</string>
+    <string name="ona_forgelin_failed">%1$s needs the Kotlin runtime (Forgelin) and it could not be downloaded. Connect to the internet and launch again</string>
     <string name="ona_voxy_setup_title">Voxy setup</string>
     <string name="ona_voxy_setup_body">Voxy needs desktop OpenGL 4.6. On a phone that comes from three plugin apps (Adreno 7xx/8xx), downloaded from the zalith-voxy project. Tap install, accept Android\'s installer, then restart ONA. ONA then uses them for Voxy automatically.</string>
     <string name="ona_voxy_install">Install</string>
@@ -96,6 +97,8 @@
     <string name="ona_crash_pc_native_fix">This version of the mod cannot load on a phone CPU. A newer version of the mod may ship an ARM build.</string>
     <string name="ona_crash_physx">Physics Mod: its PhysX version has no Android build</string>
     <string name="ona_crash_physx_fix">ONA runs PhysX on Android for PhysX 2.3.1 and newer automatically. This Physics Mod version uses an older PhysX that was only built for PC; use a newer version of the mod or of the modpack (for example 1.20.1).</string>
+    <string name="ona_crash_kotlin">A Forge 1.12 Kotlin mod is missing the Kotlin runtime (Forgelin)</string>
+    <string name="ona_crash_kotlin_fix">ONA downloads Forgelin-Continuous by itself when you press Play. Connect to the internet and launch again; no mod is removed or switched off.</string>
     <string name="ona_lighting_fixed">Light updates were off (broken blocks turned black), turned back on in: %1$s</string>
     <string name="ona_style_title">Launcher style</string>
     <string name="ona_style_summary">Change the look of the launcher. All features are available in every style.</string>
@@ -185,4 +188,30 @@
     <string name="ona_engine_rust_not_in_build">This build has no Horizon (Rust) engine yet. Get a newer build.</string>
     <string name="ona_engine_rust_needs_arm64">Horizon (Rust) needs a 64-bit ARM phone.</string>
     <string name="ona_engine_rust_needs_vulkan">Horizon (Rust) needs Vulkan 1.1, which this phone does not have.</string>
+    <string name="ona_rust_mods_open">Rust mods</string>
+    <string name="ona_rust_mods_title">Rust (Horizon) mods</string>
+    <string name="ona_rust_mods_subtitle">From Horizon\'s reviewed list (playhorizon.dev/mods). Java mods do not run in Horizon. Restart Horizon after installing.</string>
+    <string name="ona_rust_mods_refresh">Refresh</string>
+    <string name="ona_rust_mods_close">Close</string>
+    <string name="ona_rust_mods_search">Search</string>
+    <string name="ona_rust_mods_filter_phone">Works on phone</string>
+    <string name="ona_rust_mods_filter_mods">Mods</string>
+    <string name="ona_rust_mods_filter_modpacks">Modpacks</string>
+    <string name="ona_rust_mods_filter_shaders">Shaders</string>
+    <string name="ona_rust_mods_filter_packs">Resource packs</string>
+    <string name="ona_rust_mods_filter_pc">PC only</string>
+    <string name="ona_rust_mods_filter_all">All</string>
+    <string name="ona_rust_mods_kind_mod">Mod</string>
+    <string name="ona_rust_mods_kind_native">Native (PC)</string>
+    <string name="ona_rust_mods_kind_modpack">Modpack</string>
+    <string name="ona_rust_mods_kind_shader">Shader</string>
+    <string name="ona_rust_mods_kind_pack">Resource pack</string>
+    <string name="ona_rust_mods_install">Install</string>
+    <string name="ona_rust_mods_reinstall">Installed</string>
+    <string name="ona_rust_mods_pc_only">PC only</string>
+    <string name="ona_rust_mods_installed">%1$s installed. Restart Horizon to use it</string>
+    <string name="ona_rust_mods_install_failed">%1$s could not be installed: %2$s</string>
+    <string name="ona_rust_mods_error">Could not load Horizon\'s list: %1$s</string>
+    <string name="ona_rust_mods_empty">Nothing here yet</string>
+    <string name="ona_rust_mods_no_modpacks">Horizon has no modpacks in its list yet. They will show here when they come</string>
 </resources>

@@ -652,6 +652,8 @@ fun LaunchGameOperation(
                 }
                 if (forgelin != null) {
                     eventViewModel.sendToast(androidText(R.string.ona_forgelin_installed, forgelin), Toast.LENGTH_LONG)
+                } else LegacyKotlinSupport.lastMissing?.let { kotlinMod ->
+                    eventViewModel.sendToast(androidText(R.string.ona_forgelin_failed, kotlinMod), Toast.LENGTH_LONG)
                 }
                 // ONA: lighten heavy mods through their configs, or put the configs back
                 val tunedMods = withContext(Dispatchers.IO) {

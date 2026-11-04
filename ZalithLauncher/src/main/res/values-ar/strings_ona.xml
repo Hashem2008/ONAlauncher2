@@ -81,6 +81,7 @@
     <string name="ona_voxy_needs_plugins">مود Voxy بيحتاج OpenGL 4.6 تبع الكمبيوتر: نزّل إضافات Kopper Zink و Turnip ومود Voxy Android Compatibility من %1$s (لأدرينو 7xx/8xx). ONA بيستخدمهم تلقائياً.</string>
     <string name="ona_voxy_compat_installed">تم تنزيل مود Voxy Android Compatibility</string>
     <string name="ona_forgelin_installed">تم تنزيل %1$s: مكتبة Kotlin اللي بتحتاجها مودات Forge 1.12 (زي Better Foliage)</string>
+    <string name="ona_forgelin_failed">%1$s بحتاج مكتبة Kotlin (Forgelin) وما قدرنا ننزلها. شغل النت وجرب تشغل اللعبة مرة ثانية</string>
     <string name="ona_voxy_setup_title">تجهيز Voxy</string>
     <string name="ona_voxy_setup_body">مود Voxy بيحتاج OpenGL 4.6 تبع الكمبيوتر. على الجوال بيجي من 3 إضافات (لأدرينو 7xx/8xx) بتنزل من مشروع zalith-voxy. اضغط تثبيت، ووافق على مثبت أندرويد، وبعدين سكّر ONA وافتحه. ONA بيستخدمهم لـ Voxy تلقائياً.</string>
     <string name="ona_voxy_install">تثبيت</string>
@@ -96,6 +97,8 @@
     <string name="ona_crash_pc_native_fix">هاي النسخة من المود ما بتقدر تشتغل على معالج الجوال. نسخة أحدث من المود ممكن يكون فيها نسخة ARM.</string>
     <string name="ona_crash_physx">Physics Mod: نسخة PhysX تبعه ما إلها نسخة أندرويد</string>
     <string name="ona_crash_physx_fix">ONA بيشغّل PhysX على أندرويد تلقائياً من نسخة 2.3.1 وطالع. نسخة Physics Mod هاي بتستخدم PhysX أقدم معمول للكمبيوتر بس؛ استخدم نسخة أحدث من المود أو من المودباك (مثلاً 1.20.1).</string>
+    <string name="ona_crash_kotlin">مود Forge 1.12 مكتوب بـ Kotlin ناقصه مكتبة Kotlin (Forgelin)</string>
+    <string name="ona_crash_kotlin_fix">ONA بنزل Forgelin-Continuous لحاله لما تكبس تشغيل. شغل النت وشغل اللعبة مرة ثانية؛ ولا مود بينحذف أو بينطفى.</string>
     <string name="ona_lighting_fixed">تحديث الإضاءة كان مطفي (البلوك المكسور بصير أسود)، رجعته شغال في: %1$s</string>
     <string name="ona_style_title">ستايل اللانشر</string>
     <string name="ona_style_summary">غيّر شكل اللانشر. كل الميزات موجودة بكل ستايل.</string>
@@ -185,4 +188,30 @@
     <string name="ona_engine_rust_not_in_build">هالنسخة من اللانشر ما فيها محرك Horizon (Rust) لسا. نزّل نسخة أحدث.</string>
     <string name="ona_engine_rust_needs_arm64">Horizon (Rust) بدها جوال ARM 64-bit.</string>
     <string name="ona_engine_rust_needs_vulkan">Horizon (Rust) بدها Vulkan 1.1، وجوالك ما فيه.</string>
+    <string name="ona_rust_mods_open">مودات Rust</string>
+    <string name="ona_rust_mods_title">مودات Rust (Horizon)</string>
+    <string name="ona_rust_mods_subtitle">من قائمة Horizon الرسمية (playhorizon.dev/mods). مودات Java ما بتشتغل على Horizon. سكر Horizon وافتحه بعد التنزيل.</string>
+    <string name="ona_rust_mods_refresh">تحديث</string>
+    <string name="ona_rust_mods_close">سكر</string>
+    <string name="ona_rust_mods_search">بحث</string>
+    <string name="ona_rust_mods_filter_phone">بشتغل عالجوال</string>
+    <string name="ona_rust_mods_filter_mods">مودات</string>
+    <string name="ona_rust_mods_filter_modpacks">مودباكات</string>
+    <string name="ona_rust_mods_filter_shaders">شيدرات</string>
+    <string name="ona_rust_mods_filter_packs">ريسورس باك</string>
+    <string name="ona_rust_mods_filter_pc">للكمبيوتر بس</string>
+    <string name="ona_rust_mods_filter_all">الكل</string>
+    <string name="ona_rust_mods_kind_mod">مود</string>
+    <string name="ona_rust_mods_kind_native">Native (كمبيوتر)</string>
+    <string name="ona_rust_mods_kind_modpack">مودباك</string>
+    <string name="ona_rust_mods_kind_shader">شيدر</string>
+    <string name="ona_rust_mods_kind_pack">ريسورس باك</string>
+    <string name="ona_rust_mods_install">نزل</string>
+    <string name="ona_rust_mods_reinstall">منزل</string>
+    <string name="ona_rust_mods_pc_only">كمبيوتر بس</string>
+    <string name="ona_rust_mods_installed">%1$s نزل. سكر Horizon وافتحه عشان يشتغل</string>
+    <string name="ona_rust_mods_install_failed">ما قدرنا ننزل %1$s: %2$s</string>
+    <string name="ona_rust_mods_error">ما قدرنا نجيب قائمة Horizon: %1$s</string>
+    <string name="ona_rust_mods_empty">لسا ما في اشي هون</string>
+    <string name="ona_rust_mods_no_modpacks">لسا ما في مودباكات بقائمة Horizon. رح يطلعوا هون لما ينزلوا</string>
 </resources>

@@ -53,7 +53,9 @@ object CrashDoctor {
         /** A mod ships a native library built for PC (x86) only */
         PC_NATIVE(R.string.ona_crash_pc_native, R.string.ona_crash_pc_native_fix),
         /** PhysX (Physics Mod) without an Android build for its version */
-        PHYSX_OLD(R.string.ona_crash_physx, R.string.ona_crash_physx_fix)
+        PHYSX_OLD(R.string.ona_crash_physx, R.string.ona_crash_physx_fix),
+        /** A Forge 1.12 Kotlin mod (Better Foliage...) without the Kotlin runtime (Forgelin) */
+        KOTLIN_MISSING(R.string.ona_crash_kotlin, R.string.ona_crash_kotlin_fix)
     }
 
     class Diagnosis(val cause: Cause, val detail: String?) {
@@ -121,6 +123,12 @@ object CrashDoctor {
             return Diagnosis(if (physx) Cause.PHYSX_OLD else Cause.PC_NATIVE, mod)
         }
         // Java level problems first, they explain a following native abort
+        if (Regex("(NoClassDefFoundError: kotlin/|ClassNotFoundException: kotlin\\.)").containsMatchIn(text)) {
+            val mod = Regex("at (?:mods|net|com|io|org)\\.(\\w+)\\.").find(
+                text.substringAfter("NoClassDefFoundError: kotlin/", "")
+            )?.groupValues?.get(1)
+            return Diagnosis(Cause.KOTLIN_MISSING, mod)
+        }
         Regex("requires (?:any version|version [^ ]+(?: or later)?) of '?([\\w.-]+)'?, which is missing").findAll(text)
             .map { it.groupValues[1] }.distinct().toList().takeIf { it.isNotEmpty() }?.let {
                 return Diagnosis(Cause.MISSING_MODS, it.take(6).joinToString(", "))

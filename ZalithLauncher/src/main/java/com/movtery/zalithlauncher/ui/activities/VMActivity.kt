@@ -236,6 +236,7 @@ class VMViewModel : ViewModel() {
                     config = config,
                     onExit = { code, isSignal ->
                         if (code == 0) {
+                            runCatching { OnaTweaks.oomMarker(config.version.getGameDir()).delete() }
                             val finishedCount = AllSettings.finishedGame.getValue()
                             if (finishedCount < Int.MAX_VALUE)  {
                                 AllSettings.finishedGame.save(finishedCount + 1)
@@ -246,6 +247,10 @@ class VMViewModel : ViewModel() {
                             runCatching {
                                 val version = config.version
                                 val diagnosis = CrashDoctor.analyze(version.getLatestLog(), version.getGameDir())
+                                // Out of memory: the next launch gets a bigger heap (OnaTweaks.tunedHeap)
+                                if (diagnosis?.cause == CrashDoctor.Cause.OUT_OF_MEMORY) {
+                                    OnaTweaks.oomMarker(version.getGameDir()).writeText("1")
+                                }
                                 if (diagnosis?.rendererSuspect == true) {
                                     // Nothirium on the GL15 engine crashed too: switch it off next time
                                     MobileModRules.onRendererCrash(version)

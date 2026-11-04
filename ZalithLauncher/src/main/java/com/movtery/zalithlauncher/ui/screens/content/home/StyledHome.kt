@@ -222,6 +222,21 @@ fun EngineSwitch(
                 }
             }
         }
+        if (engine == GameEngine.RUST) {
+            var showRustMods by remember { mutableStateOf(false) }
+            Text(
+                text = stringResource(R.string.ona_rust_mods_open),
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clip(shape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .clickable { showRustMods = true }
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            if (showRustMods) RustModsDialog(onDismiss = { showRustMods = false })
+        }
         if (message != 0) {
             Text(
                 modifier = Modifier.widthIn(max = 280.dp).padding(top = 4.dp),
