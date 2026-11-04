@@ -218,6 +218,27 @@ FULL HOME LAYOUT PER STYLE + HORIZON (RUST) ENGINE (2026-11-04, on main)
   ONA-debug-all.apk (446 MB): https://github.com/Hashem2008/ONAlauncher2/releases/tag/ona-latest
 - NOT tested on a device: layouts, the switch, Horizon start.
 
+FORGELIN FIX, RUST MODS LIST, GC/HEAP TUNING (2026-11-04, on main)
+- Commit c656785, CI run 41903384413 SUCCESS (arm64 + all). APKs in the PRIVATE release ona-latest.
+- Ultra Realisim (Forge 1.12.2, 62 mods) crashed: NoClassDefFoundError kotlin/reflect/KDeclarationContainer
+  in BetterFoliageTransformer. Forgelin was never installed: LegacyKotlinSupport treated any jar with
+  kotlin/Unit.class as "runtime present". Now a jar counts only if Forge loads it early (coremod/tweaker
+  manifest or "forgelin" in the name) AND has kotlin/Unit + kotlin/reflect/KDeclarationContainer.
+  If the Modrinth download fails a toast says so (ona_forgelin_failed). No mod touched.
+- CrashDoctor: new cause KOTLIN_MISSING. Out of memory writes <gameDir>/.ona_out_of_memory, the next
+  launch gets +1 GB heap (removed after a clean exit).
+- OnaTweaks.gcArgs: Aikar G1 extras, UseStringDeduplication, IgnoreUnrecognizedVMOptions (unknown flag
+  never stops Java). tunedHeap: +1 GB for 30+ mods on 8 GB+ phones (ceiling 45% of RAM).
+- Rust mods: "Rust mods" button under the Java/Rust switch (only when Rust is picked) opens
+  RustModsDialog. Data: Horizon's reviewed registry https://horizon-rust.github.io/horizon-mods/index.json
+  (77 items now: 72 native .hnmod, 2 .hmod, 2 shaders, 1 resource pack, 0 modpacks). HorizonMods.kt
+  installs .hmod -> files/horizon-rust/game/horizon-mods (+ mod.<id>:true in horizon-mods.txt),
+  .hshader -> shaderpacks, packs -> resourcepacks, modpacks via their "requires"; SHA-256 checked,
+  github.com URLs only. Native mods need Horizon's PC launcher to compile: shown as "PC only" + link.
+  Java mods never run in Horizon. NOT tested on a device.
+- Public release: user first asked for it, then decided to keep BOTH the APK and the source PRIVATE.
+  Do not publish anything. (APK-public + source-private was refused: Zalith is GPL-3.)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
