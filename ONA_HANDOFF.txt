@@ -346,7 +346,7 @@ VOXY 26.3 CRASH, LEGACY MIPMAPS, SHADER BOOST (2026-11-06, branch claude/hala-7r
 - glGetError mismatch (Voxy 26.3 on Kopper Zink): SDL gl* lookups now follow LWJGL's GetProcAddress order.
 - MC < 1.13 on GL4ES/Krypton: mipmapLevels -> 0 each launch (white far terrain in Ultra Realisim).
 - ShaderBoost: shader pack on -> resolution cap by tier + frame generation (setting onaShaderBoost).
-- CI result: see the change file.
+- CI: db63f23 run 42127894741 SUCCESS (attempt 2; attempt 1 = GitHub 502 while publishing). Not device-tested.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new

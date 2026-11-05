@@ -30,3 +30,8 @@ CONFIRMED WORKING (user logs): "PojavRendererInit: GL format fix on" + Complemen
 
 NOT TESTED on a device. Ask for: Voxy 26.3 launcher log with ONA Hybrid, Ultra Realisim screenshot,
 FPS with Complementary before/after (F3).
+
+CI RESULT
+- db63f23: run 42127894741 attempt 1 failed only at "Publish Debug APK to a release" (GitHub API HTTP 502,
+  the APK had built: BUILD SUCCESSFUL, both LWJGL jars carry the GL fix). Re-run of the failed jobs
+  (attempt 2) SUCCESS. APK in release ona-claude-hala-7rl45s. NOT tested on a device.
