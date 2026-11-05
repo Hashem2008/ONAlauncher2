@@ -22,6 +22,7 @@ import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.game.renderer.renderers.SmartRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import com.movtery.zalithlauncher.game.version.mod.MobileModRules
+import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.PhysxSupport
 import com.movtery.zalithlauncher.context.GlobalContext
@@ -300,6 +301,13 @@ class GameLauncher(
         )
         // ONA: keep the integrated server of big modpacks from falling behind
         if (AllSettings.tuneHeavyMods.getValue()) OnaTweaks.capSimulationDistance(gameDirPath)
+        // ONA: 1.12 and older on GL4ES / Krypton: far terrain turned white (missing mipmap levels)
+        runCatching {
+            val mc = version.getVersionInfo()?.minecraftVersion
+            if (mc != null && mc.isLowerVer("1.13") && MobileModRules.isGl4esFamily(Renderers.getCurrentRenderer())) {
+                OnaTweaks.disableLegacyMipmaps(gameDirPath)
+            }
+        }
         disableSplash(gameDirPath)
 
         if (version.getVersionInfo()?.hasLoader(ModLoader.NEOFORGE) == true) {
@@ -387,6 +395,7 @@ class GameLauncher(
         }
         appendInfo("ONA Upscaler: ${AllSettings.upscalerMode.getValue()} (sharpness ${AllSettings.upscalerSharpness.getValue()}%), resolution ${AllSettings.resolutionRatio.getValue()}%")
         appendInfo("ONA Frame generation: ${if (AllSettings.frameGeneration.getValue()) "on" else "off"}")
+        appendInfo("ONA Shader boost: ${com.movtery.zalithlauncher.utils.device.ShaderBoost.summary}")
     }
 
     /**

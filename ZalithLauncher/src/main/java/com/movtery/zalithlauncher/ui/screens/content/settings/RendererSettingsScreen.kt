@@ -158,6 +158,14 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
+                        unit = AllSettings.shaderBoost,
+                        title = stringResource(R.string.ona_shader_boost_title),
+                        summary = stringResource(R.string.ona_shader_boost_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
                         unit = AllSettings.smartDriver,
                         title = stringResource(R.string.ona_smart_driver_title),
                         summary = stringResource(R.string.ona_smart_driver_summary)

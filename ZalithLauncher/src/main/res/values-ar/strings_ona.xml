@@ -265,4 +265,6 @@
     <string name="ona_log_translator_problem">مشكلة</string>
     <string name="ona_log_translator_warning">تنبيه</string>
     <string name="ona_log_translator_normal">عادي</string>
+    <string name="ona_shader_boost_title">تسريع الشيدر</string>
+    <string name="ona_shader_boost_summary">لما يكون في شيدر شغال، اللعبة بترسم بدقة أقل (الأبسكيل برجّعها حادة) وتوليد الفريمات بيشتغل. فريمات أكثر بكثير مع الشيدر</string>
 </resources>

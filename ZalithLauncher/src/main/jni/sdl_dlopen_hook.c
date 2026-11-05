@@ -45,7 +45,30 @@ static bool callerIsSdl(void *returnAddress) {
     return strstr(info.dli_fname, "libSDL3") != NULL;
 }
 
-// LWJGL takes gl* from the renderer library (-Dorg.lwjgl.opengl.libname), SDL asks the EGL
+// LWJGL takes gl* from the renderer library (-Dorg.lwjgl.opengl.libname), SDL asks the EGL.
+// ONA: same lookup order as LWJGL's GL.create(): the library's own glXGetProcAddress(ARB) /
+// eglGetProcAddress / OSMesaGetProcAddress first, its exported symbol after. Mesa (Kopper Zink's
+// libglxshim) answers both, with different pointers, so a plain dlsym gave Minecraft 26.x
+// "glGetError mismatch" with Voxy.
+typedef void *(*lib_get_proc_t)(const char *name);
+static lib_get_proc_t libGetProc;
+static bool libGetProcLooked;
+
+static void *lwjglStyleLookup(const char *name) {
+    if (!libGetProcLooked) {
+        libGetProcLooked = true;
+        static const char *const getters[] = {
+            "glXGetProcAddress", "glXGetProcAddressARB", "eglGetProcAddress", "OSMesaGetProcAddress"
+        };
+        for (size_t i = 0; i < sizeof(getters) / sizeof(getters[0]) && libGetProc == NULL; i++) {
+            libGetProc = (lib_get_proc_t) dlsym(glWrapperHandle, getters[i]);
+            if (libGetProc != NULL) LOG_TO_I("SDL_Hook: gl* lookups use %s of the renderer library, like LWJGL", getters[i]);
+        }
+    }
+    void *func = libGetProc != NULL ? libGetProc(name) : NULL;
+    return func != NULL ? func : dlsym(glWrapperHandle, name);
+}
+
 static void *onaSdlEglGetProcAddress(const char *name) {
     if (name != NULL && strncmp(name, "gl", 2) == 0) {
         if (glWrapperHandle == NULL) {
@@ -56,7 +79,7 @@ static void *onaSdlEglGetProcAddress(const char *name) {
             }
         }
         if (glWrapperHandle != NULL) {
-            void *wrapperFunc = dlsym(glWrapperHandle, name);
+            void *wrapperFunc = lwjglStyleLookup(name);
             if (wrapperFunc != NULL) return wrapperFunc;
         }
     }

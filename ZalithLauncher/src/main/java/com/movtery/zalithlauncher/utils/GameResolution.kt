@@ -103,7 +103,7 @@ fun computeGameRenderSize(
 fun computeGameRenderSize(screenSize: IntSize): IntSize = computeGameRenderSize(
     screenSize = screenSize,
     rule = AllSettings.resolutionRule.getValue(),
-    percentage = AllSettings.resolutionRatio.getValue(),
+    percentage = com.movtery.zalithlauncher.utils.device.ShaderBoost.percentage(AllSettings.resolutionRatio.getValue()),
     customWidth = AllSettings.customResolutionWidth.getValue(),
     customHeight = AllSettings.customResolutionHeight.getValue()
 )
@@ -114,7 +114,7 @@ fun computeGameRenderSize(screenSize: IntSize): IntSize = computeGameRenderSize(
 @Composable
 fun rememberGameRenderSize(screenSize: IntSize): IntSize {
     val rule = AllSettings.resolutionRule.state
-    val percentage = AllSettings.resolutionRatio.state
+    val percentage = com.movtery.zalithlauncher.utils.device.ShaderBoost.percentage(AllSettings.resolutionRatio.state)
     val customWidth = AllSettings.customResolutionWidth.state
     val customHeight = AllSettings.customResolutionHeight.state
     return remember(screenSize, rule, percentage, customWidth, customHeight) {

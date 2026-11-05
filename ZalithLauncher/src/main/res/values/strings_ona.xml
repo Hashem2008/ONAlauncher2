@@ -265,4 +265,6 @@
     <string name="ona_log_translator_problem">Problem</string>
     <string name="ona_log_translator_warning">Warning</string>
     <string name="ona_log_translator_normal">Normal</string>
+    <string name="ona_shader_boost_title">Shader boost</string>
+    <string name="ona_shader_boost_summary">While a shader pack is on, the game renders at a lower resolution (the upscaler sharpens it back) and frame generation is on. Much more FPS with shaders</string>
 </resources>

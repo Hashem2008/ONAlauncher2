@@ -1,0 +1,32 @@
+CHANGE SET 2026-11-06 (branch claude/hala-7rl45s), from the user's second round of logs
+
+CONFIRMED WORKING (user logs): "PojavRendererInit: GL format fix on" + Complementary Reimagined loads on
+26.3 / MobileGlues (no 36054 any more). liblwjgl_zstd.so is handed to LWJGL ("ready" line).
+
+1. Voxy 0.2.20 on 26.3 crashed at start: "BackendCreationException: glGetError mismatch" (OpenGL) and
+   "Voxy does not presently support vulkan" -> "No supported graphics backend".
+   Cause: SDL's gl* lookups were redirected to dlsym(ONA_GL_LIBRARY); LWJGL (GL$1) asks the library's
+   own glXGetProcAddress / glXGetProcAddressARB / eglGetProcAddress / OSMesaGetProcAddress first and
+   dlsym only after. Mesa's libglxshim (Kopper Zink, picked for Voxy) gives different pointers for the
+   two. Fix: sdl_dlopen_hook.c lwjglStyleLookup() uses LWJGL's order. Log line "SDL_Hook: gl* lookups use
+   <getter> of the renderer library, like LWJGL".
+   NOTE: the user also launched this version with Krypton chosen by hand (b4bf11ba log): Krypton is GL 3.1,
+   Voxy needs Kopper Zink. ONA Hybrid picks Kopper Zink for Voxy.
+
+2. Ultra Realisim (1.12.2, Krypton): far terrain white "like water". 1.12 uploads only some mipmap
+   levels; GL4ES / Krypton show the missing ones white (BestGameSettings had set mipmapLevels 2).
+   Fix: OnaTweaks.disableLegacyMipmaps (options.txt mipmapLevels -> 0) before every launch of MC < 1.13 on
+   the GL4ES family; BestGameSettings never raises mipmapLevels any more (LOWER_ONLY).
+
+3. Low FPS with shaders: ShaderBoost (utils/device/ShaderBoost.kt, setting onaShaderBoost, default ON,
+   switch in Renderer settings under frame generation). When iris/oculus.properties (enableShaders=true +
+   existing pack) or optionsshaders.txt has a pack: render resolution capped (flagship 70%, high 60%,
+   mid 50%, low 45%; the user's lower value is kept) and frame generation on for that launch.
+   Prepared in VMActivity before the session, used by GameResolution (render size + touch mapping) and
+   the upscaler. Launch log "ONA Shader boost: ...".
+
+4. Frame generation cost: the per-pixel vector search only runs at motion edges (neighbour vectors
+   differ); inside uniform blocks only "no motion" is tried. Validated with glslangValidator.
+
+NOT TESTED on a device. Ask for: Voxy 26.3 launcher log with ONA Hybrid, Ultra Realisim screenshot,
+FPS with Complementary before/after (F3).

@@ -341,6 +341,13 @@ VOXY ZSTD, SHADER FIX REALLY SHIPPED, CONTROLIFY INPUT, CURSEFORGE DEPS, LOG TRA
 - OPEN: Horizon black screen after resume / screenshot and white glitch on block break (need Horizon log
   + screenshot; upstream gfx code not reachable here). Community uploads of modpacks/shaders: ask user.
 
+VOXY 26.3 CRASH, LEGACY MIPMAPS, SHADER BOOST (2026-11-06, branch claude/hala-7rl45s)
+- Details: ONA_CHANGES/2026-11-06_voxy-263-crash-shader-boost.txt. User confirmed: shader 36054 fixed.
+- glGetError mismatch (Voxy 26.3 on Kopper Zink): SDL gl* lookups now follow LWJGL's GetProcAddress order.
+- MC < 1.13 on GL4ES/Krypton: mipmapLevels -> 0 each launch (white far terrain in Ultra Realisim).
+- ShaderBoost: shader pack on -> resolution cap by tier + frame generation (setting onaShaderBoost).
+- CI result: see the change file.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -381,3 +388,5 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
   أزرار Fabulously Optimized (مود Controlify)، تنزيل المودات الناقصة من CurseForge، الاسم اللي فيه مسافة،
   Physics Mod على Zink، تحسين توليد الفريمات، الأنوية الصغيرة (Redmi Pad SE و Exynos)، ومترجم اللوج.
   التفاصيل بمجلد ONA_CHANGES. لسا: شاشة Rust السودا وبياض الكسر.
+- 2026-11-06: كراش Voxy على 26.3 (glGetError mismatch)، البياض البعيد بـ Ultra Realisim (mipmap)، وتسريع الشيدر
+  (دقة أقل + توليد فريمات لما الشيدر شغال). التفاصيل بـ ONA_CHANGES.

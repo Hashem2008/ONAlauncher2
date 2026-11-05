@@ -371,7 +371,13 @@ void main() {
     vec3 a = texture2D(uPrev, vUv - cand[0] * 0.5).rgb;
     vec3 b = texture2D(uCur, vUv + cand[0] * 0.5).rgb;
     float diff = abs(dot(a - b, W));
+    // Inside a block that moves like its neighbours (most of the screen) only "no motion" is
+    // worth a try; the full search runs at motion edges only, so it costs little GPU time
+    float spread = 0.0;
+    for (int i = 1; i < 5; i++) spread = max(spread, length((cand[i] - cand[0]) / uLumaTexel));
+    int first = spread < 0.75 ? 5 : 1;
     for (int i = 1; i < 6; i++) {
+        if (i < first || diff < 0.01) continue;
         vec3 ca = texture2D(uPrev, vUv - cand[i] * 0.5).rgb;
         vec3 cb = texture2D(uCur, vUv + cand[i] * 0.5).rgb;
         // the block's own vector wins ties, so flat areas do not flicker between candidates

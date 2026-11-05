@@ -135,6 +135,8 @@ object AllSettings : SettingsRegistry() {
      * runs below about 60% of the screen refresh rate (see FrameGenerator)
      */
     val frameGeneration = boolSetting("onaFrameGeneration", false)
+    /** ONA: lower render resolution + frame generation while a shader pack is on */
+    val shaderBoost = boolSetting("onaShaderBoost", true)
 
     /**
      * ONA: pick the Vulkan driver for Zink from the GPU (bundled Turnip on Adreno 6xx/7xx,

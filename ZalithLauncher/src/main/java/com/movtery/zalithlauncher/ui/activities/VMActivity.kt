@@ -230,6 +230,8 @@ class VMViewModel : ViewModel() {
             bundle.getBoolean(INTENT_RUN_GAME) -> {
                 val config: LaunchConfig = bundle.getParcelableSafely(INTENT_GAME_CONFIG, LaunchConfig::class.java)
                     ?: throw IllegalStateException("No launch config has been set.")
+                // ONA: shader packs render below screen size and get frame generation
+                com.movtery.zalithlauncher.utils.device.ShaderBoost.prepare(config.version.getGameDir())
 
                 val launcher = GameLauncher(
                     activity = activity,
@@ -959,7 +961,8 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                 output = surface,
                 mode = AllSettings.upscalerMode.getValue(),
                 sharpness = AllSettings.upscalerSharpness.getValue() / 100f,
-                frameGeneration = AllSettings.frameGeneration.getValue(),
+                frameGeneration = AllSettings.frameGeneration.getValue() ||
+                        com.movtery.zalithlauncher.utils.device.ShaderBoost.frameGeneration,
                 // The highest mode the screen can switch to (the launcher asks for it)
                 refreshHz = currentDisplay()?.let { maxRefreshRateMode(it).refreshRate } ?: 60f
             )?.also { created ->

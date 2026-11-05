@@ -245,6 +245,26 @@ object OnaTweaks {
     }
 
     /**
+     * Minecraft 1.12 and older uploads only some mipmap levels; GL4ES / Krypton then sample the
+     * missing ones as white, so terrain further away looked like white water ("Ultra Realisim").
+     * Mipmaps off keeps every distance textured.
+     */
+    fun disableLegacyMipmaps(gameDir: File) {
+        val options = File(gameDir, "options.txt")
+        if (!options.isFile) return
+        runCatching {
+            val lines = options.readLines().toMutableList()
+            val index = lines.indexOfFirst { it.startsWith("mipmapLevels:") }
+            if (index < 0) return
+            val value = lines[index].substringAfter(':').trim().toIntOrNull() ?: return
+            if (value == 0) return
+            lines[index] = "mipmapLevels:0"
+            options.writeText(lines.joinToString("\n", postfix = "\n"))
+            Logger.info(TAG, "mipmapLevels $value -> 0 (legacy version on GL4ES / Krypton)")
+        }.onFailure { Logger.warning(TAG, "Could not turn mipmaps off", it) }
+    }
+
+    /**
      * Give a fresh game folder lighter video settings on phones that are not high end, so the
      * first launch is playable. Never touches an existing options.txt.
      */

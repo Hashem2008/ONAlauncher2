@@ -52,7 +52,7 @@ object BestGameSettings {
     /** Keys whose current value is only lowered */
     private val LOWER_ONLY = setOf(
         "renderDistance", "simulationDistance", "maxShadowRenderDistance",
-        "shadowMapResolution", "shadowDistance", "shadowResMul"
+        "shadowMapResolution", "shadowDistance", "shadowResMul", "mipmapLevels"
     )
 
     private fun sodiumLike(tier: DeviceTier): Map<String, Any> = mapOf(
