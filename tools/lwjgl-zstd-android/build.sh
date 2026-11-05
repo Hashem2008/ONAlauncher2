@@ -28,15 +28,13 @@ GEN="$MOD/src/generated/c"
 CORE_H=$(dirname "$(find "$WORK/lwjgl3-$LWJGL_TAG/modules/lwjgl/core/src/main/c" -name common_tools.h | head -1)")
 LINUX_H=$(dirname "$(find "$WORK/lwjgl3-$LWJGL_TAG/modules/lwjgl/core/src/main/c" -name LinuxConfig.h | head -1)")
 
-# zstd itself: LWJGL keeps a copy next to the binding, otherwise the matching upstream release
-ZSTD=$(dirname "$(find "$MOD" -name zstd.h -not -path '*generated*' | head -1)")
-if [ ! -f "$ZSTD/zstd.h" ] || [ ! -d "$ZSTD/compress" ]; then
-  if [ ! -d "zstd-${ZSTD_TAG#v}" ]; then
-    curl -fsSL "https://github.com/facebook/zstd/archive/refs/tags/$ZSTD_TAG.tar.gz" -o zstd.tar.gz
-    tar -xzf zstd.tar.gz "zstd-${ZSTD_TAG#v}/lib"
-  fi
-  ZSTD="$WORK/zstd-${ZSTD_TAG#v}/lib"
+# zstd itself: the upstream release LWJGL 3.3.3 was made with. LWJGL's own copy leaves out xxhash
+# (it lives in LWJGL's xxhash module), so it does not build on its own.
+if [ ! -d "zstd-${ZSTD_TAG#v}" ]; then
+  curl -fsSL "https://github.com/facebook/zstd/archive/refs/tags/$ZSTD_TAG.tar.gz" -o zstd.tar.gz
+  tar -xzf zstd.tar.gz "zstd-${ZSTD_TAG#v}/lib"
 fi
+ZSTD="$WORK/zstd-${ZSTD_TAG#v}/lib"
 echo "LWJGL zstd binding: $GEN"
 echo "zstd sources: $ZSTD"
 echo "LWJGL headers: $CORE_H $LINUX_H"

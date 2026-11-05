@@ -124,7 +124,10 @@ jobs:
         continue-on-error: true
         run: |
           bash tools/lwjgl-zstd-android/build.sh "$RUNNER_TEMP/lwjgl-zstd" \
-            ZalithLauncher/src/main/jniLibs/arm64-v8a/liblwjgl_zstd.so
+            ZalithLauncher/src/main/jniLibs/arm64-v8a/liblwjgl_zstd.so || {
+            echo "::warning::liblwjgl_zstd.so was not built, Voxy keeps failing on phones (see this step)"
+            exit 1
+          }
 
       # ONA: the Horizon (Rust) engine, built once by horizon.yml and published as a release of
       # this repository. Without it the APK still builds; the Rust switch then says so.
