@@ -71,3 +71,12 @@ NOT DONE (needs more info / source):
   "the window came back without a surface") and a screenshot of the white glitch.
 - "Support them / let people upload modpacks and edited shaders to the launcher": needs a server or a
   shared catalog; user to say who "them" are and where uploads should live.
+
+CI RESULT
+- cb5e208: run 42118933262 SUCCESS, but the zstd step failed inside (continue-on-error):
+  LWJGL's zstd copy has no xxhash.h. Fixed in 796072c: upstream zstd 1.5.5 sources.
+- 796072c: run 42120608284 SUCCESS (arm64 + all). "Built .../liblwjgl_zstd.so (552552 bytes, 152 JNI
+  entry points)", "LWJGL 3.3.3: GL format fix inside", "LWJGL 3.4.1: GL format fix inside".
+  APKs: release ona-claude-hala-7rl45s (branch builds go there, not ona-latest) + build page artifact.
+- NOT tested on a device. Next: user tests Voxyris, Complementary on 26.3, FO buttons, DeceasedCraft,
+  and sends the launcher log (latest_game.log) of each.

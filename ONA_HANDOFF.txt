@@ -325,7 +325,8 @@ RUST (HORIZON) HOME + TOUCH CONTROLS (2026-11-05, on main)
 VOXY ZSTD, SHADER FIX REALLY SHIPPED, CONTROLIFY INPUT, CURSEFORGE DEPS, LOG TRANSLATOR (2026-11-05)
 - Branch claude/hala-7rl45s (the session's assigned branch; main is NOT changed). Details of every
   item: ONA_CHANGES/2026-11-05_voxy-shaders-controlify-logs.txt (new folder, one txt per change set,
-  the user asked for it). CI result: see the end of that file / next entry here.
+  the user asked for it). CI: 796072c run 42120608284 SUCCESS, zstd built (152 JNI entry points),
+  both LWJGL jars carry the GL fix. APK in release ona-claude-hala-7rl45s. NOT tested on a device.
 - Voxy: liblwjgl_zstd.so built for arm64 in CI (tools/lwjgl-zstd-android/build.sh), copied into the
   LWJGL natives dir at launch. Voxy pack: render distance capped 16 / simulation 8 (slow exits).
 - Shader 36054: the old GL format fix was NOT in the shipped LWJGL merged jars. Jars patched with javac
