@@ -358,7 +358,9 @@ class LaunchArgs(
         val varArgMap: MutableMap<String, String> = ArrayMap()
         varArgMap["auth_session"] = account.accessToken
         varArgMap["auth_access_token"] = account.accessToken
-        varArgMap["auth_player_name"] = account.username
+        // ONA: offline names with a space or other characters Minecraft refuses ("mohammed ")
+        // could open no world: "lost connection: Invalid characters in username"
+        varArgMap["auth_player_name"] = if (account.isLocalAccount()) safePlayerName(account.username) else account.username
         varArgMap["auth_uuid"] = account.profileId.replace("-", "")
         varArgMap["auth_xuid"] = account.xUid ?: ""
         varArgMap["assets_root"] = getAssetsHome(version.getGameHome())
@@ -399,6 +401,14 @@ class LaunchArgs(
             if (it.isNotEmpty()) list.add(it)
         }
         return list.toTypedArray()
+    }
+
+    /** Letters, digits and _ only, at most 16, like every Minecraft version accepts */
+    private fun safePlayerName(name: String): String {
+        val cleaned = name.trim().replace(Regex("\\s+"), "_").replace(Regex("[^A-Za-z0-9_]"), "").take(16)
+        val safe = cleaned.ifEmpty { "Player" }
+        if (safe != name) LoggerBridge.append("ONA: player name \"$name\" -> \"$safe\" (Minecraft refuses spaces and other characters)")
+        return safe
     }
 }
 

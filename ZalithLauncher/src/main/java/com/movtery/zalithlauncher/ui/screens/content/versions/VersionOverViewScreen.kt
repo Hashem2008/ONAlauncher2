@@ -64,6 +64,7 @@ import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.DeleteVersionDialog
+import com.movtery.zalithlauncher.ui.screens.content.elements.LogTranslatorDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportFileButton
 import com.movtery.zalithlauncher.ui.screens.content.elements.RenameVersionDialog
 import com.movtery.zalithlauncher.ui.screens.content.home.version.VersionCardDir
@@ -326,6 +327,14 @@ private fun VersionManagementLayout(
     val logExists = remember(logFile) {
         logFile.exists()
     }
+    // ONA: launcher log + game log, explained in plain words
+    val translatableLogs = remember(version) {
+        listOf(logFile, java.io.File(version.getGameDir(), "logs/latest.log"))
+    }
+    var showLogTranslator by remember { mutableStateOf(false) }
+    if (showLogTranslator) {
+        LogTranslatorDialog(logs = translatableLogs, onDismiss = { showLogTranslator = false })
+    }
 
     VersionChunkBackground(
         modifier = modifier,
@@ -378,6 +387,15 @@ private fun VersionManagementLayout(
                 ) {
                     Text(
                         text = stringResource(R.string.versions_overview_log)
+                    )
+                }
+                OutlinedButton(
+                    modifier = Modifier.padding(end = 12.dp),
+                    enabled = translatableLogs.any { it.exists() },
+                    onClick = { showLogTranslator = true }
+                ) {
+                    Text(
+                        text = stringResource(R.string.ona_log_translator_button)
                     )
                 }
                 OutlinedButton(

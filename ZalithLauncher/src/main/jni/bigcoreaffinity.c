@@ -31,6 +31,42 @@ static unsigned long bigcore_read_max_freq(unsigned int cpu_core) {
     return strtoul(freq_buffer, NULL, 10);
 }
 
+// ONA: in-order LITTLE cores by their ARM part number (A7, A35, A53, A55, A510, A520). Clocks
+// alone can't tell them apart: Snapdragon 680 (Redmi Pad SE) has A53s at 1.9 GHz next to A73s at
+// 2.4 GHz, 79% of the top clock, the same ratio as the performance cores of an 8 Elite Gen 5. On
+// Exynos 9810 / 9820 / 9825 (Galaxy S9, Note 9, S10, Note 10) the A55s run the game threads slowly too.
+static int bigcore_is_little_part(unsigned int implementer, unsigned int part) {
+    if (implementer != 0x41) return 0; // ARM Ltd. designs only, custom cores (Mongoose, Kryo Gold) stay
+    return part == 0xc07 || part == 0xd04 || part == 0xd03 || part == 0xd05 || part == 0xd46 || part == 0xd80;
+}
+
+// Fills little[i] = 1 for every LITTLE core listed in /proc/cpuinfo. @return number of cores read
+static int bigcore_read_parts(long corecnt, unsigned char* little) {
+    FILE* cpuinfo = fopen("/proc/cpuinfo", "r");
+    if(cpuinfo == NULL) return 0;
+    char line[256];
+    long current = -1;
+    unsigned int implementer = 0;
+    int read_cores = 0;
+    while(fgets(line, sizeof(line), cpuinfo) != NULL) {
+        unsigned int value;
+        long processor;
+        if(sscanf(line, "processor : %ld", &processor) == 1 || sscanf(line, "processor\t: %ld", &processor) == 1) {
+            current = processor;
+            implementer = 0;
+        } else if(strncmp(line, "CPU implementer", 15) == 0 && sscanf(strchr(line, ':') + 1, " %x", &value) == 1) {
+            implementer = value;
+        } else if(strncmp(line, "CPU part", 8) == 0 && sscanf(strchr(line, ':') + 1, " %x", &value) == 1) {
+            if(current >= 0 && current < corecnt) {
+                little[current] = (unsigned char) bigcore_is_little_part(implementer, value);
+                read_cores++;
+            }
+        }
+    }
+    fclose(cpuinfo);
+    return read_cores;
+}
+
 // Restricts the current thread (and the threads it creates later, since affinity is inherited)
 // to every core that is faster than the slowest cluster.
 // Pinning to a single core would also squeeze the integrated server and chunk builder threads onto it.
@@ -61,6 +97,13 @@ void bigcore_set_affinity() {
     // their 6 performance cores here because they are the slowest cluster, which starved the
     // render, server and chunk threads of a heavy modpack.
     unsigned long little_limit = max_freq / 10 * 7;
+    static unsigned char little_part[CPU_SETSIZE];
+    memset(little_part, 0, sizeof(little_part));
+    int parts_known = bigcore_read_parts(corecnt, little_part) > 0;
+    int any_big_part = 0;
+    for(long i = 0; i < corecnt && parts_known; i++) {
+        if(core_freqs[i] != 0 && !little_part[i]) any_big_part = 1;
+    }
     cpu_set_t bigcore_affinity_set;
     CPU_ZERO(&bigcore_affinity_set);
     int big_core_count = 0;
@@ -68,6 +111,8 @@ void bigcore_set_affinity() {
     for(long i = 0; i < corecnt; i++) {
         if(core_freqs[i] == 0) continue;
         online_count++;
+        // a known LITTLE design is left out whatever its clock, when bigger cores exist
+        if(parts_known && any_big_part && little_part[i]) continue;
         if(core_freqs[i] >= little_limit) {
             CPU_SET(i, &bigcore_affinity_set);
             big_core_count++;

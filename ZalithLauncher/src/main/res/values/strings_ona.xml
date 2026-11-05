@@ -259,4 +259,10 @@
     <string name="ona_rust_controls_reset_ball">Reset the menu ball</string>
     <string name="ona_rust_controls_reset_layout">Default button layout</string>
     <string name="ona_rust_controls_done">Done, used the next time Horizon starts</string>
+    <string name="ona_log_translator_button">Explain log</string>
+    <string name="ona_log_translator_title">Log translator</string>
+    <string name="ona_log_translator_nothing">Nothing known found in the logs. Send the log to get it checked.</string>
+    <string name="ona_log_translator_problem">Problem</string>
+    <string name="ona_log_translator_warning">Warning</string>
+    <string name="ona_log_translator_normal">Normal</string>
 </resources>

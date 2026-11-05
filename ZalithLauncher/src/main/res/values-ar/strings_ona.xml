@@ -259,4 +259,10 @@
     <string name="ona_rust_controls_reset_ball">رجّع كورة القائمة لمكانها</string>
     <string name="ona_rust_controls_reset_layout">ترتيب الأزرار الأصلي</string>
     <string name="ona_rust_controls_done">تمام، بتنطبق المرة الجاية لما يشتغل Horizon</string>
+    <string name="ona_log_translator_button">ترجمة اللوج</string>
+    <string name="ona_log_translator_title">مترجم اللوج</string>
+    <string name="ona_log_translator_nothing">ما لقيت إشي معروف باللوج. ابعت اللوج عشان ينفحص.</string>
+    <string name="ona_log_translator_problem">مشكلة</string>
+    <string name="ona_log_translator_warning">تنبيه</string>
+    <string name="ona_log_translator_normal">عادي</string>
 </resources>

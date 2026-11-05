@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.version.installed.Version
+import com.movtery.zalithlauncher.game.version.mod.CurseForgeModFinder
 import com.movtery.zalithlauncher.game.version.mod.ModCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -123,7 +124,12 @@ fun ModProblemsDialog(
         working = true
         scope.launch {
             val (remaining, failed) = withContext(Dispatchers.IO) {
-                val result = ModCompat.fix(problem, version.modsDir(), env)
+                var result = ModCompat.fix(problem, version.modsDir(), env)
+                if (result == ModCompat.FIX_FAILED && problem.kind == ModCompat.PROBLEM_MISSING &&
+                    CurseForgeModFinder.install(problem.requiredId, version.modsDir(), env) != null
+                ) {
+                    result = ModCompat.FIX_DOWNLOADED
+                }
                 ModCompat.analyze(version.modsDir(), env) to if (result == ModCompat.FIX_FAILED) 1 else 0
             }
             finish(remaining, failed)

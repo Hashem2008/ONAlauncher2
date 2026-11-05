@@ -211,23 +211,36 @@ object OnaTweaks {
      * and only on versions that have the option (1.18+).
      */
     fun capSimulationDistance(gameDir: File) {
-        val mods = File(gameDir, "mods").listFiles { file -> file.name.endsWith(".jar") }?.size ?: 0
-        val max = when {
+        val jars = File(gameDir, "mods").listFiles { file -> file.name.endsWith(".jar") }.orEmpty()
+        val mods = jars.size
+        // ONA: Voxy draws the far terrain itself. A vanilla render distance of 32-55 next to it
+        // made the integrated server hold thousands of chunks: leaving a world took minutes
+        // ("waiting for 4024 chunks to unload"). Voxy's own LOD distance is not touched.
+        val voxy = jars.any { it.name.lowercase().startsWith("voxy") }
+        val maxSimulation = when {
+            voxy -> 8
             mods >= 150 -> 6
             mods >= 80 -> 8
             else -> return
         }
+        val maxRender = if (voxy) 16 else null
         val options = File(gameDir, "options.txt")
         if (!options.isFile) return
         runCatching {
             val lines = options.readLines().toMutableList()
-            val index = lines.indexOfFirst { it.startsWith("simulationDistance:") }
-            if (index < 0) return
-            val value = lines[index].substringAfter(':').trim().toIntOrNull() ?: return
-            if (value <= max) return
-            lines[index] = "simulationDistance:$max"
-            options.writeText(lines.joinToString("\n", postfix = "\n"))
-            Logger.info(TAG, "Simulation distance $value -> $max for $mods mods")
+            var changed = false
+            fun lower(key: String, max: Int) {
+                val index = lines.indexOfFirst { it.startsWith("$key:") }
+                if (index < 0) return
+                val value = lines[index].substringAfter(':').trim().toIntOrNull() ?: return
+                if (value <= max) return
+                lines[index] = "$key:$max"
+                changed = true
+                Logger.info(TAG, "$key $value -> $max ($mods mods${if (voxy) ", Voxy" else ""})")
+            }
+            lower("simulationDistance", maxSimulation)
+            maxRender?.let { lower("renderDistance", it) }
+            if (changed) options.writeText(lines.joinToString("\n", postfix = "\n"))
         }.onFailure { Logger.warning(TAG, "Could not lower the simulation distance", it) }
     }
 

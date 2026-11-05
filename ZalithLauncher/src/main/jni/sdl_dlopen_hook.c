@@ -5,6 +5,7 @@
 #include <jni.h>
 #include <stdbool.h>
 #include <bytehook.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -82,13 +83,64 @@ static void *onaWrapSdlSymbol(void *handle, const char *symbol, void *result) {
     return result;
 }
 
+// ONA: mods that bring their own SDL binding (Controlify 3.x on Minecraft 26.x, through Java's
+// FFM) find the launcher's libSDL3.so, which is the very SDL instance the game draws and reads
+// input with. Controlify then sets an SDL event filter that keeps only joystick added / removed
+// events and drains the queue in SDL_PollEvent, so the game never sees a touch or mouse button
+// again ("nothing on the title screen can be pressed"). For lookups that come from Java's
+// FFM (libjvm / libjava, while the game's LWJGL binding looks up from liblwjgl) both calls get
+// versions that only touch the joystick events the mod is after. The mod keeps working.
+#define ONA_SDL_EVENT_JOYSTICK_ADDED 0x605
+#define ONA_SDL_EVENT_JOYSTICK_REMOVED 0x606
+#define ONA_SDL_GETEVENT 2
+
+typedef int (*sdl_peep_events_t)(void *events, int numevents, int action, uint32_t minType, uint32_t maxType);
+static sdl_peep_events_t realPeepEvents;
+static bool modFilterLogged;
+
+static bool callerIsJavaFfm(void *returnAddress) {
+    Dl_info info;
+    if (returnAddress == NULL || !dladdr(returnAddress, &info) || info.dli_fname == NULL) return false;
+    return strstr(info.dli_fname, "libjvm.so") != NULL || strstr(info.dli_fname, "libjava.so") != NULL;
+}
+
+static void modSetEventFilter(void *filter, void *userdata) {
+    (void) filter;
+    (void) userdata;
+    if (!modFilterLogged) {
+        modFilterLogged = true;
+        LOG_TO_I("SDL_Hook: a mod's SDL event filter is kept away from the game's input events");
+    }
+}
+
+static bool modPollEvent(void *event) {
+    if (realPeepEvents == NULL) {
+        void *sdl = dlopen("libSDL3.so", RTLD_NOW | RTLD_NOLOAD);
+        if (sdl != NULL) realPeepEvents = (sdl_peep_events_t) dlsym(sdl, "SDL_PeepEvents");
+        if (realPeepEvents == NULL) return false;
+    }
+    if (event == NULL) return false;
+    return realPeepEvents(event, 1, ONA_SDL_GETEVENT, ONA_SDL_EVENT_JOYSTICK_ADDED, ONA_SDL_EVENT_JOYSTICK_REMOVED) > 0;
+}
+
 static void *customDlsym(void *handle, const char *symbol) {
     void *result = BYTEHOOK_CALL_PREV(customDlsym, dlsym_func_t, handle, symbol);
+    bool modSdlCall = result != NULL && symbol != NULL
+            && (strcmp(symbol, "SDL_SetEventFilter") == 0 || strcmp(symbol, "SDL_PollEvent") == 0)
+            && callerIsJavaFfm(BYTEHOOK_RETURN_ADDRESS());
     bool fromSdl = result != NULL && symbol != NULL
             && (strcmp(symbol, "vkGetInstanceProcAddr") == 0 || strcmp(symbol, "eglGetProcAddress") == 0)
             && callerIsSdl(BYTEHOOK_RETURN_ADDRESS());
     BYTEHOOK_POP_STACK();
     if (fromSdl) result = onaWrapSdlSymbol(handle, symbol, result);
+    if (modSdlCall) {
+        Dl_info info;
+        // only the game's own SDL instance needs protecting
+        if (dladdr(result, &info) && info.dli_fname != NULL && strstr(info.dli_fname, "libSDL3") != NULL) {
+            LOG_TO_I("SDL_Hook: %s looked up by a mod through Java FFM, game input stays with the game", symbol);
+            return strcmp(symbol, "SDL_SetEventFilter") == 0 ? (void *) modSetEventFilter : (void *) modPollEvent;
+        }
+    }
     if (sdlHandle == NULL) {
         sdlHandle = dlopen("libSDL3.so", RTLD_LOCAL | RTLD_NOW);
     }

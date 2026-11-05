@@ -172,6 +172,8 @@ object DeviceProfiler {
             model >= 660 -> 62
             model >= 640 -> 50
             model >= 615 -> 34
+            // Adreno 610 / 612 (Snapdragon 680 / 665: Redmi Pad SE, Redmi Note 11 ...)
+            model >= 610 -> 28
             model >= 600 -> 25
             model >= 500 -> 15
             else -> 30
@@ -195,7 +197,9 @@ object DeviceProfiler {
             model >= 720 -> 78
             model >= 710 -> 66
             model >= 610 -> 52
-            model >= 76 && model < 100 -> 48 // G76 / G77 / G78
+            model >= 76 && model < 100 -> 48 // G76 / G77 / G78 (Exynos 9820 / 9825: G76 MP12)
+            // G72 MP18 (Exynos 9810) is a wide G72, close to a small G76
+            model == 72 && Regex("MP1[2-9]", RegexOption.IGNORE_CASE).containsMatchIn(name) -> 40
             model >= 68 && model < 76 -> 36
             model >= 57 && model < 68 -> 30
             model >= 51 && model < 57 -> 18
@@ -350,6 +354,10 @@ object SocNames {
         val upper = reported.uppercase()
         // Huawei reports the name itself, e.g. "Kirin9000S"
         Regex("KIRIN\\s*(\\d{3,4}[A-Z]?)").find(upper)?.let { return "Kirin ${it.groupValues[1]}" }
+        // Older Exynos phones (Android 11 and below) only report Build.HARDWARE, e.g.
+        // "samsungexynos9810" (Galaxy S9 / Note 9) or "exynos9825" (Galaxy Note 10)
+        Regex("EXYNOS\\s*(\\d{4})").find(upper)?.let { return "Exynos ${it.groupValues[1]}" }
+        Regex("UNIVERSAL(\\d{4})").find(upper)?.let { return "Exynos ${it.groupValues[1]}" }
         val code = Regex("(SM\\d{4}|MT\\d{4}|S5E\\d{4}|HI\\d{2}[0-9A-F]\\d)").find(upper)?.value
             ?: return reported
         val name = NAMES[code] ?: return reported

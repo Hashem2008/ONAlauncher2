@@ -1,0 +1,73 @@
+CHANGE SET 2026-11-05 (branch claude/hala-7rl45s)
+From the user's logs: Voxyris (1.21.11, Kopper Zink), 26.3 Physics Mod pack (MobileGlues, Complementary
+shader), Fabulously Optimized 26.3 (buttons dead), DeceasedCraft 1.20.1 (missing mods), OptiFine 26.2 on
+an Adreno 610 phone (name "mohammed "), Horizon (Rust) logs.
+
+1. Voxy world holes / glitches
+   Cause: "Failed to locate library: liblwjgl_zstd.so" - Voxy bundles lwjgl-zstd with PC natives only,
+   every LOD section it saved or loaded failed.
+   Fix: tools/lwjgl-zstd-android/build.sh (LWJGL 3.3.3 zstd JNI + zstd 1.5.5, NDK clang, arm64) built in
+   CI (build.yml, cached, continue-on-error) into jniLibs/arm64-v8a/liblwjgl_zstd.so. Launcher.kt
+   addBundledLwjglModules() copies it into the LWJGL natives dir (org.lwjgl.librarypath) before launch.
+   Check: launcher log "LWJGL: liblwjgl_zstd.so ready", no zstd error in the game log.
+   If the CI step failed: read its log (script prints sources / "Built ... JNI entry points").
+
+2. Shader "Unexpected error while creating framebuffer ... Status: 36054" (Complementary, MobileGlues)
+   Real cause: the ONA GL format fix from b669782 NEVER shipped. Only LWJGL/*/src was changed; the merged
+   jars in assets/app_runtime/lwjgl/<v>/ were not rebuilt (CI never builds them, local gradle can't reach
+   the plugin portal). Now: PojavRendererInit + GLCapabilities compiled with javac (3.3.3: --release 8,
+   3.4.1: --release 17) and zipped into lwjgl-<v>-merged-modules.jar, version files changed (device
+   re-unpacks). build.yml step "Check LWJGL jars carry the ONA patches" warns if they are stale again.
+   ona_glfix.c also: empty allocations (pixels NULL and no unpack buffer) get the format/type pair ES
+   accepts for the sized format (Iris allocates RGBA16F / R11F_G11F_B10F with GL_UNSIGNED_BYTE, ES
+   rejects that -> empty texture -> 36054). Log lines "[ONA GLFix] glTexImage2D: format ...".
+   Check: launcher log "PojavRendererInit: GL format fix on".
+   RULE: after changing LWJGL/*/src, rebuild/patch the merged jars the same way.
+
+3. Fabulously Optimized 26.3: nothing on the title screen can be pressed
+   Cause: Controlify 3.5 loads SDL "from system" = the game's own libSDL3 (desktop loads its own copy),
+   then SDL_SetEventFilter keeps only joystick added/removed events and its tick drains SDL_PollEvent:
+   every touch / mouse event is dropped. (Ixeris is NOT it: it disables itself on Android.)
+   Fix: sdl_dlopen_hook.c customDlsym: SDL_SetEventFilter / SDL_PollEvent looked up from libjvm/libjava
+   (Java FFM = mods; the game's LWJGL binding looks up from liblwjgl) get proxies: filter = no-op,
+   poll = SDL_PeepEvents for joystick added/removed only. Controlify stays installed and working.
+   Check: launcher log "SDL_Hook: SDL_PollEvent looked up by a mod through Java FFM".
+
+4. DeceasedCraft (Forge 1.20.1): Apocalypse Now, Nameless Trinkets, Create Big Cannons, Legendary
+   Survival Overhaul, Immersive Aircraft, FTB Quests, Zombie Extreme, Spore, Farm and Charm missing.
+   Fix: CurseForgeModFinder.kt - when Modrinth has nothing, search CurseForge (official API with key,
+   MCIM mirror) by slug / name, newest files for game version + loader, every jar still checked by its
+   metadata (must provide the mod id). Used by ModAutoResolver and ModProblemsDialog. Skip file renamed
+   ona_unfixable_mods_v2.txt (old Modrinth-only failures are retried), time budget 75 s.
+
+5. Offline name "mohammed " -> "Invalid characters in username", no world opens.
+   Fix: localLogin trims; LaunchArgs.safePlayerName for local accounts (A-Z a-z 0-9 _, max 16, else
+   "Player"), logged.
+
+6. Physics Mod 26.3 on MobileGlues: long stretched triangles.
+   Fix: SmartRenderer (ONA Hybrid): Physics Mod jar + MC >= 1.20 + any Vulkan -> Kopper Zink first.
+   Only when the version uses ONA Hybrid. Not tested.
+
+7. Frame generation quality: 3x3 vector median pass (drops wrong block matches) + every pixel picks
+   the best of its block / 4 neighbour vectors / zero (HUD) by colour agreement. Motion textures NEAREST.
+   Shaders validated with glslangValidator (ES 100).
+
+8. Slow world exit: Voxy pack had render distance 55 ("waiting for 4024 chunks to unload").
+   OnaTweaks.capSimulationDistance: with a voxy*.jar, renderDistance <= 16 and simulationDistance <= 8
+   (only lowers, only with "Lighten heavy mods" on). Voxy's own LOD distance untouched.
+
+9. Weak phones: bigcoreaffinity.c leaves out ARM LITTLE cores by CPU part (A53/A55/A510/A520/A35/A7)
+   when bigger cores exist (Snapdragon 680 Redmi Pad SE: A53 at 79% clock was kept before; Exynos
+   9810/9820/9825 A55s). Exynos names from Build.HARDWARE ("exynos9825", "universal9810"), Adreno
+   610 score 28, Mali-G72 MP18 score 40.
+
+10. Log translator: game/launch/LogTranslator.kt (rules -> Arabic / English by phone language) +
+    LogTranslatorDialog, button "Explain log" in the version overview (launcher log + logs/latest.log).
+
+NOT DONE (needs more info / source):
+- Horizon (Rust): black screen after a screenshot / returning to the app, white glitch when breaking
+  blocks. Upstream game/android.rs resumed() calls renderer.recreate_surface(); the gfx crate is not
+  reachable from the container (github blocked here). Need: Horizon log after the black screen (look for
+  "the window came back without a surface") and a screenshot of the white glitch.
+- "Support them / let people upload modpacks and edited shaders to the launcher": needs a server or a
+  shared catalog; user to say who "them" are and where uploads should live.

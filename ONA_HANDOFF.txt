@@ -322,6 +322,24 @@ RUST (HORIZON) HOME + TOUCH CONTROLS (2026-11-05, on main)
   Logs (export + share), Launcher settings, About. EngineSwitch at the bottom goes back to Java.
 - NEXT: ask the user for the Horizon log (Rust page -> Logs) after entering a world; check the
   "touch controls" line and whether draw_touch runs.
+VOXY ZSTD, SHADER FIX REALLY SHIPPED, CONTROLIFY INPUT, CURSEFORGE DEPS, LOG TRANSLATOR (2026-11-05)
+- Branch claude/hala-7rl45s (the session's assigned branch; main is NOT changed). Details of every
+  item: ONA_CHANGES/2026-11-05_voxy-shaders-controlify-logs.txt (new folder, one txt per change set,
+  the user asked for it). CI result: see the end of that file / next entry here.
+- Voxy: liblwjgl_zstd.so built for arm64 in CI (tools/lwjgl-zstd-android/build.sh), copied into the
+  LWJGL natives dir at launch. Voxy pack: render distance capped 16 / simulation 8 (slow exits).
+- Shader 36054: the old GL format fix was NOT in the shipped LWJGL merged jars. Jars patched with javac
+  (3.3.3 Java 8, 3.4.1 Java 17) + format/type normalisation in ona_glfix.c. RULE: LWJGL/*/src edits need
+  the merged jars in assets rebuilt (CI only warns: step "Check LWJGL jars carry the ONA patches").
+- Controlify (26.3) dropped all touch input through the shared SDL: sdl_dlopen_hook.c gives FFM lookups of
+  SDL_SetEventFilter / SDL_PollEvent joystick-only proxies.
+- CurseForgeModFinder: missing requirements from CurseForge when Modrinth has none (DeceasedCraft).
+- Offline names cleaned for Minecraft ("mohammed " broke worlds). Physics Mod 1.20+ -> Kopper Zink first.
+- Frame generation: vector median + per-pixel vector choice. LITTLE cores by CPU part (SD680, Exynos 98xx).
+- Log translator (button "Explain log" in the version overview).
+- OPEN: Horizon black screen after resume / screenshot and white glitch on block break (need Horizon log
+  + screenshot; upstream gfx code not reachable here). Community uploads of modpacks/shaders: ask user.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -358,3 +376,7 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - القاعدة: ممنوع نطفي أو نحذف أي مود، بس نخليه يشتغل.
 - أول شي بالجلسة الجديدة: تأكد إن خطوة بناء PhysX نجحت بالـ CI، وجرّب على الجوال وابعت اللوقات.
 - بعد كل بناء لازم يتحدّث هذا الملف.
+- 2026-11-05 (فرع claude/hala-7rl45s): إصلاح Voxy (مكتبة zstd)، إصلاح الشيدر 36054 (كان مش واصل للتطبيق)،
+  أزرار Fabulously Optimized (مود Controlify)، تنزيل المودات الناقصة من CurseForge، الاسم اللي فيه مسافة،
+  Physics Mod على Zink، تحسين توليد الفريمات، الأنوية الصغيرة (Redmi Pad SE و Exynos)، ومترجم اللوج.
+  التفاصيل بمجلد ONA_CHANGES. لسا: شاشة Rust السودا وبياض الكسر.

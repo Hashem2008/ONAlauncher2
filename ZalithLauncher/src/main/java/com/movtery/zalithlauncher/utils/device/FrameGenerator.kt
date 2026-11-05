@@ -35,7 +35,9 @@ import java.nio.FloatBuffer
  *     luma pictures: a coarse search of +-13 luma pixels (52 screen pixels) in steps of 3,
  *     then a fine +-1 search around the best match, with a small bias to "no motion" so flat
  *     areas and the HUD stay still,
- *  4. the middle picture takes every pixel half way along its vector from both frames and
+ *  4. a 3x3 vector median drops single wrong matches,
+ *  5. the middle picture takes every pixel half way along the best of its own, its neighbours'
+ *     and the zero vector from both frames and
  *     blends them; where the two disagree (things appearing or hidden) it leans on the newer
  *     frame, so there is no ghosting there.
  * The game never waits for any of it; the real frame is shown half a frame later, which is
@@ -53,6 +55,9 @@ internal class FrameGenerator {
     private val lumaFbo = IntArray(2)
     private var motionTex = 0
     private var motionFbo = 0
+    /** The motion field after the outlier pass */
+    private var smoothTex = 0
+    private var smoothFbo = 0
 
     /** Slot of the newest real frame */
     private var newest = 0
@@ -62,6 +67,7 @@ internal class FrameGenerator {
     private var lumaProgram = 0
     private var motionProgram = 0
     private var interpProgram = 0
+    private var smoothProgram = 0
 
     private val quad: FloatBuffer = ByteBuffer.allocateDirect(8 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer().apply {
         put(floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f))
@@ -76,7 +82,8 @@ internal class FrameGenerator {
         lumaProgram = GlPrograms.build(TAG, VERTEX, LUMA)
         motionProgram = GlPrograms.build(TAG, VERTEX, MOTION)
         interpProgram = GlPrograms.build(TAG, VERTEX, INTERPOLATE)
-        val ok = blitProgram != 0 && lumaProgram != 0 && motionProgram != 0 && interpProgram != 0
+        smoothProgram = GlPrograms.build(TAG, VERTEX, SMOOTH)
+        val ok = blitProgram != 0 && lumaProgram != 0 && motionProgram != 0 && interpProgram != 0 && smoothProgram != 0
         if (!ok) Logger.error(TAG, "Frame generation shaders did not build, frames are shown as they come")
         return ok
     }
@@ -93,7 +100,9 @@ internal class FrameGenerator {
             makeTarget(w, h).let { (t, f) -> colorTex[i] = t; colorFbo[i] = f }
             makeTarget(lumaWidth, lumaHeight).let { (t, f) -> lumaTex[i] = t; lumaFbo[i] = f }
         }
-        makeTarget(maxOf(1, lumaWidth / 4), maxOf(1, lumaHeight / 4)).let { (t, f) -> motionTex = t; motionFbo = f }
+        // Vectors are read one by one (no blending of two neighbours' vectors at object edges)
+        makeTarget(maxOf(1, lumaWidth / 4), maxOf(1, lumaHeight / 4), nearest = true).let { (t, f) -> motionTex = t; motionFbo = f }
+        makeTarget(maxOf(1, lumaWidth / 4), maxOf(1, lumaHeight / 4), nearest = true).let { (t, f) -> smoothTex = t; smoothFbo = f }
         framesInSlots = 0
         Logger.info(TAG, "Frame generation ready at ${w}x$h (motion field ${lumaWidth / 4}x${lumaHeight / 4})")
     }
@@ -147,20 +156,31 @@ internal class FrameGenerator {
         GLES20.glUniform2f(GLES20.glGetUniformLocation(motionProgram, "uTexel"), lumaTexelX, lumaTexelY)
         draw(motionProgram)
 
+        // Outliers (a block that matched the wrong place) take the vector their neighbours agree on
+        val motionW = maxOf(1, lumaWidth / 4)
+        val motionH = maxOf(1, lumaHeight / 4)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, smoothFbo)
+        GLES20.glUseProgram(smoothProgram)
+        bindTexture(smoothProgram, "uMotion", 0, motionTex)
+        GLES20.glUniform2f(GLES20.glGetUniformLocation(smoothProgram, "uTexel"), 1f / motionW, 1f / motionH)
+        draw(smoothProgram)
+
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
         GLES20.glViewport(0, 0, viewW, viewH)
         GLES20.glUseProgram(interpProgram)
         bindTexture(interpProgram, "uPrev", 0, colorTex[older])
         bindTexture(interpProgram, "uCur", 1, colorTex[newest])
-        bindTexture(interpProgram, "uMotion", 2, motionTex)
+        bindTexture(interpProgram, "uMotion", 2, smoothTex)
         GLES20.glUniform2f(GLES20.glGetUniformLocation(interpProgram, "uLumaTexel"), lumaTexelX, lumaTexelY)
+        GLES20.glUniform2f(GLES20.glGetUniformLocation(interpProgram, "uMotionTexel"), 1f / motionW, 1f / motionH)
         draw(interpProgram)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
     }
 
     fun release() {
         deleteTargets()
-        listOf(blitProgram, lumaProgram, motionProgram, interpProgram).forEach { if (it != 0) GLES20.glDeleteProgram(it) }
+        listOf(blitProgram, lumaProgram, motionProgram, interpProgram, smoothProgram).forEach { if (it != 0) GLES20.glDeleteProgram(it) }
+        smoothProgram = 0
         blitProgram = 0
         lumaProgram = 0
         motionProgram = 0
@@ -180,13 +200,14 @@ internal class FrameGenerator {
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
     }
 
-    private fun makeTarget(w: Int, h: Int): Pair<Int, Int> {
+    private fun makeTarget(w: Int, h: Int, nearest: Boolean = false): Pair<Int, Int> {
         val ids = IntArray(1)
         GLES20.glGenTextures(1, ids, 0)
         val texture = ids[0]
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        val filter = if (nearest) GLES20.GL_NEAREST else GLES20.GL_LINEAR
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
         GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, w, h, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null)
@@ -201,13 +222,15 @@ internal class FrameGenerator {
     }
 
     private fun deleteTargets() {
-        val textures = (colorTex + lumaTex + intArrayOf(motionTex)).filter { it != 0 }.toIntArray()
-        val fbos = (colorFbo + lumaFbo + intArrayOf(motionFbo)).filter { it != 0 }.toIntArray()
+        val textures = (colorTex + lumaTex + intArrayOf(motionTex, smoothTex)).filter { it != 0 }.toIntArray()
+        val fbos = (colorFbo + lumaFbo + intArrayOf(motionFbo, smoothFbo)).filter { it != 0 }.toIntArray()
         if (textures.isNotEmpty()) GLES20.glDeleteTextures(textures.size, textures, 0)
         if (fbos.isNotEmpty()) GLES20.glDeleteFramebuffers(fbos.size, fbos, 0)
         colorTex.fill(0); colorFbo.fill(0); lumaTex.fill(0); lumaFbo.fill(0)
         motionTex = 0
         motionFbo = 0
+        smoothTex = 0
+        smoothFbo = 0
         framesInSlots = 0
     }
 
@@ -293,19 +316,69 @@ void main() {
 }
 """
 
-        /** The middle picture: half way along the motion from both frames */
+        /**
+         * Vector median of the 3x3 neighbourhood: the vector closest to all the others. Keeps
+         * real motion edges, drops single wrong matches (those made blocks tear and jump).
+         */
+        private const val SMOOTH = HEADER + """
+uniform sampler2D uMotion;
+uniform vec2 uTexel;
+void main() {
+    vec2 v[9];
+    float sure = 0.0;
+    for (int y = 0; y < 3; y++) {
+        for (int x = 0; x < 3; x++) {
+            vec4 m = texture2D(uMotion, vUv + vec2(float(x - 1), float(y - 1)) * uTexel);
+            v[y * 3 + x] = m.rg;
+            sure += m.b;
+        }
+    }
+    vec2 best = v[4];
+    float bestSum = 1e9;
+    for (int i = 0; i < 9; i++) {
+        float sum = 0.0;
+        for (int j = 0; j < 9; j++) sum += length(v[i] - v[j]);
+        if (sum < bestSum) { bestSum = sum; best = v[i]; }
+    }
+    gl_FragColor = vec4(best, min(texture2D(uMotion, vUv).b, sure / 9.0 + 0.1), 1.0);
+}
+"""
+
+        /**
+         * The middle picture: half way along the motion from both frames. Every pixel tries the
+         * vector of its own block, of the four next to it and "no motion" (HUD, still parts) and
+         * keeps the one on which both frames agree best, so block edges no longer show.
+         */
         private const val INTERPOLATE = HEADER + """
 uniform sampler2D uPrev;
 uniform sampler2D uCur;
 uniform sampler2D uMotion;
 uniform vec2 uLumaTexel;
+uniform vec2 uMotionTexel;
+const vec3 W = vec3(0.299, 0.587, 0.114);
+vec2 vectorAt(vec2 uv) {
+    return (texture2D(uMotion, uv).rg - 0.5) * 32.0 * uLumaTexel;
+}
 void main() {
     vec4 m = texture2D(uMotion, vUv);
-    vec2 d = (m.rg - 0.5) * 32.0 * uLumaTexel;
-    vec3 a = texture2D(uPrev, vUv - d * 0.5).rgb;
-    vec3 b = texture2D(uCur, vUv + d * 0.5).rgb;
-    float diff = abs(dot(a - b, vec3(0.299, 0.587, 0.114)));
-    float lean = max(smoothstep(0.06, 0.25, diff), 1.0 - smoothstep(0.2, 0.6, m.b));
+    vec2 cand[6];
+    cand[0] = (m.rg - 0.5) * 32.0 * uLumaTexel;
+    cand[1] = vectorAt(vUv + vec2(uMotionTexel.x, 0.0));
+    cand[2] = vectorAt(vUv - vec2(uMotionTexel.x, 0.0));
+    cand[3] = vectorAt(vUv + vec2(0.0, uMotionTexel.y));
+    cand[4] = vectorAt(vUv - vec2(0.0, uMotionTexel.y));
+    cand[5] = vec2(0.0);
+    vec3 a = texture2D(uPrev, vUv - cand[0] * 0.5).rgb;
+    vec3 b = texture2D(uCur, vUv + cand[0] * 0.5).rgb;
+    float diff = abs(dot(a - b, W));
+    for (int i = 1; i < 6; i++) {
+        vec3 ca = texture2D(uPrev, vUv - cand[i] * 0.5).rgb;
+        vec3 cb = texture2D(uCur, vUv + cand[i] * 0.5).rgb;
+        // the block's own vector wins ties, so flat areas do not flicker between candidates
+        float cd = abs(dot(ca - cb, W)) + 0.004;
+        if (cd < diff) { diff = cd; a = ca; b = cb; }
+    }
+    float lean = max(smoothstep(0.05, 0.22, diff), 1.0 - smoothstep(0.2, 0.6, m.b));
     gl_FragColor = vec4(mix(mix(a, b, 0.5), b, lean), 1.0);
 }
 """

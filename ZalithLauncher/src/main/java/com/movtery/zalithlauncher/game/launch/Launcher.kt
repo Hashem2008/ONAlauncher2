@@ -89,6 +89,27 @@ abstract class Launcher(
             "lwjgl/${lwjglVersionDir(version)}/natives/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
         ).absolutePath
         verifyLwjglNatives(context)
+        addBundledLwjglModules()
+    }
+
+    /**
+     * ONA: LWJGL modules that mods bring without Android natives (Voxy: lwjgl-zstd) find the
+     * arm64 build that comes with the launcher. LWJGL looks in org.lwjgl.librarypath first.
+     */
+    private fun addBundledLwjglModules() {
+        listOf("liblwjgl_zstd.so").forEach { name ->
+            runCatching {
+                val source = File(PathManager.DIR_NATIVE_LIB, name)
+                if (!source.isFile) return@forEach
+                val target = File(lwjglNativesDir, name)
+                if (!target.isFile || target.length() != source.length()) {
+                    source.copyTo(target, overwrite = true)
+                }
+                LoggerBridge.appendInfo("LWJGL: $name ready for mods that bring desktop-only natives")
+            }.onFailure { e ->
+                LoggerBridge.appendInfo("LWJGL: could not add $name: ${e.getMessageOrToString()}")
+            }
+        }
     }
 
     private suspend fun verifyLwjglNatives(context: Context) {

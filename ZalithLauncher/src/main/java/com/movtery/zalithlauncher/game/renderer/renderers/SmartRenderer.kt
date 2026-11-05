@@ -81,7 +81,13 @@ object SmartRenderer : RendererInterface {
         } else emptyList()
         if (ownShaders.isNotEmpty()) Logger.info(TAG, "Mods with their own shaders: $ownShaders -> Krypton before GL4ES")
 
+        // Physics Mod (1.20+) draws its debris with instanced UBO meshes that come out as long
+        // stretched triangles on the GLES translators; desktop GL through Mesa draws them right
+        val physicsOnZink = situation.physicsMod && !mc.isLowerVer("1.20") && anyVulkan
+        if (physicsOnZink) Logger.info(TAG, "Physics Mod on $mc -> Kopper Zink first")
+
         val candidates = buildList {
+            if (physicsOnZink) add(KopperZinkRenderer)
             when {
                 mc.isLowerVer("1.17") && ownShaders.isNotEmpty() -> {
                     add(NGGL4ESRenderer)
@@ -134,7 +140,7 @@ object SmartRenderer : RendererInterface {
             // Everything crashed once: start over instead of being stuck
             clearCrashes(version)
         }
-        lastReason = "${version.getVersionName()} ($mc, shaders=$shaders, sodium=${situation.sodiumLike}, mods=${situation.modCount}, own-shader mods=${ownShaders.size}, vulkan=$goodVulkan, skipped=${crashed.size}) -> ${chosen.getRendererName()}"
+        lastReason = "${version.getVersionName()} ($mc, shaders=$shaders, sodium=${situation.sodiumLike}, mods=${situation.modCount}, physics=${situation.physicsMod}, own-shader mods=${ownShaders.size}, vulkan=$goodVulkan, skipped=${crashed.size}) -> ${chosen.getRendererName()}"
         Logger.info(TAG, lastReason)
         return chosen.getUniqueIdentifier()
     }
@@ -144,7 +150,8 @@ object SmartRenderer : RendererInterface {
         val mc: String?,
         val shaders: Boolean,
         val sodiumLike: Boolean,
-        val modCount: Int
+        val modCount: Int,
+        val physicsMod: Boolean = false
     )
 
     fun situation(version: Version): Situation {
@@ -157,7 +164,8 @@ object SmartRenderer : RendererInterface {
             mc = version.getVersionInfo()?.minecraftVersion,
             shaders = shaderMod || shaderPacks && sodiumLike,
             sodiumLike = sodiumLike,
-            modCount = modNames.size
+            modCount = modNames.size,
+            physicsMod = modNames.any { it.contains("physics-mod") || it.contains("physicsmod") }
         )
     }
 

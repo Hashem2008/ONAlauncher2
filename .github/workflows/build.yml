@@ -110,6 +110,22 @@ jobs:
           bash tools/physx4-android/build.sh "$RUNNER_TEMP/physx4" \
             ZalithLauncher/src/main/jniLibs/arm64-v8a/libPhysXJniBindings_64.so
 
+      # ONA: LWJGL's zstd binding for arm64. Voxy bundles lwjgl-zstd with desktop natives only, so
+      # its LOD storage failed on phones ("Failed to locate library: liblwjgl_zstd.so").
+      - name: Cache LWJGL zstd Android port
+        id: zstd-cache
+        uses: actions/cache@v4
+        with:
+          path: ZalithLauncher/src/main/jniLibs/arm64-v8a/liblwjgl_zstd.so
+          key: lwjgl-zstd-android-${{ hashFiles('tools/lwjgl-zstd-android/build.sh') }}
+
+      - name: Build LWJGL zstd binding (liblwjgl_zstd.so, arm64)
+        if: steps.zstd-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        run: |
+          bash tools/lwjgl-zstd-android/build.sh "$RUNNER_TEMP/lwjgl-zstd" \
+            ZalithLauncher/src/main/jniLibs/arm64-v8a/liblwjgl_zstd.so
+
       # ONA: the Horizon (Rust) engine, built once by horizon.yml and published as a release of
       # this repository. Without it the APK still builds; the Rust switch then says so.
       - name: Add Horizon (Rust) engine
@@ -132,6 +148,18 @@ jobs:
           else
             echo "::warning::Horizon engine release $tag not found; this APK has no Rust engine"
           fi
+
+      # ONA: LWJGL/*/src changes only reach the game when the merged jars in assets are rebuilt
+      - name: Check LWJGL jars carry the ONA patches
+        run: |
+          for v in 3.3.3 3.4.1; do
+            jar="ZalithLauncher/src/main/assets/app_runtime/lwjgl/$v/lwjgl-$v-merged-modules.jar"
+            if unzip -p "$jar" org/lwjgl/opengl/PojavRendererInit.class | grep -a -q wrapProvider; then
+              echo "LWJGL $v: GL format fix inside"
+            else
+              echo "::warning::LWJGL $v merged jar has no PojavRendererInit.wrapProvider (rebuild the jar)"
+            fi
+          done
 
       - name: Build APK for ${{ matrix.arch }}
         run: |

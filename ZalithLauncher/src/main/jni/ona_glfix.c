@@ -86,6 +86,66 @@ static const FormatSwap SWAPS[] = {
     {0x8D71 /* RGB32UI */,      0x8D70 /* RGBA32UI */,     GL_RGBA_INTEGER, 0x1405},
 };
 
+// ONA: OpenGL ES only allocates a sized format with its own format / type pair. Shader pack
+// loaders allocate empty render targets with desktop leftovers (Iris: RGBA16F or R11F_G11F_B10F with
+// GL_UNSIGNED_BYTE), which ES rejects, so the texture stays empty and the framebuffer is
+// incomplete (36054). For empty allocations the pair is set to one ES accepts.
+typedef struct { GLenum internal, format, type; } FormatPair;
+
+static const FormatPair ES_PAIRS[] = {
+    {0x8058 /* RGBA8 */,          GL_RGBA, GL_UNSIGNED_BYTE},
+    {0x8051 /* RGB8 */,           0x1907 /* RGB */, GL_UNSIGNED_BYTE},
+    {0x8229 /* R8 */,             GL_RED, GL_UNSIGNED_BYTE},
+    {0x822B /* RG8 */,            GL_RG, GL_UNSIGNED_BYTE},
+    {0x8C43 /* SRGB8_ALPHA8 */,   GL_RGBA, GL_UNSIGNED_BYTE},
+    {0x8D62 /* RGB565 */,         0x1907, GL_UNSIGNED_BYTE},
+    {0x8056 /* RGBA4 */,          GL_RGBA, GL_UNSIGNED_BYTE},
+    {0x8057 /* RGB5_A1 */,        GL_RGBA, GL_UNSIGNED_BYTE},
+    {0x8059 /* RGB10_A2 */,       GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV},
+    {0x906F /* RGB10_A2UI */,     GL_RGBA_INTEGER, GL_UNSIGNED_INT_2_10_10_10_REV},
+    {0x881A /* RGBA16F */,        GL_RGBA, GL_FLOAT},
+    {0x822D /* R16F */,           GL_RED, GL_FLOAT},
+    {0x822F /* RG16F */,          GL_RG, GL_FLOAT},
+    {0x8814 /* RGBA32F */,        GL_RGBA, GL_FLOAT},
+    {0x822E /* R32F */,           GL_RED, GL_FLOAT},
+    {0x8230 /* RG32F */,          GL_RG, GL_FLOAT},
+    {0x8C3A /* R11F_G11F_B10F */, 0x1907, GL_FLOAT},
+    {0x8231 /* R8I */,   0x8D94 /* RED_INTEGER */, 0x1400}, {0x8232 /* R8UI */,   0x8D94, 0x1401},
+    {0x8233 /* R16I */,  0x8D94, 0x1402},                   {0x8234 /* R16UI */,  0x8D94, 0x1403},
+    {0x8235 /* R32I */,  0x8D94, 0x1404},                   {0x8236 /* R32UI */,  0x8D94, 0x1405},
+    {0x8237 /* RG8I */,  0x8228 /* RG_INTEGER */, 0x1400},  {0x8238 /* RG8UI */,  0x8228, 0x1401},
+    {0x8239 /* RG16I */, 0x8228, 0x1402},                   {0x823A /* RG16UI */, 0x8228, 0x1403},
+    {0x823B /* RG32I */, 0x8228, 0x1404},                   {0x823C /* RG32UI */, 0x8228, 0x1405},
+    {0x8D8E /* RGBA8I */,  GL_RGBA_INTEGER, 0x1400},        {0x8D7C /* RGBA8UI */,  GL_RGBA_INTEGER, 0x1401},
+    {0x8D88 /* RGBA16I */, GL_RGBA_INTEGER, 0x1402},        {0x8D76 /* RGBA16UI */, GL_RGBA_INTEGER, 0x1403},
+    {0x8D82 /* RGBA32I */, GL_RGBA_INTEGER, 0x1404},        {0x8D70 /* RGBA32UI */, GL_RGBA_INTEGER, 0x1405},
+    {0x81A5 /* DEPTH_COMPONENT16 */,  0x1902 /* DEPTH_COMPONENT */, 0x1405 /* UNSIGNED_INT */},
+    {0x81A6 /* DEPTH_COMPONENT24 */,  0x1902, 0x1405},
+    {0x8CAC /* DEPTH_COMPONENT32F */, 0x1902, GL_FLOAT},
+    {0x88F0 /* DEPTH24_STENCIL8 */,   0x84F9 /* DEPTH_STENCIL */, 0x84FA /* UNSIGNED_INT_24_8 */},
+    {0x8CAD /* DEPTH32F_STENCIL8 */,  0x84F9, 0x8DAD /* FLOAT_32_UNSIGNED_INT_24_8_REV */},
+};
+
+static const FormatPair* find_pair(GLenum internalformat) {
+    for (size_t i = 0; i < sizeof(ES_PAIRS) / sizeof(ES_PAIRS[0]); i++) {
+        if (ES_PAIRS[i].internal == internalformat) return &ES_PAIRS[i];
+    }
+    return NULL;
+}
+
+#define GL_PIXEL_UNPACK_BUFFER_BINDING 0x88EF
+
+/** pixels == NULL is an empty allocation only while no unpack buffer is bound */
+static int is_empty_allocation(const void* pixels) {
+    if (pixels != NULL) return 0;
+    if (real_GetIntegerv == NULL) return 1;
+    GLint unpack = 0;
+    real_GetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &unpack);
+    return unpack == 0;
+}
+
+static int pairs_logged = 0;
+
 static const FormatSwap* find_swap(GLenum internalformat) {
     for (size_t i = 0; i < sizeof(SWAPS) / sizeof(SWAPS[0]); i++) {
         if (SWAPS[i].from == internalformat) return &SWAPS[i];
@@ -127,15 +187,30 @@ static void track_bound_texture(GLenum asked, GLenum used) {
 
 static void ona_TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
                            GLint border, GLenum format, GLenum type, const void* pixels) {
-    const FormatSwap* swap = pixels == NULL ? find_swap((GLenum) internalformat) : NULL;
+    const int empty = is_empty_allocation(pixels);
+    const FormatSwap* swap = empty ? find_swap((GLenum) internalformat) : NULL;
+    GLenum used = swap != NULL ? swap->to : (GLenum) internalformat;
     if (swap != NULL) {
         log_swap("glTexImage2D", (GLenum) internalformat, swap->to);
-        real_TexImage2D(target, level, (GLint) swap->to, width, height, border, swap->format, swap->type, NULL);
-    } else {
-        real_TexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+        format = swap->format;
+        type = swap->type;
     }
+    if (empty) {
+        const FormatPair* pair = find_pair(used);
+        if (pair != NULL && (pair->format != format || pair->type != type)) {
+            if (pairs_logged < 16) {
+                pairs_logged++;
+                fprintf(stderr, "[ONA GLFix] glTexImage2D: format 0x%X allocated with 0x%X/0x%X instead of 0x%X/0x%X\n",
+                        used, pair->format, pair->type, format, type);
+                fflush(stderr);
+            }
+            format = pair->format;
+            type = pair->type;
+        }
+    }
+    real_TexImage2D(target, level, (GLint) used, width, height, border, format, type, empty ? NULL : pixels);
     if (level == 0 && target == 0x0DE1 /* GL_TEXTURE_2D */) {
-        track_bound_texture((GLenum) internalformat, swap != NULL ? swap->to : (GLenum) internalformat);
+        track_bound_texture((GLenum) internalformat, used);
     }
 }
 

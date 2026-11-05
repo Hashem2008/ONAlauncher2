@@ -39,7 +39,7 @@ import kotlin.time.Duration.Companion.minutes
 /**
  * ONA: installs what the mods of a version need without asking. Reads the real jar metadata
  * (fabric.mod.json / mods.toml / neoforge.mods.toml, nested jars included), downloads every
- * missing required mod from Modrinth and swaps builds made for another game or loader version.
+ * missing required mod from Modrinth (CurseForge when Modrinth has none) and swaps builds made for another game or loader version.
  * It never disables a mod, whatever it cannot fix is left for the user to decide.
  */
 object ModAutoResolver {
@@ -82,7 +82,14 @@ object ModAutoResolver {
             for (problem in todo) {
                 if (System.currentTimeMillis() > deadline) break
                 onProgress(if (problem.kind == ModCompat.PROBLEM_MISSING) problem.requiredId else problem.modName)
-                val result = ModCompat.fix(problem, modsDir, environment, false)
+                var result = ModCompat.fix(problem, modsDir, environment, false)
+                // ONA: requirements that only live on CurseForge (DeceasedCraft and other Forge packs)
+                if (result == ModCompat.FIX_FAILED && problem.kind == ModCompat.PROBLEM_MISSING &&
+                    System.currentTimeMillis() < deadline &&
+                    CurseForgeModFinder.install(problem.requiredId, modsDir, environment) != null
+                ) {
+                    result = ModCompat.FIX_DOWNLOADED
+                }
                 if (result != ModCompat.FIX_FAILED) fixedThisRound++ else failedNow.add(problemKey(problem))
             }
             fixed += fixedThisRound
@@ -96,11 +103,12 @@ object ModAutoResolver {
         return Result(fixed, remaining)
     }
 
-    private const val UNFIXABLE_FILE = "ona_unfixable_mods.txt"
+    // v2: CurseForge became a source, problems that failed with Modrinth alone are tried again
+    private const val UNFIXABLE_FILE = "ona_unfixable_mods_v2.txt"
     /** Do not retry a failed fix for this long */
     private const val RETRY_AFTER_MS = 3L * 24 * 60 * 60 * 1000
     /** Never hold the launch longer than this */
-    private const val TIME_BUDGET_MS = 45_000L
+    private const val TIME_BUDGET_MS = 75_000L
 
     private fun problemKey(problem: ModCompat.Problem): String =
         "${problem.kind}|${problem.file?.name}|${problem.requiredId}"

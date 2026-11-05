@@ -336,7 +336,9 @@ fun accountErrorText(th: Throwable): AndroidStringText = when (th) {
 /**
  * 离线账号登陆
  */
-fun localLogin(userName: String, userUUID: String?) {
+fun localLogin(rawUserName: String, userUUID: String?) {
+    // ONA: a space typed at the end of the name made every world refuse the player
+    val userName = rawUserName.trim()
     val account = if (userUUID != null) {
         Account(
             username = userName,
