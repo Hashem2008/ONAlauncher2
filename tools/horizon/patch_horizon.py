@@ -65,6 +65,58 @@ patch(install,
       '    super::jni::platform(op, "").filter(|value| !value.is_empty())\n'
       '}')
 
+# ONA local account: the game plays offline under the name ONA hands over (platform
+# "player_name"), instead of the name Horizon made up; a Microsoft sign-in is not asked for then.
+patch(install,
+      '    if account::client_id().is_some() {\n'
+      '        let (session, _offline) =\n',
+      '    let ona_name = ona_player_name();\n'
+      '    if ona_name.is_none() && account::client_id().is_some() {\n'
+      '        let (session, _offline) =\n')
+
+patch(install,
+      '            args.push("--session-file".into());\n'
+      '            args.push(file.display().to_string());\n'
+      '        }\n'
+      '    }\n'
+      '    Ok(args)\n',
+      '            args.push("--session-file".into());\n'
+      '            args.push(file.display().to_string());\n'
+      '        }\n'
+      '    }\n'
+      '    if let Some(name) = ona_name {\n'
+      '        args.push("--name".into());\n'
+      '        args.push(name);\n'
+      '    }\n'
+      '    Ok(args)\n')
+
+patch(install,
+      '/// ONA: a non-empty answer of the activity\'s platform call.\n',
+      '/// ONA: the local account ONA Launcher plays with, when it is a valid player name.\n'
+      'pub fn ona_player_name() -> Option<String> {\n'
+      '    ona_platform("player_name").filter(|name| {\n'
+      '        (3..=16).contains(&name.len())\n'
+      '            && name.chars().all(|c| c.is_ascii_alphanumeric() || c == \'_\')\n'
+      '    })\n'
+      '}\n'
+      '\n'
+      '/// ONA: a non-empty answer of the activity\'s platform call.\n')
+
+patch("crates/horizon-client/src/android/launcher.rs",
+      '                ui.row(\n'
+      '                    row,\n'
+      '                    i,\n'
+      '                    "Microsoft account",\n'
+      '                    "Not signed in: the game plays offline.",\n',
+      '                let ona_offline = install::ona_player_name()\n'
+      '                    .map(|name| format!("ONA local account: the game plays offline as {name}."))\n'
+      '                    .unwrap_or_else(|| "Not signed in: the game plays offline.".to_owned());\n'
+      '                ui.row(\n'
+      '                    row,\n'
+      '                    i,\n'
+      '                    "Microsoft account",\n'
+      '                    &ona_offline,\n')
+
 patch("android/tools/ndk-clang",
       'resource=$(printf "%s\\n" "$llvm"/lib/clang/* | sort -V | tail -n 1)',
       'resource=$(ls -d "$llvm"/lib/clang/* "$llvm"/lib64/clang/* 2>/dev/null | sort -V | tail -n 1)')

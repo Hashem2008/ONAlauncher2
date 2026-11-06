@@ -216,6 +216,9 @@ public class HorizonActivity extends NativeActivity {
                 return getIntent().getStringExtra("jre_dir");
             case "minecraft_dir":
                 return getIntent().getStringExtra("minecraft_dir");
+            // ONA: the name of ONA's local (offline) account, when that is the account in use
+            case "player_name":
+                return getIntent().getStringExtra("player_name");
             case "model":
                 return Build.MANUFACTURER + " " + Build.MODEL + " (Android " + Build.VERSION.RELEASE + ")";
             default:

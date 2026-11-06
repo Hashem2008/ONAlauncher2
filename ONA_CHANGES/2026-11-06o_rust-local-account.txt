@@ -1,0 +1,18 @@
+2026-11-06 (o) - local (offline) account for Rust (Horizon)
+
+How Horizon names the player: --name, else a signed-in Microsoft session (--session-file), else a
+made-up "PlayerNNNNN". ONA builds Horizon with an Azure client id, so without a Microsoft owner in
+Horizon, Play was refused.
+
+- HorizonEngine.offlineName(): when ONA's current account is a LOCAL one, its name (cleaned to
+  A-Z a-z 0-9 _, 3..16) goes to Horizon as intent extra "player_name".
+- HorizonActivity.platform("player_name") returns it to the native side.
+- tools/horizon/patch_horizon.py (3 new patches, install.rs + launcher.rs):
+  - install::ona_player_name() (validated name from the platform call)
+  - game_args(): with an ONA local name, no Microsoft session is asked for and "--name <name>" is
+    passed; without one, Horizon works as before (Microsoft sign-in inside Horizon).
+  - Horizon's Play page shows "ONA local account: the game plays offline as <name>."
+- Game files still come from ONA's .minecraft (26.3 installed in ONA) or a Microsoft owner's download.
+- Needs a Horizon rebuild: horizon.yml (workflow_dispatch) republishes the release horizon-a69321a00de0,
+  then build.yml puts it in the arm64 APK. Skins of local accounts are not passed: the game at this
+  Horizon commit does not read HORIZON_OFFLINE_SKIN.

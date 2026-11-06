@@ -24,6 +24,8 @@ import android.os.Build
 import com.lukagejak.horizon.HorizonActivity
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.components.jre.Jre
+import com.movtery.zalithlauncher.game.account.AccountsManager
+import com.movtery.zalithlauncher.game.account.isLocalAccount
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.path.getGameHome
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -59,6 +61,17 @@ object HorizonEngine {
     private fun hasVulkan11(context: Context): Boolean =
         context.packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, 0x401000)
 
+    /**
+     * The current ONA account's name when it is a local (offline) one, cleaned to what the game
+     * accepts (3 to 16 letters, digits or _), else null.
+     */
+    fun offlineName(): String? {
+        val account = AccountsManager.currentAccountFlow.value ?: return null
+        if (!account.isLocalAccount()) return null
+        val name = account.username.trim().replace(Regex("[^A-Za-z0-9_]"), "_").take(16)
+        return name.takeIf { it.length >= 3 }
+    }
+
     /** Opens Horizon. Returns the reason when it cannot start, else null. */
     fun launch(context: Context): State? {
         val state = state(context)
@@ -72,6 +85,9 @@ object HorizonEngine {
         runCatching { getGameHome() }.getOrNull()
             ?.takeIf { File(it).isDirectory }
             ?.let { intent.putExtra("minecraft_dir", it) }
+        // ONA local account: Horizon plays offline under its name (a Microsoft account signs in
+        // inside Horizon itself)
+        offlineName()?.let { intent.putExtra("player_name", it) }
         // The Rust page's touch settings (controls on, size, opacity...) into Horizon's horizon.txt
         HorizonSettings.applyFromLauncher(context)
         if (context !is android.app.Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
