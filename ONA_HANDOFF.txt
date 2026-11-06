@@ -414,6 +414,16 @@ KRYO SILVER + AUTO SETTINGS + SPEED MOD (2026-11-06 k+l)
   ONA_CHANGES/2026-11-06k_kryo-silver.txt, 2026-11-06l_auto-settings.txt.
 - CI: full build run 42214578520 (8973650) SUCCESS, all three APKs updated. Not device-tested.
 
+SPEED MODS FOR EVERY MODDED VERSION + GAME SETTINGS v2 (2026-11-06 m)
+- SpeedModInstaller now also fills empty mods folders: Sodium / Embeddium + FerriteCore + Lithium
+  (Lithium only <= 25 own mods). Crash-safe: ONA-added mod named in a loading crash is deleted and
+  blocked (VMActivity -> SpeedModInstaller.onCrash); player-removed ones are not re-added. Toast advice
+  when no optimiser exists (Forge 1.21+). BestGameSettings list v2 (every file set once more).
+  ONA_CHANGES/2026-11-06m_speed-mods-for-all.txt.
+- CI: full build run 42220509537 (dd7293b) SUCCESS, all three APKs. Not device-tested.
+  Next: user tests on Redmi Pad SE (Forge 1.21 -> should get FerriteCore + advice toast; Fabric/NeoForge
+  -> Sodium + Lithium + FerriteCore) and sends latest_game.log.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -467,3 +477,5 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (ط): دقائق GitHub Actions خلصت، البناء موقف. نصيحة النسخة الصح جوا اللانشر (مش مبنية لسا).
 - 2026-11-06 (ي): اتفاقيات الترحيب صارت باسم ONA STUDIO. المستخدم قرر يخلي المستودع عام.
 - 2026-11-06 (ك+ل): أنوية Kryo الضعيفة، إعدادات تلقائية حسب الجهاز، ومود تسريع بينزل لحاله.
+- 2026-11-06 (م): مودات التسريع (Sodium/Embeddium و FerriteCore و Lithium) بتنضاف لكل نسخة مودات حتى الفاضية،
+  وبتنشال لحالها إذا عملت كراش. إعدادات اللعبة v2. بيلد الثلاث نسخ نجح.
