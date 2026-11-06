@@ -405,7 +405,8 @@ CI MINUTES USED UP + APK ADVICE (2026-11-06 i)
 ONA STUDIO AGREEMENTS + PUBLIC REPO (2026-11-06 j)
 - Welcome screen documents rebranded and adapted to ONA STUDIO (assets/legal, version 2026/11/06).
   ONA_CHANGES/2026-11-06j_ona-studio-agreements.txt.
-- User chose to make the repo public (to get Actions minutes back); they must flip it in Settings.
+- Repo is PUBLIC now (user did it). Full build run 42206135005 (2c59b63) SUCCESS, 3 per-CPU APKs + guide
+  in release ona-claude-hala-7rl45s. Push = arm64 only; Run workflow = all three.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new

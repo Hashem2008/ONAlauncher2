@@ -17,3 +17,9 @@ The user should read them once; they are not legal advice.
 Repo visibility: the user decided to make Hashem2008/ONAlauncher2 PUBLIC (unlimited Actions minutes). No
 tool here can change visibility; the user does it in the repo settings. Checked before: no API keys in the
 repo (keys come from secrets / local files); the committed keystores are upstream Zalith's.
+
+CI RESULT
+- Repo is PUBLIC (checked: visibility public). Manual full build (workflow_dispatch) run 42206135005 at
+  2c59b63: arm / arm64 / x86_64 SUCCESS. Release ona-claude-hala-7rl45s now has only the three per-CPU
+  files (arm64 246 MB, armeabi-v7a 214 MB, x86_64 231 MB) and the APK guide as its notes; old names gone.
+  Includes everything that waited: APK guide, APK advice dialog, ONA STUDIO agreements. Not device-tested.
