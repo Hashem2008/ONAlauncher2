@@ -272,4 +272,6 @@
     <string name="ona_frame_gen_next_launch">Frame generation starts with the next launch (the upscaler is off right now)</string>
     <string name="ona_boost_threads_title">Boost game threads</string>
     <string name="ona_boost_threads_summary">The render and world threads get priority and Android raises the CPU clocks for them when frames take too long. More FPS without frame generation</string>
+    <string name="ona_light_launcher_title">Light launcher</string>
+    <string name="ona_light_launcher_summary">No endless decorative animations, festival effects or background blur: the launcher uses less CPU, GPU and battery</string>
 </resources>

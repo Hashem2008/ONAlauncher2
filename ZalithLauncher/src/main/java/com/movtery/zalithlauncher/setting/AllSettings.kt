@@ -529,6 +529,9 @@ object AllSettings : SettingsRegistry() {
      */
     val launcherFestivalEffects = boolSetting("launcherFestivalEffects", true)
 
+    /** ONA: light launcher - no endless decorative animations, effects or background blur */
+    val lightLauncher = boolSetting("onaLightLauncher", true)
+
     /**
      * 启用页面切换动画
      */

@@ -272,4 +272,6 @@
     <string name="ona_frame_gen_next_launch">توليد الفريمات بيشتغل من التشغيل الجاي (الأبسكيلر مطفي هلأ)</string>
     <string name="ona_boost_threads_title">تعزيز خيوط اللعبة</string>
     <string name="ona_boost_threads_summary">خيط الرسم وخيط العالم بياخذوا أولوية، وأندرويد بيرفع سرعة المعالج إلهم لما الفريم يتأخر. فريمات أكثر بدون توليد الفريمات</string>
+    <string name="ona_light_launcher_title">لانشر خفيف</string>
+    <string name="ona_light_launcher_summary">بدون حركات زينة متكررة وتأثيرات المناسبات وتغبيش الخلفية: اللانشر بياكل أقل من المعالج وكرت الشاشة والبطارية</string>
 </resources>

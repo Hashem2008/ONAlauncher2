@@ -210,6 +210,50 @@ object OnaTweaks {
      * entities, crops and machines tick, not how far you see) is lowered for them, never raised,
      * and only on versions that have the option (1.18+).
      */
+    /**
+     * How many cores the game really runs on: the same choice bigcoreaffinity.c makes (LITTLE ARM
+     * cores out when at least 4 bigger ones stay, else the clock rule, never fewer than 4). Java
+     * sizes its GC and worker pools from this, so it must not count cores the game cannot use.
+     */
+    fun gameCoreCount(bigCoreAffinity: Boolean): Int {
+        val all = Runtime.getRuntime().availableProcessors()
+        if (!bigCoreAffinity) return all
+        return runCatching {
+            val freqs = (0 until all).map { core ->
+                runCatching {
+                    File("/sys/devices/system/cpu/cpu$core/cpufreq/cpuinfo_max_freq").readText().trim().toLong()
+                }.getOrDefault(0L)
+            }
+            val online = freqs.count { it > 0 }
+            val max = freqs.maxOrNull() ?: 0L
+            if (online == 0 || max == 0L) return all
+            val littleLimit = max / 10 * 7
+            val little = BooleanArray(all)
+            var current = -1
+            var implementer = 0
+            var partsKnown = false
+            File("/proc/cpuinfo").readLines().forEach { line ->
+                val value = line.substringAfter(':', "").trim()
+                when {
+                    line.startsWith("processor") -> { current = value.toIntOrNull() ?: -1; implementer = 0 }
+                    line.startsWith("CPU implementer") -> implementer = value.removePrefix("0x").toIntOrNull(16) ?: 0
+                    line.startsWith("CPU part") && current in 0 until all -> {
+                        val part = value.removePrefix("0x").toIntOrNull(16) ?: 0
+                        little[current] = implementer == 0x41 && part in setOf(0xc07, 0xd04, 0xd03, 0xd05, 0xd46, 0xd80)
+                        partsKnown = true
+                    }
+                }
+            }
+            val anyBig = partsKnown && freqs.indices.any { freqs[it] > 0 && !little[it] }
+            fun count(useParts: Boolean) = freqs.indices.count { i ->
+                freqs[i] > 0 && !(useParts && little[i]) && freqs[i] >= littleLimit
+            }
+            var big = count(anyBig)
+            if (big < 4 && anyBig) big = count(false)
+            if (big < 4 || big >= online) online else big
+        }.getOrDefault(all).coerceAtLeast(1)
+    }
+
     fun capSimulationDistance(gameDir: File) {
         val jars = File(gameDir, "mods").listFiles { file -> file.name.endsWith(".jar") }.orEmpty()
         val mods = jars.size

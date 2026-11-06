@@ -826,7 +826,8 @@ fun Background(
     modifier: Modifier = Modifier,
     allowVideo: Boolean = true
 ) {
-    val blur = AllSettings.backgroundBlur.state
+    // ONA: light launcher draws the background without blur (blur redraws every frame)
+    val blur = if (AllSettings.lightLauncher.state) 0 else AllSettings.backgroundBlur.state
     val opacity = AllSettings.launcherBackgroundOpacity.state
     val backgroundMode = AllSettings.backgroundBlurType.state == BackgroundBlur.Background
     val backgroundBlurEnabled = backgroundMode && blur > 0 && opacity < 100

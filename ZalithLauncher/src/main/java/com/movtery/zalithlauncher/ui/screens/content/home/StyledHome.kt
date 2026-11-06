@@ -503,12 +503,14 @@ private fun XmbHome(data: HomeData, actions: HomeActions) {
     val scheme = MaterialTheme.colorScheme
     var category by remember { mutableIntStateOf(2) }
     val wave = rememberInfiniteTransition(label = "xmbWave")
-    val phase by wave.animateFloat(
+    val wavePhase by wave.animateFloat(
         initialValue = 0f,
         targetValue = (2 * PI).toFloat(),
         animationSpec = infiniteRepeatable(tween(14_000, easing = LinearEasing), RepeatMode.Restart),
         label = "xmbPhase",
     )
+    // ONA: light launcher keeps the waves still (an endless animation redraws the screen all the time)
+    val phase = if (com.movtery.zalithlauncher.setting.AllSettings.lightLauncher.state) 0f else wavePhase
     val waveColor = scheme.primary
     Box(
         modifier = Modifier
@@ -1012,12 +1014,13 @@ private fun MaterialChip(entry: MenuEntry) {
 private fun RetroHome(data: HomeData, actions: HomeActions) {
     val scheme = MaterialTheme.colorScheme
     val pulse = rememberInfiniteTransition(label = "splash")
-    val scale by pulse.animateFloat(
+    val pulseScale by pulse.animateFloat(
         initialValue = 0.94f,
         targetValue = 1.06f,
         animationSpec = infiniteRepeatable(tween(450), RepeatMode.Reverse),
         label = "splashScale",
     )
+    val scale = if (com.movtery.zalithlauncher.setting.AllSettings.lightLauncher.state) 1f else pulseScale
     val face = when (data.style) {
         LauncherStyle.NETHER -> Color(0xFF6B2A23)
         LauncherStyle.THE_END -> Color(0xFF4A3B66)

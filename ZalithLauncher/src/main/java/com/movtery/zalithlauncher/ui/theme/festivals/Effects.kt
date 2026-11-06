@@ -49,7 +49,7 @@ fun FestivalEffects(
     festivals: List<Festival>,
     modifier: Modifier = Modifier,
 ) {
-    val enableEffects = AllSettings.launcherFestivalEffects.state
+    val enableEffects = AllSettings.launcherFestivalEffects.state && !AllSettings.lightLauncher.state
     val effectTypes = remember(festivals) { FestivalEffectType.of(festivals) }
     if (!enableEffects || effectTypes.isEmpty()) return
 

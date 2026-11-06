@@ -105,18 +105,32 @@ void bigcore_set_affinity() {
         if(core_freqs[i] != 0 && !little_part[i]) any_big_part = 1;
     }
     cpu_set_t bigcore_affinity_set;
-    CPU_ZERO(&bigcore_affinity_set);
     int big_core_count = 0;
     int online_count = 0;
-    for(long i = 0; i < corecnt; i++) {
-        if(core_freqs[i] == 0) continue;
-        online_count++;
-        // a known LITTLE design is left out whatever its clock, when bigger cores exist
-        if(parts_known && any_big_part && little_part[i]) continue;
-        if(core_freqs[i] >= little_limit) {
-            CPU_SET(i, &bigcore_affinity_set);
-            big_core_count++;
+    // ONA: the game needs at least 4 cores (render, world, chunk builders, GC). Chips with only 1-2
+    // big cores (MediaTek Helio G85 / G88 / G96 / G99: 2x A75/A76 + 6x A55) must keep their LITTLE
+    // cores, so the LITTLE-part rule is dropped there and only the clock rule is used.
+    for(int pass = 0; pass < 2; pass++) {
+        int use_parts = pass == 0 && parts_known && any_big_part;
+        CPU_ZERO(&bigcore_affinity_set);
+        big_core_count = 0;
+        online_count = 0;
+        for(long i = 0; i < corecnt; i++) {
+            if(core_freqs[i] == 0) continue;
+            online_count++;
+            // a known LITTLE design is left out whatever its clock, when bigger cores exist
+            if(use_parts && little_part[i]) continue;
+            if(core_freqs[i] >= little_limit) {
+                CPU_SET(i, &bigcore_affinity_set);
+                big_core_count++;
+            }
         }
+        if(big_core_count >= 4 || !use_parts) break;
+        printf("bigcore: only %d big cores, keeping the LITTLE cores too\n", big_core_count);
+    }
+    if(big_core_count < 4 && big_core_count < online_count) {
+        printf("bigcore: %d fast cores are too few for the game, keeping default affinity\n", big_core_count);
+        return;
     }
     if(big_core_count == 0 || big_core_count == online_count) {
         printf("bigcore: no LITTLE cores (%d fast cores), keeping default affinity\n", online_count);

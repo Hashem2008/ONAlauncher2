@@ -387,7 +387,8 @@ abstract class Launcher(
         args.add("-Dorg.lwjgl.system.allocator=system")
 
         // Some phones are not using the right number of cores, fix that
-        args.add("-XX:ActiveProcessorCount=${java.lang.Runtime.getRuntime().availableProcessors()}")
+        // ONA: the cores the game is pinned to (big cores), so GC and worker pools fit them
+        args.add("-XX:ActiveProcessorCount=${OnaTweaks.gameCoreCount(OnaTweaks.shouldUseBigCoreAffinity(GlobalContext))}")
     }
 
     protected fun MutableList<String>.purgeArg(argStart: String) {

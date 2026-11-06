@@ -1,0 +1,17 @@
+CHANGE SET 2026-11-06 (f) (branch claude/hala-7rl45s)
+User: "check the launcher, fix everything, most of all FPS for every device and chip, and make the
+launcher light (it feels heavy)".
+
+1. Core pinning bug for 2-big-core chips (my own change of 2026-11-05): the LITTLE-by-CPU-part rule
+   pinned MediaTek Helio G85/G88/G96/G99 (2x A75/A76 + 6x A55) to 2 cores for render + world + chunk
+   builders + GC. bigcoreaffinity.c now needs >= 4 cores: with fewer big ones it falls back to the clock
+   rule, and below 4 keeps the default affinity. (SD680 / Exynos 9820 / Dimensity 4+4: 4 big cores.)
+2. -XX:ActiveProcessorCount was all online cores (8) even when the game is pinned to 4: JVM GC and
+   ForkJoin pools ran 8 threads on 4 cores. OnaTweaks.gameCoreCount() repeats the native choice and
+   Launcher.kt passes that number.
+3. Light launcher (setting onaLightLauncher, default ON, first card of Launcher settings > animations):
+   no festival effects, no background blur, PS3 (XMB) waves and Retro pulse stand still. Page swap
+   animations unchanged.
+4. (From change set e, same build) Sodium/Embeddium chunk builder threads by tier.
+
+NOT tested on a device. Unknown what exactly feels heavy (start time? menu lag? APK size?) - asked.

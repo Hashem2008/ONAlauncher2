@@ -375,6 +375,12 @@ VOXY ON 26.3 WORKS + FPS (2026-11-06 d)
   saver cleared FLAG_KEEP_SCREEN_ON, fixed in SDLActivity (feee77b).
 - CI: ddc10fd run 42187645333 SUCCESS, feee77b run 42188118063 SUCCESS. Not device-tested.
 
+CHUNK STUTTER, CORE COUNT, LIGHT LAUNCHER (2026-11-06 e+f)
+- Sodium/Embeddium chunk_builder_threads 3/2/2/1 by tier (ONA_CHANGES/2026-11-06e_chunk-stutter.txt).
+- bigcoreaffinity never pins to < 4 cores (Helio 2+6 regression fixed); JVM ActiveProcessorCount = pinned
+  cores; Light launcher setting (ONA_CHANGES/2026-11-06f_cores-light-launcher.txt).
+- CI result: see the change files.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -422,3 +428,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (ج): glGetError انحل؛ الخطأ الجاي EGL_BAD_ATTRIBUTE. SDL صار يجرب نفس إعدادات EGL اللي ONA بيفتح فيها
   Kopper Zink بالنسخ القديمة. لازم لوج اللانشر (latest_game.log) مش لوج اللعبة.
 - 2026-11-06 (د): Voxy على 26.3 اشتغل (أكدها المستخدم). تحسين فريمات Voxy و Zink. مفتوح: الشاشة بتطفي وبتضوي.
+- 2026-11-06 (هـ+و): هبوط الـ chunks (خيوط Sodium)، عدد الأنوية الصح (Helio ما عاد ينربط على نواتين)، ووضع اللانشر الخفيف.
