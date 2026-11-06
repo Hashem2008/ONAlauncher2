@@ -274,4 +274,7 @@
     <string name="ona_boost_threads_summary">خيط الرسم وخيط العالم بياخذوا أولوية، وأندرويد بيرفع سرعة المعالج إلهم لما الفريم يتأخر. فريمات أكثر بدون توليد الفريمات</string>
     <string name="ona_light_launcher_title">لانشر خفيف</string>
     <string name="ona_light_launcher_summary">بدون حركات زينة متكررة وتأثيرات المناسبات وتغبيش الخلفية: اللانشر بياكل أقل من المعالج وكرت الشاشة والبطارية</string>
+    <string name="ona_abi_advice_title">في نسخة أنسب لجهازك</string>
+    <string name="ona_abi_advice_text">هاي النسخة مش الأنسب لجهازك، وبتشتغل عليه أبطأ. نزّل %1$s من نفس صفحة الإصدار: فريمات أكثر وذاكرة أكثر للعبة.</string>
+    <string name="ona_abi_advice_never">لا تظهرها مرة ثانية</string>
 </resources>

@@ -395,6 +395,12 @@ SAME EXTRAS IN EVERY APK (2026-11-06 h)
   ONA_CHANGES/2026-11-06h_all-apks-same-extras.txt.
 - CI: 7db40a0 run 42201837740 SUCCESS, PhysX + zstd built for all three ABIs (job logs checked).
 
+CI MINUTES USED UP + APK ADVICE (2026-11-06 i)
+- GitHub refused to start jobs (spending limit / payment): ef97c22 (release-page guide) and the APK advice
+  commit are NOT built. Ask the user how to continue (billing, wait for reset, fewer jobs per push).
+- AbiAdvisor + dialog: tells users of a 32-bit APK on 64-bit phones / ARM APK on PCs which APK to take.
+  ONA_CHANGES/2026-11-06i_abi-advice-and-ci-minutes.txt.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -445,3 +451,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (هـ+و): هبوط الـ chunks (خيوط Sodium)، عدد الأنوية الصح (Helio ما عاد ينربط على نواتين)، ووضع اللانشر الخفيف.
 - 2026-11-06 (ز): APK لكل معالج (arm64 للجوالات، arm للقديمة 32 بت، x86_64 للمحاكيات) بدل all.
 - 2026-11-06 (ح): بيلد الثلاث نسخ نجح. مكتبة Voxy و PhysX صاروا لكل النسخ. Rust و Turnip بس arm64.
+- 2026-11-06 (ط): دقائق GitHub Actions خلصت، البناء موقف. نصيحة النسخة الصح جوا اللانشر (مش مبنية لسا).

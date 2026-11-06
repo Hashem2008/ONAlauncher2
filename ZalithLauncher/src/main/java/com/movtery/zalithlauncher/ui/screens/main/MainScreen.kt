@@ -159,6 +159,35 @@ fun MainScreen(
     val mainScreenKey = screenBackStackModel.mainScreen.currentKey
     val inLauncherScreen = mainScreenKey == null || mainScreenKey is NormalNavKey.LauncherMain
 
+    // ONA: another APK fits this device better (32-bit APK on a 64-bit phone, ARM APK on a PC)
+    val betterApk = remember { com.movtery.zalithlauncher.utils.device.AbiAdvisor.betterApk() }
+    var showAbiAdvice by remember {
+        mutableStateOf(
+            betterApk != null &&
+                AllSettings.abiAdviceShown.getValue() != com.movtery.zalithlauncher.utils.device.AbiAdvisor.shownKey()
+        )
+    }
+    if (showAbiAdvice && betterApk != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showAbiAdvice = false },
+            title = { Text(text = stringResource(com.movtery.zalithlauncher.R.string.ona_abi_advice_title)) },
+            text = { Text(text = stringResource(com.movtery.zalithlauncher.R.string.ona_abi_advice_text, betterApk)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { showAbiAdvice = false }) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    AllSettings.abiAdviceShown.save(com.movtery.zalithlauncher.utils.device.AbiAdvisor.shownKey())
+                    showAbiAdvice = false
+                }) {
+                    Text(text = stringResource(com.movtery.zalithlauncher.R.string.ona_abi_advice_never))
+                }
+            }
+        )
+    }
+
     val isBackgroundValid = LocalBackgroundViewModel.current?.isValid == true
     val launcherBackgroundOpacity = AllSettings.launcherBackgroundOpacity.state.toFloat() / 100f
 

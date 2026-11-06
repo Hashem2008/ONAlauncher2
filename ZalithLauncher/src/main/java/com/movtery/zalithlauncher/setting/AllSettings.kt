@@ -532,6 +532,9 @@ object AllSettings : SettingsRegistry() {
     /** ONA: light launcher - no endless decorative animations, effects or background blur */
     val lightLauncher = boolSetting("onaLightLauncher", true)
 
+    /** ONA: the build + device the "better APK for this device" advice was last shown for */
+    val abiAdviceShown = stringSetting("onaAbiAdviceShown", "")
+
     /**
      * 启用页面切换动画
      */

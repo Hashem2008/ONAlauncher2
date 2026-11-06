@@ -1,0 +1,13 @@
+CHANGE SET 2026-11-06 (i) (branch claude/hala-7rl45s)
+
+1. APK advice in the launcher (user asked): utils/device/AbiAdvisor.kt compares BuildKeys.BUILD_ARCH with
+   the device ABIs: ARM APK on an x86_64 device (emulator / PC) -> recommend ONA-x86_64_emulators-PC.apk;
+   32-bit APK (arm) on an arm64 phone -> recommend ONA-arm64-v8a_64bit-phones.apk. MainScreen shows an
+   AlertDialog (OK / "Don't show again", saved per build + device in onaAbiAdviceShown). Strings EN + AR.
+
+2. CI BLOCKED: run 42204216604 (ef97c22, release-page guide) did not start at all:
+   "The job was not started because recent account payments have failed or your spending limit needs to
+   be increased" = the account's GitHub Actions minutes for the private repo are used up (many 3-job
+   builds on 2026-11-06). Nothing in the code is wrong. This commit and ef97c22 are NOT built yet.
+   Options for the user: raise the spending limit / fix the payment (GitHub Settings > Billing and plans),
+   wait for the monthly reset, or build fewer jobs (e.g. arm64 on every push, all three on demand).
