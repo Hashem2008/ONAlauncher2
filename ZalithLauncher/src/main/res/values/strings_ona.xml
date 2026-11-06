@@ -106,7 +106,8 @@
     <string name="ona_style_title">Launcher style</string>
     <string name="ona_style_summary">Change the look of the launcher. All features are available in every style.</string>
     <string name="ona_style_selected">Selected: %1$s</string>
-    <string name="ona_style_zalith">Zalith (default)</string>
+    <string name="ona_style_zalith">Zalith</string>
+    <string name="ona_style_ona">ONA (default)</string>
     <string name="ona_style_pc">PC launcher</string>
     <string name="ona_style_modrinth">Modrinth style</string>
     <string name="ona_style_console">Console</string>

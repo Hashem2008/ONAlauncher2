@@ -447,7 +447,11 @@ private fun <E: TitledNavKey> TopBar(
                     )
                 }
 
-                TopBarRailItem(
+                // ONA home has its own big tiles for these: the bar stays clean there
+                val onaHome = inLauncherScreen &&
+                        com.movtery.zalithlauncher.setting.AllSettings.launcherStyle.state == com.movtery.zalithlauncher.ui.theme.LauncherStyle.ONA &&
+                        com.movtery.zalithlauncher.setting.AllSettings.gameEngine.state != com.movtery.zalithlauncher.setting.enums.GameEngine.RUST
+                if (!onaHome) TopBarRailItem(
                     selected = inMultiplayerScreen,
                     painter = painterResource(R.drawable.ic_group_filled),
                     text = stringResource(R.string.terracotta),
@@ -456,7 +460,7 @@ private fun <E: TitledNavKey> TopBar(
                     },
                 )
 
-                TopBarRailItem(
+                if (!onaHome) TopBarRailItem(
                     selected = inDownloadScreen,
                     painter = painterResource(R.drawable.ic_download_2_filled),
                     text = stringResource(R.string.generic_download),
@@ -465,7 +469,7 @@ private fun <E: TitledNavKey> TopBar(
                     },
                 )
 
-                TopBarRailItem(
+                if (!onaHome) TopBarRailItem(
                     selected = inSettingsScreen,
                     painter = painterResource(R.drawable.ic_settings_filled),
                     text = stringResource(R.string.generic_setting),

@@ -135,6 +135,7 @@ fun StyledHome(
 
     Box(modifier = modifier.fillMaxSize()) {
         when (style.home) {
+            HomeLayout.ONA -> OnaHome(data, actions)
             HomeLayout.PS5 -> Ps5Home(data, actions)
             HomeLayout.PS4 -> Ps4Home(data, actions)
             HomeLayout.XMB -> XmbHome(data, actions)
@@ -148,19 +149,19 @@ fun StyledHome(
     }
 }
 
-private class HomeData(
+internal class HomeData(
     val versions: List<Version>,
     val current: Version?,
     val account: Account?,
     val style: LauncherStyle,
 )
 
-private fun select(version: Version) {
+internal fun select(version: Version) {
     VersionsManager.saveVersion(version)
 }
 
 @Composable
-private fun clockText(pattern: String): String {
+internal fun clockText(pattern: String): String {
     var now by remember { mutableStateOf(Date()) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -171,10 +172,10 @@ private fun clockText(pattern: String): String {
     return remember(now, pattern) { SimpleDateFormat(pattern, Locale.getDefault()).format(now) }
 }
 
-private fun Version?.title(): String = this?.getVersionName() ?: ""
+internal fun Version?.title(): String = this?.getVersionName() ?: ""
 
 @Composable
-private fun Version?.subtitle(): String =
+internal fun Version?.subtitle(): String =
     this?.getVersionSummary() ?: stringResource(R.string.ona_home_add_version)
 
 /** Java | Rust: what Play starts. Rust opens Horizon (Minecraft 26.3 rewritten in Rust). */
@@ -250,7 +251,7 @@ fun EngineSwitch(
 }
 
 @Composable
-private fun playLabel(): String =
+internal fun playLabel(): String =
     if (AllSettings.gameEngine.state == GameEngine.RUST) stringResource(R.string.ona_home_play_rust)
     else stringResource(R.string.ona_home_play)
 
@@ -265,7 +266,7 @@ private fun menuEntries(actions: HomeActions) = listOf(
 )
 
 @Composable
-private fun AccountFace(account: Account?, size: Dp) {
+internal fun AccountFace(account: Account?, size: Dp) {
     if (account != null) {
         PlayerFace(account = account, avatarSize = size)
     } else {

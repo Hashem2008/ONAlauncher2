@@ -63,6 +63,9 @@ enum class LauncherStyle(
     val thinText: Boolean = false,
     val cut: Boolean = false,
 ) {
+    /** ONA (default): night navy with gold, the colours of the app icon; simple clear home */
+    ONA(R.string.ona_style_ona, seed = Color(0xFFE6AE42), palette = PaletteStyle.Fidelity, radius = 16, boldTitles = true,
+        darkBase = Color(0xFF0F1722)),
     ZALITH(R.string.ona_style_zalith),
     /** Desktop game launcher: dark grey panels, green play colour, small corners, compact text */
     PC_LAUNCHER(R.string.ona_style_pc, seed = Color(0xFF3C8527), radius = 4, fontScale = 0.95f,
@@ -115,6 +118,7 @@ enum class LauncherStyle(
 
     /** ONA: the home screen's whole layout (where things are and how buttons look) in this style */
     val home: HomeLayout get() = when (this) {
+        ONA -> HomeLayout.ONA
         ZALITH, CUSTOM -> HomeLayout.GRID
         PC_LAUNCHER, HIGH_CONTRAST, CYBERPUNK -> HomeLayout.SIDEBAR
         MODRINTH, AMOLED, COMPACT -> HomeLayout.RAIL
@@ -129,6 +133,8 @@ enum class LauncherStyle(
 
 /** ONA: home screen layouts the styles use */
 enum class HomeLayout {
+    /** ONA: account and big menu tiles on one side, the chosen version and a large Play button on the other */
+    ONA,
     /** Zalith's card grid with the side action menu */
     GRID,
     /** Row of game tiles on top, big title, white pill Play button, round side buttons */

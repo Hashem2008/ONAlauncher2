@@ -504,7 +504,7 @@ object AllSettings : SettingsRegistry() {
     val launcherFullScreen = boolSetting("launcherFullScreen", true)
 
     /** ONA: look of the launcher (colours, corners, text), every feature stays in every style */
-    val launcherStyle = enumSetting("onaLauncherStyle", LauncherStyle.ZALITH)
+    val launcherStyle = enumSetting("onaLauncherStyle", LauncherStyle.ONA)
 
     /** ONA: what Play starts: the Java game, or Horizon (Minecraft 26.3 in Rust) */
     val gameEngine = enumSetting("onaGameEngine", GameEngine.JAVA)
