@@ -89,16 +89,29 @@ jobs:
           test -f "$ndk/source.properties"
           echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
 
-      # ONA: PhysX 4.1 + physx-jni 1.1.0 glue compiled for arm64, so Physics Mod (1.18.2) runs
+      # ONA: the CPU type of this job, so every APK gets the same native extras (user rule)
+      - name: Native ABI of this APK
+        id: abi
+        run: |
+          case "${{ matrix.arch }}" in
+            arm64)  echo "abi=arm64-v8a" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_64.so" >> "$GITHUB_OUTPUT" ;;
+            arm)    echo "abi=armeabi-v7a" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_32.so" >> "$GITHUB_OUTPUT" ;;
+            x86_64) echo "abi=x86_64" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_64.so" >> "$GITHUB_OUTPUT" ;;
+            x86)    echo "abi=x86" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_32.so" >> "$GITHUB_OUTPUT" ;;
+            *)      echo "abi=" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      # ONA: PhysX 4.1 + physx-jni 1.1.0 glue compiled for this CPU, so Physics Mod (1.18.2) runs
       - name: Cache PhysX 4.1 Android port
+        if: steps.abi.outputs.abi != ''
         id: physx-cache
         uses: actions/cache@v4
         with:
-          path: ZalithLauncher/src/main/jniLibs/arm64-v8a/libPhysXJniBindings_64.so
-          key: physx4-jni-android-${{ hashFiles('tools/physx4-android/build.sh') }}
+          path: ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}/${{ steps.abi.outputs.physx }}
+          key: physx4-jni-android-${{ steps.abi.outputs.abi }}-${{ hashFiles('tools/physx4-android/build.sh') }}
 
-      - name: Build PhysX 4.1 Android port (physx-jni 1.1.0, arm64)
-        if: steps.physx-cache.outputs.cache-hit != 'true'
+      - name: Build PhysX 4.1 Android port (physx-jni 1.1.0, ${{ steps.abi.outputs.abi }})
+        if: steps.abi.outputs.abi != '' && steps.physx-cache.outputs.cache-hit != 'true'
         continue-on-error: true
         run: |
           # The project's NDK (r25, clang 14) is closer to what PhysX 4.1 was written for
@@ -110,24 +123,30 @@ jobs:
           if [ -f "$ndk25/source.properties" ]; then export ANDROID_NDK_HOME="$ndk25"; fi
           echo "PhysX port uses NDK $ANDROID_NDK_HOME"
           bash tools/physx4-android/build.sh "$RUNNER_TEMP/physx4" \
-            ZalithLauncher/src/main/jniLibs/arm64-v8a/libPhysXJniBindings_64.so
+            "ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}/${{ steps.abi.outputs.physx }}" \
+            "${{ steps.abi.outputs.abi }}" || {
+            echo "::warning::PhysX port for ${{ steps.abi.outputs.abi }} was not built (see this step)"
+            exit 1
+          }
 
-      # ONA: LWJGL's zstd binding for arm64. Voxy bundles lwjgl-zstd with desktop natives only, so
+      # ONA: LWJGL's zstd binding for this CPU. Voxy bundles lwjgl-zstd with desktop natives only, so
       # its LOD storage failed on phones ("Failed to locate library: liblwjgl_zstd.so").
       - name: Cache LWJGL zstd Android port
+        if: steps.abi.outputs.abi != ''
         id: zstd-cache
         uses: actions/cache@v4
         with:
-          path: ZalithLauncher/src/main/jniLibs/arm64-v8a/liblwjgl_zstd.so
-          key: lwjgl-zstd-android-${{ hashFiles('tools/lwjgl-zstd-android/build.sh') }}
+          path: ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}/liblwjgl_zstd.so
+          key: lwjgl-zstd-android-${{ steps.abi.outputs.abi }}-${{ hashFiles('tools/lwjgl-zstd-android/build.sh') }}
 
-      - name: Build LWJGL zstd binding (liblwjgl_zstd.so, arm64)
-        if: steps.zstd-cache.outputs.cache-hit != 'true'
+      - name: Build LWJGL zstd binding (liblwjgl_zstd.so, ${{ steps.abi.outputs.abi }})
+        if: steps.abi.outputs.abi != '' && steps.zstd-cache.outputs.cache-hit != 'true'
         continue-on-error: true
         run: |
           bash tools/lwjgl-zstd-android/build.sh "$RUNNER_TEMP/lwjgl-zstd" \
-            ZalithLauncher/src/main/jniLibs/arm64-v8a/liblwjgl_zstd.so || {
-            echo "::warning::liblwjgl_zstd.so was not built, Voxy keeps failing on phones (see this step)"
+            "ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}/liblwjgl_zstd.so" \
+            "${{ steps.abi.outputs.abi }}" || {
+            echo "::warning::liblwjgl_zstd.so for ${{ steps.abi.outputs.abi }} was not built, Voxy keeps failing there (see this step)"
             exit 1
           }
 

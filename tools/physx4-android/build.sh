@@ -5,13 +5,15 @@
 # libraries. This compiles the very same sources (fabmax/PhysX4 at the commit physx-jni 1.1.0
 # points to, glue code included) for the phone CPU, a port rather than an emulation.
 #
-# usage: build.sh <work dir> <output .so>
+# usage: build.sh <work dir> <output .so> [abi: arm64-v8a (default) | armeabi-v7a | x86_64]
 set -euo pipefail
 
 WORK=$(realpath -m "$1")
 OUT=$(realpath -m "$2")
 PHYSX_COMMIT=5951e9dbe1e4d003bb7524cfa6aeca19356dc838
 NDK=${ANDROID_NDK_HOME:?ANDROID_NDK_HOME must point to an Android NDK}
+ABI=${3:-arm64-v8a}
+echo "PhysX port for $ABI"
 
 mkdir -p "$WORK"
 cd "$WORK"
@@ -60,11 +62,12 @@ export PM_CMakeModules_PATH="$ROOT/externals/cmakemodules"
 export PM_PxShared_PATH="$ROOT/pxshared"
 export PM_PATHS=""
 
-cmake -S "$ROOT/physx/compiler/public" -B "$WORK/build" -G "Unix Makefiles" --no-warn-unused-cli \
+cmake -S "$ROOT/physx/compiler/public" -B "$WORK/build-$ABI" -G "Unix Makefiles" --no-warn-unused-cli \
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   -DTARGET_BUILD_PLATFORM=android \
   -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
-  -DANDROID_ABI=arm64-v8a \
+  -DANDROID_ABI="$ABI" \
+  -DANDROID_ARM_NEON=ON \
   -DANDROID_PLATFORM=android-26 \
   -DANDROID_STL=c++_static \
   -DCM_ANDROID_FP=softfp \
@@ -76,9 +79,9 @@ cmake -S "$ROOT/physx/compiler/public" -B "$WORK/build" -G "Unix Makefiles" --no
   -DPX_BUILDPUBLICSAMPLES=OFF \
   -DPX_GENERATE_STATIC_LIBRARIES=ON
 
-cmake --build "$WORK/build" --target PhysXJniBindings -j "$(nproc)"
+cmake --build "$WORK/build-$ABI" --target PhysXJniBindings -j "$(nproc)"
 
-SO=$(find "$WORK/build" "$ROOT/physx/bin" -name 'libPhysXJniBindings*.so' 2>/dev/null | head -1)
+SO=$(find "$WORK/build-$ABI" "$ROOT/physx/bin" -name 'libPhysXJniBindings*.so' 2>/dev/null | head -1)
 [ -n "$SO" ] || { echo "libPhysXJniBindings was not produced"; exit 1; }
 mkdir -p "$(dirname "$OUT")"
 cp "$SO" "$OUT"

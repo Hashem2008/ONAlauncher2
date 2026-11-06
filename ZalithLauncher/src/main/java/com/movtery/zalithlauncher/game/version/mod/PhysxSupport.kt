@@ -43,7 +43,11 @@ import java.util.zip.ZipInputStream
  */
 object PhysxSupport {
     private const val TAG = "PhysxSupport"
-    private const val LIB_NAME = "libPhysXJniBindings_64.so"
+    /** physx-jni loads PhysXJniBindings_64 in a 64-bit JVM, _32 in a 32-bit one (arm 32-bit APK) */
+    private val LIB_NAME = if (android.os.Process.is64Bit()) "libPhysXJniBindings_64.so" else "libPhysXJniBindings_32.so"
+    /** The CPU type this APK runs as: arm64-v8a, armeabi-v7a or x86_64 */
+    private val APP_ABI: String = (if (android.os.Process.is64Bit()) android.os.Build.SUPPORTED_64_BIT_ABIS else android.os.Build.SUPPORTED_32_BIT_ABIS)
+        .firstOrNull() ?: "arm64-v8a"
     private const val FIRST_ANDROID_VERSION = "2.3.1"
     private val MAVEN_MIRRORS = listOf(
         "https://repo1.maven.org/maven2",
@@ -76,7 +80,7 @@ object PhysxSupport {
             if (!(target.isFile && target.length() == source.length() && sameBytes(source, target))) {
                 target.parentFile?.mkdirs()
                 source.copyTo(target, overwrite = true)
-                Logger.info(TAG, "Placed the arm64 PhysX port for physx-jni $physxVersion")
+                Logger.info(TAG, "Placed the $APP_ABI PhysX port for physx-jni $physxVersion")
             }
             true
         }.onFailure { Logger.warning(TAG, "Could not place the PhysX port", it) }.getOrDefault(false)
@@ -186,7 +190,7 @@ object PhysxSupport {
                     ZipInputStream(connection.inputStream).use { zip ->
                         var entry = zip.nextEntry
                         while (entry != null) {
-                            if (entry.name == "jni/arm64-v8a/$LIB_NAME") {
+                            if (entry.name == "jni/$APP_ABI/$LIB_NAME") {
                                 val temp = File(target.path + ".part")
                                 temp.outputStream().use { zip.copyTo(it) }
                                 return@runCatching temp.renameTo(target)

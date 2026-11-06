@@ -1,0 +1,21 @@
+CHANGE SET 2026-11-06 (h) (branch claude/hala-7rl45s)
+User rule: whatever one APK has, every APK gets (arm64, arm 32-bit, x86_64).
+
+Per-CPU build 640cd49 (run 42200343506): arm, arm64 and x86_64 jobs all SUCCESS.
+
+What differed, and what was done:
+- liblwjgl_zstd.so (Voxy): arm64 only -> now built for every APK (build.sh 3rd arg = ABI, clang
+  triples aarch64 / armv7a / x86_64 / i686, android26). CI cache per ABI.
+- PhysX 4.1 port for physx-jni 1.1.0 (Physics Mod 1.18.2): arm64 only -> built for every APK
+  (cmake ANDROID_ABI from the job, NEON on for armv7). 32-bit JVM loads libPhysXJniBindings_32.so,
+  64-bit _64: PhysxSupport.LIB_NAME follows Process.is64Bit(), the physx-jni-android extraction uses the
+  APK's own ABI (APP_ABI). Both steps continue-on-error with a warning; armv7 / x86_64 PhysX were never
+  built before - read the step log if it warns.
+- Step "Native ABI of this APK" gives abi + physx lib name to the steps.
+- Renderer AARs (MobileGlues, NG-GL4ES/Krypton, Kopper Zink, SFPEW, SDL, OpenAL, spirv-cross): already
+  all ABIs.
+NOT possible / not sensible:
+- Horizon (Rust): its Android port is arm64 only upstream.
+- Turnip (libvulkan_freedreno.so) + timeline semaphore layer: Adreno GPU driver, arm64 only (x86 has no
+  Adreno; 32-bit Adreno Turnip is not provided upstream).
+- virgl libs exist only in arm/x86 folders (old VirGL renderer from upstream Zalith).

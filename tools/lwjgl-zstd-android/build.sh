@@ -6,7 +6,7 @@
 # it saves or loads is lost and the world shows holes and glitches. This compiles the same
 # LWJGL 3.3.3 JNI code plus the zstd library for the phone CPU (BSD licensed, both).
 #
-# usage: build.sh <work dir> <output .so>
+# usage: build.sh <work dir> <output .so> [abi: arm64-v8a (default) | armeabi-v7a | x86_64 | x86]
 set -euo pipefail
 
 WORK=$(realpath -m "$1")
@@ -15,7 +15,15 @@ LWJGL_TAG=3.3.3
 ZSTD_TAG=v1.5.5
 NDK=${ANDROID_NDK_HOME:?ANDROID_NDK_HOME must point to an Android NDK}
 BIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
-CC="$BIN/aarch64-linux-android26-clang"
+ABI=${3:-arm64-v8a}
+case "$ABI" in
+  arm64-v8a)   CC="$BIN/aarch64-linux-android26-clang" ;;
+  armeabi-v7a) CC="$BIN/armv7a-linux-androideabi26-clang" ;;
+  x86_64)      CC="$BIN/x86_64-linux-android26-clang" ;;
+  x86)         CC="$BIN/i686-linux-android26-clang" ;;
+  *) echo "unknown ABI $ABI" >&2; exit 1 ;;
+esac
+echo "Building liblwjgl_zstd.so for $ABI"
 
 mkdir -p "$WORK"
 cd "$WORK"
@@ -43,10 +51,10 @@ SOURCES=$(find "$ZSTD/common" "$ZSTD/compress" "$ZSTD/decompress" "$ZSTD/dictBui
 FLAGS="-O2 -fPIC -fvisibility=hidden -DLWJGL_LINUX -DZSTD_MULTITHREAD -DZSTD_DISABLE_ASM -DZSTD_LEGACY_SUPPORT=0"
 INCLUDES="-I$ZSTD -I$ZSTD/common -I$ZSTD/compress -I$ZSTD/dictBuilder -I$CORE_H -I$LINUX_H"
 
-mkdir -p "$WORK/obj"
+mkdir -p "$WORK/obj-$ABI"
 OBJS=()
 for src in $SOURCES; do
-  obj="$WORK/obj/$(echo "${src#$WORK/}" | tr '/' '_').o"
+  obj="$WORK/obj-$ABI/$(echo "${src#$WORK/}" | tr '/' '_').o"
   # shellcheck disable=SC2086
   "$CC" $FLAGS $INCLUDES -c "$src" -o "$obj"
   OBJS+=("$obj")
