@@ -590,6 +590,13 @@ private fun setRendererEnv(
     // ONA: SDL (Minecraft 26.x) must resolve gl* to the same library LWJGL uses, see sdl_dlopen_hook.c
     getGameRendererLibrary(version)?.let { envMap["ONA_GL_LIBRARY"] = it }
 
+    // ONA: Kopper Zink through SDL (Minecraft 26.x) never runs ONA's EGL bridge, which sets these
+    // before Mesa's EGL starts; without them Mesa may not bring up Zink on the phone's Vulkan
+    if (rendererId == "opengles3_desktopgl_zink_kopper") {
+        envMap.getOrPut("GALLIUM_DRIVER") { "zink" }
+        envMap.getOrPut("MESA_ANDROID_NO_KMS_SWRAST") { "1" }
+    }
+
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
     if (!renderer.mesaBased) {

@@ -1,0 +1,24 @@
+CHANGE SET 2026-11-06 (c) (branch claude/hala-7rl45s)
+
+User log (game log only, 09:52): Voxy 26.3 now passes GlBackend.loadLibrary (no "glGetError mismatch"
+any more: change set b worked) and fails one step later, at window creation:
+"Couldn't find matching EGL config (call to eglChooseConfig failed, reporting an error of
+EGL_BAD_ATTRIBUTE)". Kopper Zink through SDL never worked on 26.x before; on 1.21 and older ONA's own EGL
+bridge (ctxbridges/gl_bridge.c) opens it and that path works (Voxyris).
+
+What ONA's bridge does for "opengles3_desktopgl_zink_kopper" (egl_bridge.c pojavInitOpenGL + gl_bridge.c):
+GALLIUM_DRIVER=zink, MESA_ANDROID_NO_KMS_SWRAST=1, load_vulkan(); config RGBA8 + depth 24 +
+SURFACE_TYPE WINDOW|PBUFFER + RENDERABLE_TYPE ES2_BIT; eglBindAPI(EGL_OPENGL_API); context attribs
+{EGL_CONTEXT_CLIENT_VERSION, LIBGL_ES}.
+
+Fixes:
+- sdl_hook.c proxyEglChooseConfig (desktop renderers): after the core-attribute retry, a retry with the
+  bridge's exact list (sDesktopBridgeConfig). Log lines "eglChooseConfig attribute 0x.. = 0x..",
+  "retried with core attributes", "retried with ONA's bridge attributes".
+- proxyEglCreateContext (desktop renderers): when SDL's context attributes fail, retry like the bridge
+  ({CLIENT_VERSION, LIBGL_ES or 3}), then with no attributes. Log "desktop eglCreateContext failed".
+- GameLauncher.setRendererEnv: Kopper Zink gets GALLIUM_DRIVER=zink and MESA_ANDROID_NO_KMS_SWRAST=1 in
+  the environment (SDL path never runs pojavInitOpenGL).
+
+NEED from the user: the LAUNCHER log of this run (.minecraft/versions/<version>/ONALauncher2/latest_game.log,
+header "Launch Minecraft"), it has the SDL_Hook lines; the game log alone does not.

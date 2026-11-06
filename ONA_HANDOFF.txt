@@ -356,6 +356,13 @@ GLGETERROR (REAL CAUSE), EGL CONFIG, FG CLARITY + IN-GAME, THREAD BOOSTER (2026-
 - GameThreadBooster: thread priorities + ADPF hints (onaBoostGameThreads).
 - CI: 6290864 run 42135515181 SUCCESS. Not device-tested.
 
+KOPPER ZINK THROUGH SDL (2026-11-06 c)
+- glGetError mismatch CONFIRMED fixed (user log). Next failure: EGL_BAD_ATTRIBUTE at eglChooseConfig.
+  sdl_hook.c retries with core attributes, then with ONA's bridge list (ES2 renderable, depth 24,
+  window|pbuffer) and makes the context like the bridge; Kopper env GALLIUM_DRIVER + NO_KMS_SWRAST.
+  Details: ONA_CHANGES/2026-11-06c_kopper-sdl-egl-config.txt. Need the LAUNCHER log for SDL_Hook lines.
+- CI result: see the change file.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -400,3 +407,5 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
   (دقة أقل + توليد فريمات لما الشيدر شغال). التفاصيل بـ ONA_CHANGES.
 - 2026-11-06 (ب): السبب الحقيقي لـ glGetError mismatch انحل، EGL_BAD_ATTRIBUTE، وضوح توليد الفريمات وتشغيله من قائمة
   اللعبة (ما بيشتغل لحاله)، ومعزز خيوط اللعبة لفريمات أكثر.
+- 2026-11-06 (ج): glGetError انحل؛ الخطأ الجاي EGL_BAD_ATTRIBUTE. SDL صار يجرب نفس إعدادات EGL اللي ONA بيفتح فيها
+  Kopper Zink بالنسخ القديمة. لازم لوج اللانشر (latest_game.log) مش لوج اللعبة.

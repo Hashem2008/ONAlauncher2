@@ -82,6 +82,8 @@ typedef EGLBoolean (*eglSwapBuffers_t)(EGLDisplay dpy, void *surface);
 #define EGL_DEPTH_SIZE        0x3025
 #define EGL_STENCIL_SIZE      0x3026
 #define EGL_SURFACE_TYPE      0x3033
+#define EGL_WINDOW_BIT        0x0004
+#define EGL_PBUFFER_BIT       0x0001
 
 
 
@@ -202,6 +204,8 @@ static bool sdlGlesCompatEnabled(void) {
 }
 
 static bool sForcedEsProfile = false;
+/** The desktop GL config came from ONA's bridge list (ES2 renderable): contexts are made like the bridge */
+static bool sDesktopBridgeConfig = false;
 
 static bool shouldReusePrimaryWindow(void) {
     const char *value = getenv("POJAV_SDL_REUSE_WINDOW");
@@ -222,6 +226,22 @@ static void *proxyEglCreateContext(EGLDisplay dpy, EGLConfig config, void *share
     }
 
     void *ctx = sOrigEglCreateContext(dpy, config, share, attrib_list);
+    if (ctx == NULL && !sdlGlesCompatEnabled()) {
+        // Desktop GL (Kopper Zink): what ONA's own bridge asks, a client version only. The OpenGL
+        // API is bound already, Mesa makes the highest core context it has.
+        const char *es = getenv("LIBGL_ES");
+        EGLint version = es != NULL ? (EGLint) strtol(es, NULL, 10) : 3;
+        if (version < 2 || version > 3) version = 3;
+        EGLint bridgeAttribs[3] = {EGL_CONTEXT_CLIENT_VERSION, version, EGL_NONE};
+        LOG_TO_W("SDL_Hook: desktop eglCreateContext failed, retrying like ONA's bridge (CV=%d, bridge config=%d)",
+                 version, sDesktopBridgeConfig);
+        ctx = sOrigEglCreateContext(dpy, config, share, bridgeAttribs);
+        if (ctx == NULL) {
+            EGLint none[1] = {EGL_NONE};
+            ctx = sOrigEglCreateContext(dpy, config, share, none);
+        }
+        return ctx;
+    }
     if (ctx != NULL || !sdlGlesCompatEnabled()) return ctx;
 
     bool esSemantics = sForcedEsProfile;
@@ -275,6 +295,22 @@ static EGLBoolean proxyEglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list
         EGLBoolean retry = sOrigEglChooseConfig(dpy, core, configs, config_size, &count);
         LOG_TO_W("SDL_Hook: eglChooseConfig retried with core attributes: result=%d count=%d", retry, count);
         if (retry && count > 0) {
+            if (num_config != NULL) *num_config = count;
+            return retry;
+        }
+        // The list ONA's own EGL bridge opens Kopper Zink with on Minecraft 1.21 and older (works there):
+        // ES2-renderable window/pbuffer config, the desktop GL API is bound when the context is made
+        static const EGLint bridge[] = {
+            EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_ALPHA_SIZE, 8, EGL_DEPTH_SIZE, 24,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_NONE
+        };
+        count = 0;
+        retry = sOrigEglChooseConfig(dpy, bridge, configs, config_size, &count);
+        LOG_TO_W("SDL_Hook: eglChooseConfig retried with ONA's bridge attributes: result=%d count=%d", retry, count);
+        if (retry && count > 0) {
+            sDesktopBridgeConfig = true;
             if (num_config != NULL) *num_config = count;
             return retry;
         }
