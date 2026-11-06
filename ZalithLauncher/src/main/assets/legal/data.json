@@ -1,29 +1,28 @@
 {
-  "version": "2026/10/30",
+  "version": "2026/11/06",
   "files": [
     {
       "effective_region": "global",
       "data_list": [
         {
-          "title": "ZalithLauncher2 User Agreement",
+          "title": "ONA STUDIO User Agreement",
           "path": "legal/en/user_agreement.md"
         },
         {
-          "title": "ZalithLauncher2 Privacy Policy",
+          "title": "ONA STUDIO Privacy Policy",
           "path": "legal/en/privacy_policy.md"
         }
       ]
     },
-
     {
       "effective_region": "zh",
       "data_list": [
         {
-          "title": "《ZalithLauncher2 用户协议》",
+          "title": "《ONA STUDIO 用户协议》",
           "path": "legal/zh/user_agreement.md"
         },
         {
-          "title": "《ZalithLauncher2 隐私政策》",
+          "title": "《ONA STUDIO 隐私政策》",
           "path": "legal/zh/privacy_policy.md"
         }
       ]

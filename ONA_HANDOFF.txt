@@ -402,6 +402,11 @@ CI MINUTES USED UP + APK ADVICE (2026-11-06 i)
 - AbiAdvisor + dialog: tells users of a 32-bit APK on 64-bit phones / ARM APK on PCs which APK to take.
   ONA_CHANGES/2026-11-06i_abi-advice-and-ci-minutes.txt.
 
+ONA STUDIO AGREEMENTS + PUBLIC REPO (2026-11-06 j)
+- Welcome screen documents rebranded and adapted to ONA STUDIO (assets/legal, version 2026/11/06).
+  ONA_CHANGES/2026-11-06j_ona-studio-agreements.txt.
+- User chose to make the repo public (to get Actions minutes back); they must flip it in Settings.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -453,3 +458,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (ز): APK لكل معالج (arm64 للجوالات، arm للقديمة 32 بت، x86_64 للمحاكيات) بدل all.
 - 2026-11-06 (ح): بيلد الثلاث نسخ نجح. مكتبة Voxy و PhysX صاروا لكل النسخ. Rust و Turnip بس arm64.
 - 2026-11-06 (ط): دقائق GitHub Actions خلصت، البناء موقف. نصيحة النسخة الصح جوا اللانشر (مش مبنية لسا).
+- 2026-11-06 (ي): اتفاقيات الترحيب صارت باسم ONA STUDIO. المستخدم قرر يخلي المستودع عام.

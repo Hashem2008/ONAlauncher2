@@ -1,0 +1,19 @@
+CHANGE SET 2026-11-06 (j) (branch claude/hala-7rl45s)
+User: welcome screen shows "ZalithLauncher2 User Agreement / Privacy Policy" -> must say ONA STUDIO.
+The documents themselves named ZalithTeam as the party, with Zalith's repo and the Zalith developer's
+email, and forbid presenting a modified build as official ZL2: only renaming the titles would have been
+misleading. So assets/legal (en + zh) were adapted, not just retitled:
+- titles in data.json: "ONA STUDIO User Agreement" / "ONA STUDIO Privacy Policy" (zh: 《ONA STUDIO 用户协议》
+  / 《ONA STUDIO 隐私政策》); version 2026/11/06 (returning users see the "agreements updated" dialog once).
+- Project = ONA Launcher 2 (ONA), a modified version of ZalithLauncher2 (GPLv3); Developer = ONA STUDIO;
+  source = github.com/Hashem2008/ONAlauncher2, "Based on ZalithLauncher2" link kept; contact = ONA repo
+  + issues (Zalith email removed, no ONA email added - ask the user if they want one).
+- Governing law: the user's place of residence (was PRC / People's Court); English version prevails.
+- Privacy policy 3.9: ONA's own network features (Modrinth + CurseForge/MCIM for missing mods, Horizon
+  registry + its telemetry.playhorizon.dev live-count ping, GitHub / Maven Central plugins, local device
+  check; no ONA servers, no analytics).
+The user should read them once; they are not legal advice.
+
+Repo visibility: the user decided to make Hashem2008/ONAlauncher2 PUBLIC (unlimited Actions minutes). No
+tool here can change visibility; the user does it in the repo settings. Checked before: no API keys in the
+repo (keys come from secrets / local files); the committed keystores are upstream Zalith's.
