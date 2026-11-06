@@ -382,7 +382,7 @@ CHUNK STUTTER, CORE COUNT, LIGHT LAUNCHER (2026-11-06 e+f)
 - Sodium/Embeddium chunk_builder_threads 3/2/2/1 by tier (ONA_CHANGES/2026-11-06e_chunk-stutter.txt).
 - bigcoreaffinity never pins to < 4 cores (Helio 2+6 regression fixed); JVM ActiveProcessorCount = pinned
   cores; Light launcher setting (ONA_CHANGES/2026-11-06f_cores-light-launcher.txt).
-- CI result: see the change files.
+- CI: full build run 42214578520 (8973650) SUCCESS, all three APKs updated. Not device-tested.
 
 APK PER CPU (2026-11-06 g)
 - build.yml builds arm64 / arm / x86_64 (no "all"); labelled release files. ONA_CHANGES/2026-11-06g_apk-per-cpu.txt.
@@ -412,7 +412,7 @@ KRYO SILVER + AUTO SETTINGS + SPEED MOD (2026-11-06 k+l)
 - Snapdragon 680 etc.: Kryo Silver parts (0x51 / 0x801,0x803,0x805) are LITTLE. Auto settings (resolution
   cap + upscaler + distances by tier) and SpeedModInstaller (Sodium / Embeddium when no optimiser).
   ONA_CHANGES/2026-11-06k_kryo-silver.txt, 2026-11-06l_auto-settings.txt.
-- CI result: see the change files.
+- CI: full build run 42214578520 (8973650) SUCCESS, all three APKs updated. Not device-tested.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new

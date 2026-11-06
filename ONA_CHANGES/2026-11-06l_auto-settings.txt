@@ -16,3 +16,8 @@ User: "can you make every setting adjust itself automatically?"
   Their own requirements are installed by ModAutoResolver right after (same launch).
 - Plus change set k (Kryo Silver cores).
 NOT tested on a device.
+
+CI RESULT
+- 805d396 (Kryo) run 42213411889 SUCCESS (arm64); 8973650 (auto settings) run 42213801795 SUCCESS (arm64);
+  full build run 42214578520 at 8973650: arm / arm64 / x86_64 SUCCESS, all three release files replaced.
+  NOT tested on a device.
