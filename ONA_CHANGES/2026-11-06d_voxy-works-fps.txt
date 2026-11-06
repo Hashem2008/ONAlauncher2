@@ -25,3 +25,7 @@ SCREEN TURNS OFF ON WORLD ENTRY (user, launcher log 11:18, WA0036, built before 
 - That run had Complementary Unbound + Iris + Voxy ("voxy iris render pipeline") on Kopper Zink: shader
   pack and Voxy together are very heavy on a phone; told the user. Voxy also warns about vanilla render
   distance 2 (it wants 3+).
+
+CI RESULT
+- ddc10fd (Voxy/Zink FPS): run 42187645333 SUCCESS.
+- feee77b (screen stays on): run 42188118063 SUCCESS. APK in release ona-claude-hala-7rl45s. NOT tested on a device.

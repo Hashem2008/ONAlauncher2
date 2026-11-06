@@ -371,8 +371,9 @@ KOPPER ZINK THROUGH SDL (2026-11-06 c)
 VOXY ON 26.3 WORKS + FPS (2026-11-06 d)
 - User confirmed Voxy 26.3 starts (Kopper Zink through SDL). FPS: Voxy sub_division_size/ssao by tier,
   Voxy resolution cap, MESA_NO_ERROR + mesa_glthread for Kopper Zink.
-  Details: ONA_CHANGES/2026-11-06d_voxy-works-fps.txt. Open: "screen turns off and on" report.
-- CI result: see the change file.
+  Details: ONA_CHANGES/2026-11-06d_voxy-works-fps.txt. Screen turning off on world load: SDL screen
+  saver cleared FLAG_KEEP_SCREEN_ON, fixed in SDLActivity (feee77b).
+- CI: ddc10fd run 42187645333 SUCCESS, feee77b run 42188118063 SUCCESS. Not device-tested.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
