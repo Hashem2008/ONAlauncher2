@@ -32,3 +32,8 @@ without frame generation.
 
 OPEN: the FPS 4 / white terrain world (need latest_game.log). Voxy needs Kopper Zink (ONA Hybrid picks it);
 with Krypton chosen by hand it cannot work.
+
+CI RESULT
+- 6290864: run 42135515181 SUCCESS (arm64 + all). APK in release ona-claude-hala-7rl45s. NOT tested on a
+  device. Next: Voxy 26.3 launch log (look for "SDL_GL_LoadLibrary(" and "eglChooseConfig" lines),
+  FPS before/after with "Boost game threads", log tag GameThreadBooster (priorities, ADPF session).

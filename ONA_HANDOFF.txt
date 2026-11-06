@@ -354,7 +354,7 @@ GLGETERROR (REAL CAUSE), EGL CONFIG, FG CLARITY + IN-GAME, THREAD BOOSTER (2026-
   gl* on that library exactly like LWJGL. Desktop EGL chooseConfig retries with core attributes.
 - Frame generation: user-only (no auto), clarity setting, switch + slider in the game menu, live.
 - GameThreadBooster: thread priorities + ADPF hints (onaBoostGameThreads).
-- CI result: see the change file.
+- CI: 6290864 run 42135515181 SUCCESS. Not device-tested.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
