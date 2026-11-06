@@ -239,7 +239,8 @@ object OnaTweaks {
                     line.startsWith("CPU implementer") -> implementer = value.removePrefix("0x").toIntOrNull(16) ?: 0
                     line.startsWith("CPU part") && current in 0 until all -> {
                         val part = value.removePrefix("0x").toIntOrNull(16) ?: 0
-                        little[current] = implementer == 0x41 && part in setOf(0xc07, 0xd04, 0xd03, 0xd05, 0xd46, 0xd80)
+                        little[current] = (implementer == 0x41 && part in setOf(0xc07, 0xd04, 0xd03, 0xd05, 0xd46, 0xd80)) ||
+                            (implementer == 0x51 && part in setOf(0x801, 0x803, 0x805)) // Qualcomm Kryo Silver
                         partsKnown = true
                     }
                 }

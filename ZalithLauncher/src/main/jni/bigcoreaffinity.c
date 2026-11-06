@@ -36,8 +36,13 @@ static unsigned long bigcore_read_max_freq(unsigned int cpu_core) {
 // 2.4 GHz, 79% of the top clock, the same ratio as the performance cores of an 8 Elite Gen 5. On
 // Exynos 9810 / 9820 / 9825 (Galaxy S9, Note 9, S10, Note 10) the A55s run the game threads slowly too.
 static int bigcore_is_little_part(unsigned int implementer, unsigned int part) {
-    if (implementer != 0x41) return 0; // ARM Ltd. designs only, custom cores (Mongoose, Kryo Gold) stay
-    return part == 0xc07 || part == 0xd04 || part == 0xd03 || part == 0xd05 || part == 0xd46 || part == 0xd80;
+    // ARM Ltd. LITTLE designs: A7, A35, A53, A55, A510, A520
+    if (implementer == 0x41)
+        return part == 0xc07 || part == 0xd04 || part == 0xd03 || part == 0xd05 || part == 0xd46 || part == 0xd80;
+    // Qualcomm Kryo "Silver" cores report their own IDs (Snapdragon 6xx/7xx/8xx up to 888, e.g.
+    // Snapdragon 680 / Redmi Pad SE: Kryo 265 Silver = 0x801): 0x801, 0x803, 0x805
+    if (implementer == 0x51) return part == 0x801 || part == 0x803 || part == 0x805;
+    return 0;
 }
 
 // Fills little[i] = 1 for every LITTLE core listed in /proc/cpuinfo. @return number of cores read

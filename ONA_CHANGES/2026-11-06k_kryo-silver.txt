@@ -1,0 +1,11 @@
+CHANGE SET 2026-11-06 (k) (branch claude/hala-7rl45s)
+Log from a Redmi Pad SE (23073RPBFG, Snapdragon 680 / Adreno 610, MID 39, Android 15), 1.21 Forge
+51.0.33 without Sodium/Embeddium, Krypton Wrapper, upscaler OFF at 90%, render distance up to 8,
+simulation 10, "Can't keep up! 2113ms behind".
+Bug: "bigcore: no LITTLE cores (8 fast cores)" and ActiveProcessorCount=8 - Snapdragon 680 is 4x Kryo 265
+Gold (A73) + 4x Kryo 265 Silver (A53, 1.9 GHz = 79% of 2.4, passes the clock rule). Qualcomm's Kryo cores
+report implementer 0x51 with their own part IDs (Silver 0x801 / 0x803 / 0x805), which the LITTLE-part rule
+(ARM 0x41 only) did not know. Fixed in bigcoreaffinity.c and OnaTweaks.gameCoreCount: Kryo Silver parts are
+LITTLE too, so the game runs on the 4 Gold cores and Java sees 4.
+Advice given to the user (no code): 1.21 Forge has no Sodium-type mod here (vanilla rendering is slow on
+Adreno 610); Fabric + Sodium or Embeddium would help most; resolution ~65%, render distance 6, simulation 5.
