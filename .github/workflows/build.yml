@@ -229,19 +229,17 @@ jobs:
           esac
           out="$RUNNER_TEMP/$name"
           cp "$apk" "$out"
-          notes=$(printf '%s\n' \
-            "Debug build of $GITHUB_REF_NAME ($GITHUB_SHA). Pick the APK for your CPU / اختار حسب معالج جهازك:" \
-            "" \
-            "- ONA-arm64-v8a_64bit-phones.apk: 64-bit phones (Snapdragon, Exynos, Dimensity, Helio, Kirin, Tensor). اغلب الجوالات." \
-            "- ONA-armeabi-v7a_32bit-old-phones.apk: old phones with 32-bit Android. الجوالات القديمة 32 بت." \
-            "- ONA-x86_64_emulators-PC.apk: emulators and PCs. المحاكيات والكمبيوتر." \
-            "" \
-            "Not sure? Take arm64. مش متأكد؟ نزّل arm64.")
+          notes="$RUNNER_TEMP/release-notes.md"
+          {
+            echo "Debug build of $GITHUB_REF_NAME ($GITHUB_SHA)."
+            echo ""
+            cat tools/ci/APK_GUIDE.md
+          } > "$notes"
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --target "$GITHUB_SHA" \
-              --title "ONA debug build ($GITHUB_REF_NAME)" --notes "$notes" || true
+              --title "ONA debug build ($GITHUB_REF_NAME)" --notes-file "$notes" || true
           gh release upload "$tag" "$out" --repo "$GITHUB_REPOSITORY" --clobber
-          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes "$notes" || true
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file "$notes" || true
           # Older single names in this release are replaced by the per-CPU files (see DELETED_BUILDS.txt)
           for old in ONA-debug-all.apk ONA-debug-arm64.apk; do
             gh release delete-asset "$tag" "$old" --repo "$GITHUB_REPOSITORY" -y > /dev/null 2>&1 || true

@@ -9,3 +9,7 @@ User: the launcher feels heavy in almost everything (start, lag, size, heat); wa
   are removed from the same release (logged in DELETED_BUILDS.txt). arm64 also stays on the build page.
 - If the arm or x86_64 job fails (never built in ONA before), read its log; arm64 is independent
   (fail-fast false).
+
+RELEASE PAGE GUIDE (2026-11-06)
+- tools/ci/APK_GUIDE.md (AR + EN: which phones / chips per APK, how to check with CPU-Z) is now the
+  release notes (gh release --notes-file), above it one line with branch + commit.
