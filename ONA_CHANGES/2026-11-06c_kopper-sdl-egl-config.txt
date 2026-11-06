@@ -37,3 +37,5 @@ Fix: onaSdlGlLoadLibrary (sdl_dlopen_hook.c) still records the GL library for th
 "desktopgl" renderers, calls SDL's SDL_GL_LoadLibrary with SDL_EGL_LIBRARY / POJAVEXEC_EGL. GameLauncher:
 Kopper Zink's SDL_OPENGL_LIBRARY = the GL library path (was the renderer id "opengles3_desktopgl_zink_kopper").
 Log: "SDL_GL_LoadLibrary uses the renderer's EGL <path>".
+- 16b954d: run 42185231221 SUCCESS. NOT tested on a device. Next: Voxy 26.3 launcher log, look for
+  "SDL_GL_LoadLibrary uses the renderer's EGL" and whether the context is created.

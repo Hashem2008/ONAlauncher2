@@ -361,7 +361,7 @@ KOPPER ZINK THROUGH SDL (2026-11-06 c)
   sdl_hook.c retries with core attributes, then with ONA's bridge list (ES2 renderable, depth 24,
   window|pbuffer) and makes the context like the bridge; Kopper env GALLIUM_DRIVER + NO_KMS_SWRAST.
   Details: ONA_CHANGES/2026-11-06c_kopper-sdl-egl-config.txt. Need the LAUNCHER log for SDL_Hook lines.
-- CI: 12caf0a run 42183154594 SUCCESS. Not device-tested.
+- CI: 12caf0a run 42183154594 SUCCESS; follow-up 16b954d (SDL gets libEGL_mesa as EGL) run 42185231221 SUCCESS. Not device-tested.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
