@@ -30,7 +30,8 @@ USER / DEVICE
 - 2026-11-06 the user ALLOWED changing mods themselves (patches for FPS, per device), for the future.
   Still never disable/delete a mod. Prefer a separate runtime patch over editing the jar; client-side
   render changes only, nothing that breaks online play. Patches must cover ALL devices and CPUs/GPUs
-  (tuned per device tier / chip), not only the user's phone. Not started yet (question only, no build).
+  (tuned per device tier / chip), not only the user's phone. Include MediaTek Helio (G35-G99: PowerVR
+  GE8320 / Mali-G52 / Mali-G57, often 4-6 GB RAM, A55-heavy CPUs) explicitly - the user asked for it. Not started yet (question only, no build).
 - He wants Modrinth AND CurseForge both working.
 
 WHAT WAS DONE (commits on the branch, oldest first)
