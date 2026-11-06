@@ -29,7 +29,8 @@ USER / DEVICE
   (configs, renderer choice, porting). Ask before changing mods themselves.
 - 2026-11-06 the user ALLOWED changing mods themselves (patches for FPS, per device), for the future.
   Still never disable/delete a mod. Prefer a separate runtime patch over editing the jar; client-side
-  render changes only, nothing that breaks online play. Not started yet (question only, no build).
+  render changes only, nothing that breaks online play. Patches must cover ALL devices and CPUs/GPUs
+  (tuned per device tier / chip), not only the user's phone. Not started yet (question only, no build).
 - He wants Modrinth AND CurseForge both working.
 
 WHAT WAS DONE (commits on the branch, oldest first)
