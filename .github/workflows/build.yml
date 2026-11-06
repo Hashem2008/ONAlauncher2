@@ -183,10 +183,10 @@ jobs:
         run: |
           for v in 3.3.3 3.4.1; do
             jar="ZalithLauncher/src/main/assets/app_runtime/lwjgl/$v/lwjgl-$v-merged-modules.jar"
-            if unzip -p "$jar" org/lwjgl/opengl/PojavRendererInit.class | grep -a -q wrapProvider; then
-              echo "LWJGL $v: GL format fix inside"
+            if unzip -p "$jar" org/lwjgl/opengl/PojavRendererInit.class | grep -a -q glShaderSource; then
+              echo "LWJGL $v: GL format fix + shader output fix inside"
             else
-              echo "::warning::LWJGL $v merged jar has no PojavRendererInit.wrapProvider (rebuild the jar)"
+              echo "::warning::LWJGL $v merged jar lacks the newest PojavRendererInit (rebuild the jar)"
             fi
           done
 

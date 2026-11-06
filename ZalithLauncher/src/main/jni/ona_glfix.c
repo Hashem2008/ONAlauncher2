@@ -15,6 +15,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <stdarg.h>
 #include <android/log.h>
 
 #define TAG "ONA-GLFix"
@@ -274,6 +277,275 @@ static GLenum ona_CheckFramebufferStatus(GLenum target) {
     return status;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Fragment output arrays (Minecraft 26.3 order independent transparency, oit_add_transmittance):
+//   layout(location = 0) out vec4 coeff[OIT_COEFF_ATTACHMENT_COUNT];
+//   for (...) coeff[attachmentIndex][i] = ...;
+// Desktop OpenGL accepts the loop index, OpenGL ES drivers (Mali: "S0015: Outputs declared as arrays
+// may only be indexed by a constant integral expression") refuse it, every transparency pipeline
+// fails and the game stays black after the loading screen. The array becomes a plain global the
+// shader writes as before, and a new main() copies each element to its own output with a constant
+// index after the original main ran. Same locations, same values.
+// ---------------------------------------------------------------------------------------------
+
+typedef char GLchar;
+typedef void (*PFN_ShaderSource)(GLuint, GLsizei, const GLchar* const*, const GLint*);
+typedef void (*PFN_GetShaderiv)(GLuint, GLenum, GLint*);
+static PFN_ShaderSource real_ShaderSource;
+static PFN_GetShaderiv real_GetShaderiv;
+
+#define GL_SHADER_TYPE 0x8B4F
+#define GL_FRAGMENT_SHADER 0x8B30
+#define AOUT_MAX_ARRAYS 4
+#define AOUT_MAX_ELEMENTS 8
+
+typedef struct {
+    size_t start, end;      // the declaration line in the source (end: after its newline)
+    char type[32], name[64], size[64];
+    int location;
+    int literal;            // size is a number (else a macro)
+} ArrayOut;
+
+typedef struct { char* data; size_t len, cap; } Buf;
+
+static int buf_add(Buf* b, const char* s, size_t n) {
+    if (b->len + n + 1 > b->cap) {
+        size_t cap = (b->cap ? b->cap * 2 : 4096);
+        while (cap < b->len + n + 1) cap *= 2;
+        char* data = realloc(b->data, cap);
+        if (!data) return 0;
+        b->data = data;
+        b->cap = cap;
+    }
+    memcpy(b->data + b->len, s, n);
+    b->len += n;
+    b->data[b->len] = 0;
+    return 1;
+}
+
+static int buf_printf(Buf* b, const char* fmt, ...) __attribute__((format(printf, 2, 3)));
+static int buf_printf(Buf* b, const char* fmt, ...) {
+    char tmp[512];
+    va_list ap;
+    va_start(ap, fmt);
+    int n = vsnprintf(tmp, sizeof(tmp), fmt, ap);
+    va_end(ap);
+    if (n < 0 || n >= (int) sizeof(tmp)) return 0;
+    return buf_add(b, tmp, (size_t) n);
+}
+
+static const char* skip_spaces(const char* p, const char* end) {
+    while (p < end && (*p == ' ' || *p == '\t')) p++;
+    return p;
+}
+
+static const char* read_ident(const char* p, const char* end, char* out, size_t cap) {
+    size_t n = 0;
+    if (p >= end || !(isalpha((unsigned char) *p) || *p == '_')) return NULL;
+    while (p < end && (isalnum((unsigned char) *p) || *p == '_')) {
+        if (n + 1 >= cap) return NULL;
+        out[n++] = *p++;
+    }
+    out[n] = 0;
+    return p;
+}
+
+static int is_word(const char* src, size_t len, size_t at, const char* word) {
+    size_t w = strlen(word);
+    if (at + w > len || strncmp(src + at, word, w) != 0) return 0;
+    if (at > 0 && (isalnum((unsigned char) src[at - 1]) || src[at - 1] == '_')) return 0;
+    if (at + w < len && (isalnum((unsigned char) src[at + w]) || src[at + w] == '_')) return 0;
+    return 1;
+}
+
+/** One line: [layout(... location = N ...)] out [precision] TYPE NAME[SIZE]; */
+static int parse_array_out(const char* line, const char* end, ArrayOut* out) {
+    const char* p = skip_spaces(line, end);
+    char word[64];
+    out->location = -1;
+    if (end - p > 6 && strncmp(p, "layout", 6) == 0) {
+        p = skip_spaces(p + 6, end);
+        if (p >= end || *p != '(') return 0;
+        const char* close = memchr(p, ')', (size_t) (end - p));
+        if (!close) return 0;
+        const char* loc = p;
+        while (loc < close) {
+            if (close - loc > 8 && strncmp(loc, "location", 8) == 0) {
+                const char* q = skip_spaces(loc + 8, close);
+                if (q < close && *q == '=') {
+                    q = skip_spaces(q + 1, close);
+                    out->location = atoi(q);
+                }
+                break;
+            }
+            loc++;
+        }
+        p = skip_spaces(close + 1, end);
+    }
+    if (out->location < 0) return 0; // without an explicit location the outputs could not keep theirs
+    p = read_ident(p, end, word, sizeof(word));
+    if (!p || strcmp(word, "out") != 0) return 0;
+    p = skip_spaces(p, end);
+    p = read_ident(p, end, out->type, sizeof(out->type));
+    if (!p) return 0;
+    if (!strcmp(out->type, "highp") || !strcmp(out->type, "mediump") || !strcmp(out->type, "lowp")) {
+        p = read_ident(skip_spaces(p, end), end, out->type, sizeof(out->type));
+        if (!p) return 0;
+    }
+    p = read_ident(skip_spaces(p, end), end, out->name, sizeof(out->name));
+    if (!p) return 0;
+    p = skip_spaces(p, end);
+    if (p >= end || *p != '[') return 0;
+    p = skip_spaces(p + 1, end);
+    const char* size_start = p;
+    while (p < end && *p != ']') p++;
+    if (p >= end) return 0;
+    const char* size_end = p;
+    while (size_end > size_start && (size_end[-1] == ' ' || size_end[-1] == '\t')) size_end--;
+    size_t size_len = (size_t) (size_end - size_start);
+    if (size_len == 0 || size_len >= sizeof(out->size)) return 0;
+    memcpy(out->size, size_start, size_len);
+    out->size[size_len] = 0;
+    p = skip_spaces(p + 1, end);
+    if (p >= end || *p != ';') return 0;
+    out->literal = 1;
+    for (size_t i = 0; i < size_len; i++) if (!isdigit((unsigned char) out->size[i])) out->literal = 0;
+    return 1;
+}
+
+static int has_define(const char* src, const char* name) {
+    const char* p = src;
+    size_t n = strlen(name);
+    while ((p = strstr(p, "#define")) != NULL) {
+        const char* q = p + 7;
+        while (*q == ' ' || *q == '\t') q++;
+        if (strncmp(q, name, n) == 0 && !(isalnum((unsigned char) q[n]) || q[n] == '_')) return 1;
+        p = q;
+    }
+    return 0;
+}
+
+static int aout_logged;
+
+/** @return a rewritten copy (to free) or NULL when the source needs no change */
+static char* rewrite_array_outputs(const char* src, size_t len) {
+    if (!strstr(src, " out ") && !strstr(src, "\tout ") && !strstr(src, ")out ")) return NULL;
+    ArrayOut found[AOUT_MAX_ARRAYS];
+    int count = 0;
+    size_t line = 0;
+    while (line < len && count < AOUT_MAX_ARRAYS) {
+        const char* nl = memchr(src + line, '\n', len - line);
+        size_t line_end = nl ? (size_t) (nl - src) : len;
+        ArrayOut a;
+        memset(&a, 0, sizeof(a));
+        if (parse_array_out(src + line, src + line_end, &a)
+                && (a.literal || has_define(src, a.size))
+                && (!a.literal || (atoi(a.size) > 0 && atoi(a.size) <= AOUT_MAX_ELEMENTS))) {
+            a.start = line;
+            a.end = nl ? line_end + 1 : line_end;
+            found[count++] = a;
+        }
+        line = nl ? line_end + 1 : len;
+    }
+    if (count == 0) return NULL;
+
+    // main() of the shader: renamed, the new main() calls it and copies the outputs
+    size_t main_at = (size_t) -1;
+    for (size_t i = 0; i + 4 < len; i++) {
+        if (src[i] == 'm' && is_word(src, len, i, "main")) {
+            size_t j = i + 4;
+            while (j < len && (src[j] == ' ' || src[j] == '\t')) j++;
+            if (j >= len || src[j] != '(') continue;
+            size_t k = i;
+            while (k > 0 && (src[k - 1] == ' ' || src[k - 1] == '\t')) k--;
+            if (k >= 4 && is_word(src, len, k - 4, "void")) {
+                main_at = i;
+                break;
+            }
+        }
+    }
+    if (main_at == (size_t) -1) return NULL;
+
+    Buf b = {0};
+    size_t pos = 0;
+    int ok = 1;
+    for (int n = 0; n < count && ok; n++) {
+        ArrayOut* a = &found[n];
+        if (main_at >= pos && main_at < a->start) {
+            ok &= buf_add(&b, src + pos, main_at - pos) && buf_add(&b, "ona_aout_main", strlen("ona_aout_main"));
+            pos = main_at + 4;
+        }
+        ok &= buf_add(&b, src + pos, a->start - pos);
+        ok &= buf_printf(&b, "%s %s[%s];\n#define ONA_AOUT_%d 1\n", a->type, a->name, a->size, n);
+        int elements = a->literal ? atoi(a->size) : AOUT_MAX_ELEMENTS;
+        for (int k = 0; k < elements && ok; k++) {
+            if (!a->literal) ok &= buf_printf(&b, "#if (%s) > %d\n", a->size, k);
+            ok &= buf_printf(&b, "layout(location = %d) out %s ona_aout_%d_%d;\n", a->location + k, a->type, n, k);
+            if (!a->literal) ok &= buf_add(&b, "#endif\n", strlen("#endif\n"));
+        }
+        pos = a->end;
+    }
+    if (ok && main_at >= pos) {
+        ok &= buf_add(&b, src + pos, main_at - pos) && buf_add(&b, "ona_aout_main", strlen("ona_aout_main"));
+        pos = main_at + 4;
+    }
+    ok &= buf_add(&b, src + pos, len - pos);
+    ok &= buf_add(&b, "\nvoid main() {\n    ona_aout_main();\n", strlen("\nvoid main() {\n    ona_aout_main();\n"));
+    for (int n = 0; n < count && ok; n++) {
+        ArrayOut* a = &found[n];
+        ok &= buf_printf(&b, "#ifdef ONA_AOUT_%d\n", n);
+        int elements = a->literal ? atoi(a->size) : AOUT_MAX_ELEMENTS;
+        for (int k = 0; k < elements && ok; k++) {
+            if (!a->literal) ok &= buf_printf(&b, "#if (%s) > %d\n", a->size, k);
+            ok &= buf_printf(&b, "    ona_aout_%d_%d = %s[%d];\n", n, k, a->name, k);
+            if (!a->literal) ok &= buf_add(&b, "#endif\n", strlen("#endif\n"));
+        }
+        ok &= buf_add(&b, "#endif\n", strlen("#endif\n"));
+    }
+    ok &= buf_add(&b, "}\n", strlen("}\n"));
+    if (!ok) {
+        free(b.data);
+        return NULL;
+    }
+    if (aout_logged < 8) {
+        aout_logged++;
+        fprintf(stderr, "[ONA GLFix] fragment output array %s[%s] split into separate outputs\n",
+                found[0].name, found[0].size);
+        fflush(stderr);
+    }
+    return b.data;
+}
+
+static void ona_ShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) {
+    if (count <= 0 || string == NULL) {
+        real_ShaderSource(shader, count, string, length);
+        return;
+    }
+    GLint type = 0;
+    if (real_GetShaderiv) real_GetShaderiv(shader, GL_SHADER_TYPE, &type);
+    // Join the pieces: the declaration and main() can be in different strings
+    Buf joined = {0};
+    int ok = 1;
+    for (GLsizei i = 0; i < count && ok; i++) {
+        if (string[i] == NULL) continue;
+        size_t n = (length != NULL && length[i] >= 0) ? (size_t) length[i] : strlen(string[i]);
+        ok &= buf_add(&joined, string[i], n);
+    }
+    char* rewritten = NULL;
+    if (ok && joined.data != NULL) {
+        int fragment = type == GL_FRAGMENT_SHADER || (type == 0 && strstr(joined.data, "gl_Position") == NULL);
+        if (fragment) rewritten = rewrite_array_outputs(joined.data, joined.len);
+    }
+    if (rewritten != NULL) {
+        const GLchar* one = rewritten;
+        real_ShaderSource(shader, 1, &one, NULL);
+        free(rewritten);
+    } else {
+        real_ShaderSource(shader, count, string, length);
+    }
+    free(joined.data);
+}
+
 /**
  * Called by PojavRendererInit for the GL functions it wraps.
  * @return the wrapper's address, or 0 to keep the renderer's own function
@@ -303,6 +575,12 @@ Java_org_lwjgl_opengl_PojavRendererInit_nativeWrapGlFunction(JNIEnv *env, jclass
     } else if (strcmp(name, "glGetIntegerv") == 0) {
         // only needed by the wrappers, the game keeps calling the renderer directly
         real_GetIntegerv = (PFN_GetIntegerv) address;
+    } else if (strcmp(name, "glShaderSource") == 0) {
+        real_ShaderSource = (PFN_ShaderSource) address;
+        wrapper = (void*) ona_ShaderSource;
+    } else if (strcmp(name, "glGetShaderiv") == 0) {
+        // only needed by the wrapper (shader type), the game keeps calling the renderer directly
+        real_GetShaderiv = (PFN_GetShaderiv) address;
     } else if (strcmp(name, "glGetFramebufferAttachmentParameteriv") == 0) {
         real_GetFramebufferAttachmentParameteriv = (PFN_GetFramebufferAttachmentParameteriv) address;
     }

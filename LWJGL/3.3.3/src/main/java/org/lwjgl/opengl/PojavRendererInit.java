@@ -34,7 +34,9 @@ public class PojavRendererInit {
     /** GL functions ona_glfix.c wraps or needs */
     private static final java.util.Set<String> ONA_WRAPPED = new java.util.HashSet<>(java.util.Arrays.asList(
             "glTexImage2D", "glTexStorage2D", "glRenderbufferStorage", "glRenderbufferStorageMultisample",
-            "glCheckFramebufferStatus", "glGetIntegerv", "glGetFramebufferAttachmentParameteriv"
+            "glCheckFramebufferStatus", "glGetIntegerv", "glGetFramebufferAttachmentParameteriv",
+            // fragment output arrays indexed in loops (Minecraft 26.3 transparency), refused by ES drivers
+            "glShaderSource", "glGetShaderiv"
     ));
 
     /**

@@ -1,0 +1,25 @@
+2026-11-06 (p) - Minecraft 26.3 black screen after the loading screen (Mali / ES drivers)
+
+Log (Galaxy Note10+ SM-N976B, Exynos 9825, Mali-G76, MobileGlues, 26.3 Fabric + Sodium):
+  Couldn't compile fragment shader ... S0015: Outputs declared as arrays may only be indexed by a
+  constant integral expression.  ->  Failed to load required shader programs: oit_transmittance_*
+Cause: 26.3's order independent transparency (shaders/include/oit_add_transmittance.glsl):
+  layout(location = 0) out vec4 coeff[OIT_COEFF_ATTACHMENT_COUNT];
+  for (attachmentIndex...) coeff[attachmentIndex][i] = ...;
+Desktop GL accepts the loop index, OpenGL ES does not (glslang: "variable indexing fragment shader
+output array ... not supported with this profile: es"). Every transmittance pipeline fails -> black.
+
+Fix (ona_glfix.c, ONA_GL_FORMAT_FIX renderers = MobileGlues + GL4ES family):
+- glShaderSource wrapper: in fragment shaders (glGetShaderiv GL_SHADER_TYPE), a declaration
+  "layout(location = L) out T NAME[SIZE];" (SIZE a number or a #define) becomes a plain global array
+  plus separate outputs ona_aout_<n>_<k> at L+k (#if SIZE > k), main() is renamed ona_aout_main and a
+  new main() calls it and copies NAME[k] to each output with constant indices. Guarded by
+  #define ONA_AOUT_<n> next to the declaration, so variants where that block is #if'ed out still compile.
+- PojavRendererInit.ONA_WRAPPED += glShaderSource, glGetShaderiv (both LWJGL versions). Merged jars
+  rebuilt with javac (3.3.3 --release 8 with javax.annotation.Nullable stub, 3.4.1 --release 17 with
+  lwjgl.jar on the classpath), version files = sha1 of the new jar. CI check now looks for glShaderSource.
+- Tested on the host: tools/ona_glfix_shader_test.c (gcc with stub jni.h / android/log.h, see the file)
+  + glslangValidator: the ES sample fails before, passes after; every 26.3 core shader assembled with and
+  without OIT defines still compiles as desktop GLSL after the rewrite (79/79).
+- LogTranslator rule for this error.
+Not device-tested.
