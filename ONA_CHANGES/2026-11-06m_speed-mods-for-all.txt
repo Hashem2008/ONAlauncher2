@@ -1,0 +1,29 @@
+2026-11-06 (m) - speed mods for every modded version + in-game settings v2
+
+Why: Redmi Pad SE log (c33d2172): plain Forge 1.21 with 0 mods, so SpeedModInstaller skipped it
+(it skipped empty mods folders) and the game drew with Minecraft's own renderer.
+
+SpeedModInstaller.kt (rewritten)
+- Runs also when the mods folder is empty (any Fabric / Quilt / Forge / NeoForge version, MC >= 1.16).
+- Renderer: Sodium (Fabric, Quilt, NeoForge) or Embeddium (Forge, NeoForge), never next to OptiFine
+  or another optimiser (same list as before).
+- New extras: FerriteCore (all loaders, memory) and Lithium (Fabric / Quilt / NeoForge, world thread,
+  only when the version has <= 25 mods of its own; skipped next to Canary / Radium / Roadrunner /
+  Hydrogen / Alternate Current).
+- Every jar still checked by ModCompat metadata (loader + game version + provides the mod id).
+- Per-mod retry file ona_speed_mod_checked.txt (slug=time): no build -> 3 days; network error ->
+  next launch.
+- ona_speed_mods_added.txt (slug|jar) = what ONA added. A jar from that list the player deleted ->
+  slug goes to ona_speed_mods_blocked.txt, never added again to that version.
+- onCrash(version, text): called from VMActivity on a non-zero exit. If the crash text is a loading
+  / mixin failure and names one of ONA's added mods, that jar is deleted and blocked. Player mods are
+  never touched.
+- noRendererFor: when no optimiser exists (e.g. Forge 1.21+) a toast says a NeoForge / Fabric version
+  is much faster (string ona_speed_mod_none).
+
+CrashDoctor.kt: public crashText(launcherLog, gameDir).
+LauncherElements.kt: toast lists all added jars; new advice toast.
+BestGameSettings.kt: applied list renamed ona_best_settings_v2.txt (every file is set once more),
+  useVbo / fboEnable true for old versions, Sodium cloud_quality FAST, memory tracing off.
+
+Not device-tested.

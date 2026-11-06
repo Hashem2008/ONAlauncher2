@@ -281,5 +281,6 @@
     <string name="ona_auto_settings_summary">Every launch fits the render resolution (with the upscaler) and the view / simulation distance to this device. Only lowers, flagships keep their own values</string>
     <string name="ona_auto_speed_mod_title">Add a speed mod automatically</string>
     <string name="ona_auto_speed_mod_summary">Modded versions without Sodium / Embeddium get the one that fits from Modrinth: the game draws several times faster on phones</string>
-    <string name="ona_speed_mod_installed">%1$s added for more FPS (you can remove it in Mods)</string>
+    <string name="ona_speed_mod_installed">%1$s added for more FPS (you can remove them in Mods)</string>
+    <string name="ona_speed_mod_none">No rendering speed mod exists for %1$s. A NeoForge or Fabric version of this game runs much faster</string>
 </resources>

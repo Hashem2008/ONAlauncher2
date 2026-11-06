@@ -36,7 +36,8 @@ import java.io.File
  */
 object BestGameSettings {
     private const val TAG = "BestGameSettings"
-    private const val APPLIED_LIST = "ona_best_settings.txt"
+    /** v2: more keys (old versions' VBO / FBO, more Sodium options), every file is set once more */
+    private const val APPLIED_LIST = "ona_best_settings_v2.txt"
 
     private val GSON = GsonBuilder().setPrettyPrinting().create()
 
@@ -66,7 +67,9 @@ object BestGameSettings {
         "performance.use_particle_culling" to true,
         "performance.use_fog_occlusion" to true,
         "performance.use_block_face_culling" to true,
-        "performance.use_compact_vertex_format" to true
+        "performance.use_compact_vertex_format" to true,
+        "quality.cloud_quality" to "FAST",
+        "advanced.enable_memory_tracing" to false
     )
 
     private val TARGETS = listOf(
@@ -98,7 +101,10 @@ object BestGameSettings {
                 },
                 "prioritizeChunkUpdates" to "0",
                 "menuBackgroundBlurriness" to "0",
-                "enableVsync" to "false"
+                "enableVsync" to "false",
+                // 1.12 and older: vertex buffers and framebuffers on, the fast path on GL4ES
+                "useVbo" to "true",
+                "fboEnable" to "true"
             )
         },
         Target.Json("config/sodium-options.json", "Sodium") { sodiumLike(it) },
@@ -226,6 +232,7 @@ object BestGameSettings {
     /** Turned off: forget what was set, so turning it on again sets everything once more */
     fun reset(version: Version) {
         File(version.getVersionPath(), APPLIED_LIST).delete()
+        File(version.getVersionPath(), "ona_best_settings.txt").delete()
     }
 
     /** Change existing `key<separator>value` lines, keeping the quoting of each value */

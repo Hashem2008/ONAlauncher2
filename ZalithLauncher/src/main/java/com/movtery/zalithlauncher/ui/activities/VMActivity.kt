@@ -253,6 +253,10 @@ class VMViewModel : ViewModel() {
                                 if (diagnosis?.cause == CrashDoctor.Cause.OUT_OF_MEMORY) {
                                     OnaTweaks.oomMarker(version.getGameDir()).writeText("1")
                                 }
+                                // ONA: a speed mod ONA added that broke loading is taken out again
+                                com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.onCrash(
+                                    version, CrashDoctor.crashText(version.getLatestLog(), version.getGameDir())
+                                )
                                 if (diagnosis?.rendererSuspect == true) {
                                     // Nothirium on the GL15 engine crashed too: switch it off next time
                                     MobileModRules.onRendererCrash(version)

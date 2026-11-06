@@ -281,5 +281,6 @@
     <string name="ona_auto_settings_summary">كل تشغيل بيظبط الدقة (مع الأبسكيلر) ومسافة الرؤية والمحاكاة حسب قوة الجهاز. بس بينزّل، والجوالات القوية كثير بتضل على إعداداتها</string>
     <string name="ona_auto_speed_mod_title">نزّل مود تسريع لحاله</string>
     <string name="ona_auto_speed_mod_summary">النسخ اللي فيها مودات وما فيها Sodium أو Embeddium بتاخذ المناسب من Modrinth: الرسم بيصير أسرع بكثير على الجوال</string>
-    <string name="ona_speed_mod_installed">انضاف %1$s لفريمات أكثر (بتقدر تشيله من المودات)</string>
+    <string name="ona_speed_mod_installed">انضاف %1$s لفريمات أكثر (بتقدر تشيلهم من المودات)</string>
+    <string name="ona_speed_mod_none">ما في مود تسريع رسم لـ %1$s. نسخة NeoForge أو Fabric من نفس اللعبة أسرع بكثير</string>
 </resources>

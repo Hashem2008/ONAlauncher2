@@ -92,6 +92,20 @@ object CrashDoctor {
         }
     }.onFailure { Logger.warning(TAG, "Crash analysis failed", it) }.getOrNull()
 
+    /** Text of the fresh launcher log, crash report and game log (ONA: also read by SpeedModInstaller) */
+    fun crashText(launcherLog: File?, gameDir: File?): String = runCatching {
+        val now = System.currentTimeMillis()
+        fun fresh(file: File) = now - file.lastModified() < FRESH_MS
+        val crashReport = gameDir?.let { File(it, "crash-reports") }?.listFiles()
+            ?.filter(::fresh)?.maxByOrNull { it.lastModified() }
+        val gameLatest = gameDir?.let { File(it, "logs/latest.log") }?.takeIf { it.isFile && fresh(it) }
+        buildString {
+            launcherLog?.takeIf { it.isFile }?.let { append(tail(it)).append('\n') }
+            crashReport?.let { append(tail(it)).append('\n') }
+            gameLatest?.let { append(tail(it)).append('\n') }
+        }
+    }.getOrDefault("")
+
     private fun analyzeInner(launcherLog: File?, gameDir: File?): Diagnosis? = runCatching {
         val now = System.currentTimeMillis()
         fun fresh(file: File) = now - file.lastModified() < FRESH_MS
