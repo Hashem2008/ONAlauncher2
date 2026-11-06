@@ -71,3 +71,12 @@ Deleted before this log existed; rebuilt from the run list (the runs and commits
   41508472117  4ebcdfa  2026-11-02 19:16  Fix mod checker false positives, washed colors, SDL context crash
   41351707365  d129cf9  2026-11-01 21:22  Fix Minecraft 26.x graphics backend and Forge 26.3 install, new icon
   41345250639  d30ca39  2026-11-01 20:07  ONA Launcher 2: merge ONAlauncher features into Zalith Launcher 2
+
+-----------------------------------------------------------------
+2026-11-06: release assets with the old single names (all repos' ONA releases built from now on)
+-----------------------------------------------------------------
+- Build CI now makes one APK per CPU type (user asked: no 446 MB "all" APK):
+  ONA-arm64-v8a_64bit-phones.apk, ONA-armeabi-v7a_32bit-old-phones.apk, ONA-x86_64_emulators-PC.apk.
+- Each publish removes ONA-debug-all.apk and ONA-debug-arm64.apk from the SAME release it uploads to
+  (they are older builds of the same branch; the code of every commit stays in git, rebuild with
+  git push origin <commit>:refs/heads/restore-<commit7>).

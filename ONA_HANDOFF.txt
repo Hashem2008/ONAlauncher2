@@ -381,6 +381,11 @@ CHUNK STUTTER, CORE COUNT, LIGHT LAUNCHER (2026-11-06 e+f)
   cores; Light launcher setting (ONA_CHANGES/2026-11-06f_cores-light-launcher.txt).
 - CI result: see the change files.
 
+APK PER CPU (2026-11-06 g)
+- build.yml builds arm64 / arm / x86_64 (no "all"); labelled release files. ONA_CHANGES/2026-11-06g_apk-per-cpu.txt.
+  Old ONA-debug-*.apk names are deleted from the release on publish (DELETED_BUILDS.txt).
+- CI result: see the change file.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -429,3 +434,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
   Kopper Zink بالنسخ القديمة. لازم لوج اللانشر (latest_game.log) مش لوج اللعبة.
 - 2026-11-06 (د): Voxy على 26.3 اشتغل (أكدها المستخدم). تحسين فريمات Voxy و Zink. مفتوح: الشاشة بتطفي وبتضوي.
 - 2026-11-06 (هـ+و): هبوط الـ chunks (خيوط Sodium)، عدد الأنوية الصح (Helio ما عاد ينربط على نواتين)، ووضع اللانشر الخفيف.
+- 2026-11-06 (ز): APK لكل معالج (arm64 للجوالات، arm للقديمة 32 بت، x86_64 للمحاكيات) بدل all.

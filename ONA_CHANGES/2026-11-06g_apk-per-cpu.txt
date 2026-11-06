@@ -1,0 +1,11 @@
+CHANGE SET 2026-11-06 (g) (branch claude/hala-7rl45s)
+User: the launcher feels heavy in almost everything (start, lag, size, heat); wants an APK per CPU type
+(or at least smaller), not the "all" APK every time, with a label saying which chips each is for.
+
+- build.yml matrix: ["arm64", "arm", "x86_64"] (was ["all", "arm64"]). Horizon (Rust) only in arm64.
+- Release files: ONA-arm64-v8a_64bit-phones.apk (Snapdragon, Exynos, Dimensity, Helio, Kirin, Tensor,
+  Unisoc T6xx/T7xx), ONA-armeabi-v7a_32bit-old-phones.apk (32-bit Android), ONA-x86_64_emulators-PC.apk.
+  Release notes list them (EN + AR); the build summary shows each link + who it is for. Old asset names
+  are removed from the same release (logged in DELETED_BUILDS.txt). arm64 also stays on the build page.
+- If the arm or x86_64 job fails (never built in ONA before), read its log; arm64 is independent
+  (fail-fast false).

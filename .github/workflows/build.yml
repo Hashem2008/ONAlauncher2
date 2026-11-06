@@ -27,7 +27,9 @@ jobs:
       actions: write
     strategy:
       matrix:
-        arch: ["all", "arm64"]
+        # ONA: one APK per CPU type instead of a 446 MB "all" APK nobody needs whole:
+        # arm64 = almost every phone, arm = old 32-bit phones, x86_64 = emulators / PCs
+        arch: ["arm64", "arm", "x86_64"]
       fail-fast: false
 
     env:
@@ -132,7 +134,7 @@ jobs:
       # ONA: the Horizon (Rust) engine, built once by horizon.yml and published as a release of
       # this repository. Without it the APK still builds; the Rust switch then says so.
       - name: Add Horizon (Rust) engine
-        if: matrix.arch == 'arm64' || matrix.arch == 'all'
+        if: matrix.arch == 'arm64'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -197,18 +199,42 @@ jobs:
           branch="${GITHUB_REF_NAME//\//-}"
           if [ "$GITHUB_REF" = "refs/heads/main" ]; then tag=ona-latest; else tag="ona-$branch"; fi
           apk=$(ls ZalithLauncher/build/outputs/apk/debug/*.apk | head -1)
-          out="$RUNNER_TEMP/ONA-debug-${{ matrix.arch }}.apk"
+          case "${{ matrix.arch }}" in
+            arm64)  name="ONA-arm64-v8a_64bit-phones.apk"
+                    who="64-bit phones and tablets from about 2017 on: Snapdragon, Exynos, MediaTek Dimensity and Helio, Kirin, Google Tensor, Unisoc T6xx/T7xx - احسن خيار لأغلب الجوالات (فيه محرك Rust)" ;;
+            arm)    name="ONA-armeabi-v7a_32bit-old-phones.apk"
+                    who="old or cheap phones with a 32-bit Android (Android Go, Snapdragon 4xx, Helio A/P2x, Unisoc SC9863) - للجوالات القديمة اللي نظامها 32 بت" ;;
+            x86_64) name="ONA-x86_64_emulators-PC.apk"
+                    who="Android emulators and PCs (BlueStacks, LDPlayer, Waydroid, Chromebooks with Intel/AMD) - للمحاكيات والكمبيوتر" ;;
+            *)      name="ONA-${{ matrix.arch }}.apk"; who="${{ matrix.arch }}" ;;
+          esac
+          out="$RUNNER_TEMP/$name"
           cp "$apk" "$out"
-          notes="Debug build of $GITHUB_REF_NAME ($GITHUB_SHA). ONA-debug-arm64.apk is for most phones; ONA-debug-all.apk has every CPU type."
-          gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 ||             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --target "$GITHUB_SHA"               --title "ONA debug build ($GITHUB_REF_NAME)" --notes "$notes" || true
+          notes=$(printf '%s\n' \
+            "Debug build of $GITHUB_REF_NAME ($GITHUB_SHA). Pick the APK for your CPU / اختار حسب معالج جهازك:" \
+            "" \
+            "- ONA-arm64-v8a_64bit-phones.apk: 64-bit phones (Snapdragon, Exynos, Dimensity, Helio, Kirin, Tensor). اغلب الجوالات." \
+            "- ONA-armeabi-v7a_32bit-old-phones.apk: old phones with 32-bit Android. الجوالات القديمة 32 بت." \
+            "- ONA-x86_64_emulators-PC.apk: emulators and PCs. المحاكيات والكمبيوتر." \
+            "" \
+            "Not sure? Take arm64. مش متأكد؟ نزّل arm64.")
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --target "$GITHUB_SHA" \
+              --title "ONA debug build ($GITHUB_REF_NAME)" --notes "$notes" || true
           gh release upload "$tag" "$out" --repo "$GITHUB_REPOSITORY" --clobber
           gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes "$notes" || true
+          # Older single names in this release are replaced by the per-CPU files (see DELETED_BUILDS.txt)
+          for old in ONA-debug-all.apk ONA-debug-arm64.apk; do
+            gh release delete-asset "$tag" "$old" --repo "$GITHUB_REPOSITORY" -y > /dev/null 2>&1 || true
+          done
           # The build page shows no Artifacts any more: put the download link on it instead
-          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/ONA-debug-${{ matrix.arch }}.apk"
+          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/$name"
           {
             echo "### APK (${{ matrix.arch }}) - تحميل التطبيق"
             echo ""
-            echo "[ONA-debug-${{ matrix.arch }}.apk]($url)"
+            echo "[$name]($url)"
+            echo ""
+            echo "$who"
             echo ""
             echo "Release page: https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -216,7 +242,7 @@ jobs:
       # ONA: the arm64 APK (~246 MB) also on this build page, as the user wants it there. Free
       # private storage is ~500 MB, so only the newest one is kept: older ones are deleted first
       # and listed in this build's summary (run + commit, to rebuild one: push the commit to
-      # restore-<commit7>). The "all" APK (~446 MB) does not fit: it stays in the release only.
+      # restore-<commit7>). The other CPU types (arm, x86_64) stay in the release only.
       - name: Remove the previous APK from older build pages
         if: inputs.variant == 'Debug' && matrix.arch == 'arm64'
         continue-on-error: true
