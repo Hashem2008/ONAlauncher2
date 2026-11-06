@@ -27,6 +27,9 @@ USER / DEVICE
   Fabulously Optimized (Fabric 26.3), wants Voxy / Voxyris (Fabric 1.21.x).
 - HARD RULE from the user: NEVER disable or delete a mod. Only make it work / tune it
   (configs, renderer choice, porting). Ask before changing mods themselves.
+- 2026-11-06 the user ALLOWED changing mods themselves (patches for FPS, per device), for the future.
+  Still never disable/delete a mod. Prefer a separate runtime patch over editing the jar; client-side
+  render changes only, nothing that breaks online play. Not started yet (question only, no build).
 - He wants Modrinth AND CurseForge both working.
 
 WHAT WAS DONE (commits on the branch, oldest first)
