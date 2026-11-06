@@ -440,6 +440,14 @@ RUST LOCAL ACCOUNT (2026-11-06 o)
   full build run 42248065632 (7064e1e) SUCCESS, arm64 log "Horizon engine horizon-a69321a00de0 added".
   Not device-tested. Remember: any patch_horizon.py change needs horizon.yml run by hand first.
 
+26.3 BLACK SCREEN ON MALI / ES (2026-11-06 p)
+- OIT transmittance shaders index "out vec4 coeff[N]" in a loop; ES refuses (S0015). ona_glfix.c
+  glShaderSource wrapper splits the array into separate outputs; LWJGL merged jars rebuilt (wrap list
+  += glShaderSource, glGetShaderiv). ONA_CHANGES/2026-11-06p_263-black-screen-oit.txt.
+- CI: full build run 42251618635 (45e5408) SUCCESS, "LWJGL 3.x: GL format fix + shader output fix inside".
+  Not device-tested. Check on device: game log has "[ONA GLFix] fragment output array coeff[...] split",
+  no S0015, no "Failed to load required shader programs".
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -497,3 +505,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
   وبتنشال لحالها إذا عملت كراش. إعدادات اللعبة v2. بيلد الثلاث نسخ نجح.
 - 2026-11-06 (ن): أيقونة بكسل جديدة، ستايل ONA (كحلي وذهبي) صار الأساسي، وشاشة رئيسية جديدة بسيطة. البيلد نجح.
 - 2026-11-06 (س): حساب أوفلاين لـ Rust: اسم الحساب المحلي بيوصل لـ Horizon. محرك Rust انبنى من جديد والبيلد نجح.
+- 2026-11-06 (ع): الشاشة السودا بعد التحميل بـ 26.3 على Mali: شيدر الشفافية الجديد صار ينعدل قبل الكرت. البيلد نجح.
