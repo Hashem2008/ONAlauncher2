@@ -387,13 +387,13 @@ CHUNK STUTTER, CORE COUNT, LIGHT LAUNCHER (2026-11-06 e+f)
 APK PER CPU (2026-11-06 g)
 - build.yml builds arm64 / arm / x86_64 (no "all"); labelled release files. ONA_CHANGES/2026-11-06g_apk-per-cpu.txt.
   Old ONA-debug-*.apk names are deleted from the release on publish (DELETED_BUILDS.txt).
-- CI result: see the change file.
+- CI: 7db40a0 run 42201837740 SUCCESS, PhysX + zstd built for all three ABIs (job logs checked).
 
 SAME EXTRAS IN EVERY APK (2026-11-06 h)
 - Per-CPU build 640cd49 run 42200343506: arm / arm64 / x86_64 all SUCCESS.
 - zstd + PhysX now built per ABI for every APK. Horizon and Turnip stay arm64 (upstream / Adreno only).
   ONA_CHANGES/2026-11-06h_all-apks-same-extras.txt.
-- CI result: see the change file.
+- CI: 7db40a0 run 42201837740 SUCCESS, PhysX + zstd built for all three ABIs (job logs checked).
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new

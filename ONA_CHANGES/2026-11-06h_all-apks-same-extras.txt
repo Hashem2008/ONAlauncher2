@@ -19,3 +19,10 @@ NOT possible / not sensible:
 - Turnip (libvulkan_freedreno.so) + timeline semaphore layer: Adreno GPU driver, arm64 only (x86 has no
   Adreno; 32-bit Adreno Turnip is not provided upstream).
 - virgl libs exist only in arm/x86 folders (old VirGL renderer from upstream Zalith).
+
+CI RESULT
+- 7db40a0: run 42201837740 SUCCESS, all three jobs. Verified in the job logs (not only step status):
+  armeabi-v7a: libPhysXJniBindings_32.so 5004012 B / 2936 JNI, liblwjgl_zstd.so 660600 B / 152 JNI
+  x86_64:      libPhysXJniBindings_64.so 8035288 B / 2936 JNI, liblwjgl_zstd.so 688000 B / 152 JNI
+  arm64-v8a:   libPhysXJniBindings_64.so 6878424 B / 2936 JNI, liblwjgl_zstd.so 552552 B / 152 JNI
+  APKs in release ona-claude-hala-7rl45s (per-CPU names). NOT tested on a device.
