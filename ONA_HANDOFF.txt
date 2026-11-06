@@ -33,6 +33,9 @@ USER / DEVICE
   (tuned per device tier / chip), not only the user's phone. Include MediaTek Helio (G35-G99: PowerVR
   GE8320 / Mali-G52 / Mali-G57, often 4-6 GB RAM, A55-heavy CPUs) explicitly - the user asked for it. Not started yet (question only, no build).
 - He wants Modrinth AND CurseForge both working.
+- RULE (2026-11-06): every change (mod patches, fixes, natives) must reach EVERY APK (arm64, arm 32-bit,
+  x86_64), not one only. Known arm64-only parts to extend: liblwjgl_zstd.so (tools/lwjgl-zstd-android),
+  PhysX port (tools/physx4-android), Horizon/Rust (upstream builds arm64 only).
 
 WHAT WAS DONE (commits on the branch, oldest first)
 20afa95  - "Fix all" removed. ModAutoResolver (game/version/mod) installs missing mod requirements
