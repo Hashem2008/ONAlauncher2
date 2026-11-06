@@ -65,6 +65,19 @@ static bool onaSdlGlLoadLibrary(const char *path) {
             LOG_TO_I("SDL_Hook: SDL_GL_LoadLibrary(%s): gl* lookups follow LWJGL on this library", path);
         }
     }
+    // SDL tries the path it is given as its EGL library first. For desktop GL renderers that path
+    // is the GL library (Kopper Zink's libglxshim, which carries EGL entry points of its own), and that
+    // EGL refuses SDL's desktop config ("EGL_BAD_ATTRIBUTE") and the OpenGL API ("Could not bind EGL
+    // API"). Hand SDL the renderer's real EGL, the one ONA's own bridge uses; gl* lookups still go to
+    // the GL library through the eglGetProcAddress wrapper above.
+    const char *renderer = getenv("POJAV_RENDERER");
+    const char *egl = getenv("SDL_EGL_LIBRARY");
+    if (egl == NULL || egl[0] == '\0') egl = getenv("POJAVEXEC_EGL");
+    if (renderer != NULL && strstr(renderer, "desktopgl") != NULL && egl != NULL && egl[0] != '\0' &&
+        (path == NULL || strcmp(path, egl) != 0)) {
+        LOG_TO_I("SDL_Hook: SDL_GL_LoadLibrary uses the renderer's EGL %s", egl);
+        return realSdlGlLoadLibrary != NULL ? realSdlGlLoadLibrary(egl) : false;
+    }
     return realSdlGlLoadLibrary != NULL ? realSdlGlLoadLibrary(path) : false;
 }
 

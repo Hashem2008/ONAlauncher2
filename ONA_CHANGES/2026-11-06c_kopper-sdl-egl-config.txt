@@ -25,3 +25,15 @@ header "Launch Minecraft"), it has the SDL_Hook lines; the game log alone does n
 
 CI RESULT
 - 12caf0a: run 42183154594 SUCCESS. APK in release ona-claude-hala-7rl45s. NOT tested on a device.
+
+FOLLOW-UP (launcher log 11:02, WA0035): SDL's list was RGB8 A8, CONFIG_CAVEAT=NONE, DEPTH 16,
+RENDERABLE_TYPE=OPENGL_BIT; core retry failed, bridge list gave 6 configs, then
+"Failed to create OpenGL context: Could not bind EGL API".
+Cause: SDL_GL_LoadLibrary(path) makes SDL try that path as its EGL first. Minecraft passes LWJGL's GL
+library = Kopper's libglxshim, which carries EGL entry points of its own: SDL used that EGL, which
+refuses OPENGL_BIT configs and eglBindAPI(EGL_OPENGL_API). ONA's bridge uses libEGL_mesa (POJAVEXEC_EGL),
+where binding OpenGL works (Voxyris log: "EGLBridge: Binding to OpenGL", no failure).
+Fix: onaSdlGlLoadLibrary (sdl_dlopen_hook.c) still records the GL library for the gl* lookups but, for
+"desktopgl" renderers, calls SDL's SDL_GL_LoadLibrary with SDL_EGL_LIBRARY / POJAVEXEC_EGL. GameLauncher:
+Kopper Zink's SDL_OPENGL_LIBRARY = the GL library path (was the renderer id "opengles3_desktopgl_zink_kopper").
+Log: "SDL_GL_LoadLibrary uses the renderer's EGL <path>".

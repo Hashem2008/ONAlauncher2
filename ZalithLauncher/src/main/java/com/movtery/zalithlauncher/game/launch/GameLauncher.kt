@@ -593,6 +593,8 @@ private fun setRendererEnv(
     // ONA: Kopper Zink through SDL (Minecraft 26.x) never runs ONA's EGL bridge, which sets these
     // before Mesa's EGL starts; without them Mesa may not bring up Zink on the phone's Vulkan
     if (rendererId == "opengles3_desktopgl_zink_kopper") {
+        // SDL's GL library is the renderer's GL library (was the renderer id, not a file)
+        envMap["ONA_GL_LIBRARY"]?.let { envMap["SDL_OPENGL_LIBRARY"] = it }
         envMap.getOrPut("GALLIUM_DRIVER") { "zink" }
         envMap.getOrPut("MESA_ANDROID_NO_KMS_SWRAST") { "1" }
     }
