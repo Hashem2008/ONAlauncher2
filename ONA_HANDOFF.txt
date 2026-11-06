@@ -432,6 +432,14 @@ NEW LOOK: ICON + ONA STYLE + HOME (2026-11-06 n)
   Next: user feedback / screenshots; then restyle other screens' layouts (versions, download, settings)
   if the user asks.
 
+RUST LOCAL ACCOUNT (2026-11-06 o)
+- ONA local account name -> Horizon "--name" (no Microsoft session asked then). Patches in
+  tools/horizon/patch_horizon.py; HorizonEngine.offlineName(); HorizonActivity "player_name".
+  ONA_CHANGES/2026-11-06o_rust-local-account.txt.
+- CI: horizon.yml run 42246249172 SUCCESS (release horizon-a69321a00de0 republished 15:58),
+  full build run 42248065632 (7064e1e) SUCCESS, arm64 log "Horizon engine horizon-a69321a00de0 added".
+  Not device-tested. Remember: any patch_horizon.py change needs horizon.yml run by hand first.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -488,3 +496,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (م): مودات التسريع (Sodium/Embeddium و FerriteCore و Lithium) بتنضاف لكل نسخة مودات حتى الفاضية،
   وبتنشال لحالها إذا عملت كراش. إعدادات اللعبة v2. بيلد الثلاث نسخ نجح.
 - 2026-11-06 (ن): أيقونة بكسل جديدة، ستايل ONA (كحلي وذهبي) صار الأساسي، وشاشة رئيسية جديدة بسيطة. البيلد نجح.
+- 2026-11-06 (س): حساب أوفلاين لـ Rust: اسم الحساب المحلي بيوصل لـ Horizon. محرك Rust انبنى من جديد والبيلد نجح.
