@@ -16,3 +16,12 @@ FPS changes:
 
 OPEN: user says the phone/screen "turns off, comes back for seconds, turns off" every time. Unclear
 (whole phone reboot vs. game picture blanking). Asked for: what exactly happens + launcher log of that run.
+
+SCREEN TURNS OFF ON WORLD ENTRY (user, launcher log 11:18, WA0036, built before ddc10fd)
+- Not a reboot: the screen switches off like the power button while the world loads, the game keeps
+  running. Cause: SDLActivity COMMAND_SET_KEEP_SCREEN_ON - Minecraft 26.x lets SDL allow the screen saver
+  and SDL cleared FLAG_KEEP_SCREEN_ON on the game window (VMActivity had set it), so the screen timeout hit
+  during the long Voxy world load. Fix: the command now always keeps the flag (request logged, tag SDL).
+- That run had Complementary Unbound + Iris + Voxy ("voxy iris render pipeline") on Kopper Zink: shader
+  pack and Voxy together are very heavy on a phone; told the user. Voxy also warns about vanilla render
+  distance 2 (it wants 3+).

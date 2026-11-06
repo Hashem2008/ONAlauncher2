@@ -1030,10 +1030,12 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
                 if (context instanceof Activity) {
                     Window window = mSingleton.getWindow();
                     if (window != null) {
-                        if ((msg.obj instanceof Integer) && ((Integer) msg.obj != 0)) {
-                            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        } else {
-                            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        // ONA: the game keeps the screen on for its whole run. Minecraft 26.x lets SDL
+                        // allow the screen saver (menus, world loading), which cleared the flag and the
+                        // phone switched its screen off while a big world (Voxy) was loading.
+                        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        if (!((msg.obj instanceof Integer) && ((Integer) msg.obj != 0))) {
+                            Log.i(TAG, "SDL screen saver request ignored: the game keeps the screen on");
                         }
                     }
                 }
