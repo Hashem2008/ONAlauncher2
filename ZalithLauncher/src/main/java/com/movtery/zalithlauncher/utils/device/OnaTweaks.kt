@@ -290,6 +290,37 @@ object OnaTweaks {
     }
 
     /**
+     * ONA auto settings: view and simulation distance never above what the device carries (only
+     * lowered, every launch). Flagships are left alone.
+     */
+    fun autoDistances(gameDir: File, tier: DeviceTier) {
+        val (maxView, maxSimulation) = when (tier) {
+            DeviceTier.LOW -> 5 to 5
+            DeviceTier.MID -> 6 to 5
+            DeviceTier.HIGH -> 10 to 8
+            DeviceTier.FLAGSHIP -> return
+        }
+        val options = File(gameDir, "options.txt")
+        if (!options.isFile) return
+        runCatching {
+            val lines = options.readLines().toMutableList()
+            var changed = false
+            fun lower(key: String, max: Int) {
+                val index = lines.indexOfFirst { it.startsWith("$key:") }
+                if (index < 0) return
+                val value = lines[index].substringAfter(':').trim().toIntOrNull() ?: return
+                if (value <= max) return
+                lines[index] = "$key:$max"
+                changed = true
+                Logger.info(TAG, "Auto settings: $key $value -> $max ($tier)")
+            }
+            lower("renderDistance", maxView)
+            lower("simulationDistance", maxSimulation)
+            if (changed) options.writeText(lines.joinToString("\n", postfix = "\n"))
+        }.onFailure { Logger.warning(TAG, "Auto settings: could not set the distances", it) }
+    }
+
+    /**
      * Minecraft 1.12 and older uploads only some mipmap levels; GL4ES / Krypton then sample the
      * missing ones as white, so terrain further away looked like white water ("Ultra Realisim").
      * Mipmaps off keeps every distance textured.

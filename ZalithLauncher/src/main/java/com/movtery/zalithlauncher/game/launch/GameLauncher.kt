@@ -301,6 +301,10 @@ class GameLauncher(
         )
         // ONA: keep the integrated server of big modpacks from falling behind
         if (AllSettings.tuneHeavyMods.getValue()) OnaTweaks.capSimulationDistance(gameDirPath)
+        // ONA: auto settings, distances the device carries
+        if (AllSettings.autoSettings.getValue()) {
+            com.movtery.zalithlauncher.utils.device.DeviceProfiler.current()?.tier?.let { OnaTweaks.autoDistances(gameDirPath, it) }
+        }
         // ONA: 1.12 and older on GL4ES / Krypton: far terrain turned white (missing mipmap levels)
         runCatching {
             val mc = version.getVersionInfo()?.minecraftVersion

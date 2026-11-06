@@ -40,23 +40,51 @@ object ShaderBoost {
     var summary: String = "off"
         private set
 
+    /** The game should go through the upscaler although the user left it off (auto settings) */
+    @Volatile
+    var wantsUpscaler: Boolean = false
+        private set
+
     fun prepare(gameDir: File) {
         resolutionCap = 0
+        wantsUpscaler = false
         summary = "off"
-        if (!AllSettings.shaderBoost.getValue()) return
         val tier = DeviceProfiler.current()?.tier ?: DeviceTier.MID
-        val pack = activeShaderPack(gameDir)
-        // Voxy draws far terrain through Zink (desktop GL on Vulkan), every pixel costs more there
-        val voxy = File(gameDir, "mods").listFiles()?.any { it.name.lowercase().startsWith("voxy") && it.name.endsWith(".jar") } == true
-        if (pack == null && !voxy) return
-        resolutionCap = when (tier) {
-            DeviceTier.FLAGSHIP -> if (pack != null) 70 else 75
-            DeviceTier.HIGH -> if (pack != null) 60 else 65
-            DeviceTier.MID -> if (pack != null) 50 else 55
-            DeviceTier.LOW -> if (pack != null) 45 else 50
+        val parts = mutableListOf<String>()
+        // ONA auto settings: a render resolution the device carries, sharpened back by the upscaler
+        if (AllSettings.autoSettings.getValue()) {
+            val base = when (tier) {
+                DeviceTier.LOW -> 55
+                DeviceTier.MID -> 65
+                DeviceTier.HIGH -> 85
+                DeviceTier.FLAGSHIP -> 0
+            }
+            if (base > 0) {
+                resolutionCap = base
+                wantsUpscaler = true
+                parts.add("auto settings ($tier)")
+            }
         }
-        summary = "${pack ?: "Voxy"}: resolution at most $resolutionCap%"
-        Logger.info(TAG, summary)
+        if (AllSettings.shaderBoost.getValue()) {
+            val pack = activeShaderPack(gameDir)
+            // Voxy draws far terrain through Zink (desktop GL on Vulkan), every pixel costs more there
+            val voxy = File(gameDir, "mods").listFiles()?.any { it.name.lowercase().startsWith("voxy") && it.name.endsWith(".jar") } == true
+            if (pack != null || voxy) {
+                val cap = when (tier) {
+                    DeviceTier.FLAGSHIP -> if (pack != null) 70 else 75
+                    DeviceTier.HIGH -> if (pack != null) 60 else 65
+                    DeviceTier.MID -> if (pack != null) 50 else 55
+                    DeviceTier.LOW -> if (pack != null) 45 else 50
+                }
+                resolutionCap = if (resolutionCap > 0) minOf(resolutionCap, cap) else cap
+                parts.add(pack ?: "Voxy")
+            }
+        }
+        if (resolutionCap > 0) {
+            summary = "${parts.joinToString(" + ")}: resolution at most $resolutionCap%" +
+                if (wantsUpscaler) ", upscaler on" else ""
+            Logger.info(TAG, summary)
+        }
     }
 
     /** The render percentage to use: the user's, capped while a shader pack is on */

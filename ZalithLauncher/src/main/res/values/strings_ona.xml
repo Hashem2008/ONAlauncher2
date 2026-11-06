@@ -277,4 +277,9 @@
     <string name="ona_abi_advice_title">A better APK for this device</string>
     <string name="ona_abi_advice_text">This APK is not the best one for your device, it runs slower here. Install %1$s from the same release page: more FPS and more memory for the game.</string>
     <string name="ona_abi_advice_never">Don\'t show again</string>
+    <string name="ona_auto_settings_title">Automatic settings</string>
+    <string name="ona_auto_settings_summary">Every launch fits the render resolution (with the upscaler) and the view / simulation distance to this device. Only lowers, flagships keep their own values</string>
+    <string name="ona_auto_speed_mod_title">Add a speed mod automatically</string>
+    <string name="ona_auto_speed_mod_summary">Modded versions without Sodium / Embeddium get the one that fits from Modrinth: the game draws several times faster on phones</string>
+    <string name="ona_speed_mod_installed">%1$s added for more FPS (you can remove it in Mods)</string>
 </resources>

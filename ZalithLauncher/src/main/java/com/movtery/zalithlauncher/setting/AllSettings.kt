@@ -141,6 +141,10 @@ object AllSettings : SettingsRegistry() {
     val frameGenClarity = intSetting("onaFrameGenClarity", 70, 0..100)
     /** ONA: game threads get scheduler priority and ADPF clock hints */
     val boostGameThreads = boolSetting("onaBoostGameThreads", true)
+    /** ONA: every launch fits resolution, upscaler and view / simulation distance to the device */
+    val autoSettings = boolSetting("onaAutoSettings", true)
+    /** ONA: modded versions without a rendering optimiser get Sodium / Embeddium */
+    val autoSpeedMod = boolSetting("onaAutoSpeedMod", true)
 
     /**
      * ONA: pick the Vulkan driver for Zink from the GPU (bundled Turnip on Adreno 6xx/7xx,

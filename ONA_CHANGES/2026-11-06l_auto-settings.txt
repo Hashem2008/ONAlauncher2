@@ -1,0 +1,18 @@
+CHANGE SET 2026-11-06 (l) (branch claude/hala-7rl45s)
+User: "can you make every setting adjust itself automatically?"
+
+- Setting onaAutoSettings (default ON, Renderer settings):
+  * ShaderBoost.prepare (game process, before the session): render resolution cap by tier LOW 55 / MID 65
+    / HIGH 85 / FLAGSHIP none; shader pack / Voxy caps still apply (lowest wins). wantsUpscaler -> when
+    the user's upscaler is OFF, VMActivity uses AUTO (GSR on Adreno, ASR elsewhere) for that launch.
+    Launch log line "ONA Shader boost: auto settings (MID): resolution at most 65%, upscaler on".
+  * OnaTweaks.autoDistances (GameLauncher, every launch): renderDistance / simulationDistance at most
+    LOW 5/5, MID 6/5, HIGH 10/8, flagship untouched. Only lowers.
+- Setting onaAutoSpeedMod (default ON): SpeedModInstaller (before the tuner in LauncherElements): a
+  modded version (has jars) on MC 1.16+ without Sodium / Embeddium / Rubidium / Xenon / Magnesium /
+  OptiFine / OptiFabric / Nvidium / Celeritas / Vintagium / Relictium / Canvas gets Sodium (Fabric, Quilt,
+  NeoForge) or Embeddium (Forge, NeoForge) from Modrinth through ModCompat.installCompatible (jar metadata
+  checked). No fit -> asked again after 3 days (ona_speed_mod_checked.txt). Toast ona_speed_mod_installed.
+  Their own requirements are installed by ModAutoResolver right after (same launch).
+- Plus change set k (Kryo Silver cores).
+NOT tested on a device.

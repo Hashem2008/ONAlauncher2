@@ -663,6 +663,13 @@ fun LaunchGameOperation(
                 } else LegacyKotlinSupport.lastMissing?.let { kotlinMod ->
                     eventViewModel.sendToast(androidText(R.string.ona_forgelin_failed, kotlinMod), Toast.LENGTH_LONG)
                 }
+                // ONA: modded versions without Sodium / Embeddium get the one that fits (much more FPS)
+                val speedMod = withContext(Dispatchers.IO) {
+                    runCatching { com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.ensure(version) }.getOrNull()
+                }
+                if (speedMod != null) {
+                    eventViewModel.sendToast(androidText(R.string.ona_speed_mod_installed, speedMod), Toast.LENGTH_LONG)
+                }
                 // ONA: lighten heavy mods through their configs, or put the configs back
                 val tunedMods = withContext(Dispatchers.IO) {
                     runCatching {

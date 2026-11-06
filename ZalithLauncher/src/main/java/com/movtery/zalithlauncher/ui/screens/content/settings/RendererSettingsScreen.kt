@@ -168,6 +168,22 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
+                        unit = AllSettings.autoSettings,
+                        title = stringResource(R.string.ona_auto_settings_title),
+                        summary = stringResource(R.string.ona_auto_settings_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.autoSpeedMod,
+                        title = stringResource(R.string.ona_auto_speed_mod_title),
+                        summary = stringResource(R.string.ona_auto_speed_mod_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
                         unit = AllSettings.boostGameThreads,
                         title = stringResource(R.string.ona_boost_threads_title),
                         summary = stringResource(R.string.ona_boost_threads_summary)

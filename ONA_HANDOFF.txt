@@ -408,6 +408,12 @@ ONA STUDIO AGREEMENTS + PUBLIC REPO (2026-11-06 j)
 - Repo is PUBLIC now (user did it). Full build run 42206135005 (2c59b63) SUCCESS, 3 per-CPU APKs + guide
   in release ona-claude-hala-7rl45s. Push = arm64 only; Run workflow = all three.
 
+KRYO SILVER + AUTO SETTINGS + SPEED MOD (2026-11-06 k+l)
+- Snapdragon 680 etc.: Kryo Silver parts (0x51 / 0x801,0x803,0x805) are LITTLE. Auto settings (resolution
+  cap + upscaler + distances by tier) and SpeedModInstaller (Sodium / Embeddium when no optimiser).
+  ONA_CHANGES/2026-11-06k_kryo-silver.txt, 2026-11-06l_auto-settings.txt.
+- CI result: see the change files.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -460,3 +466,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (ح): بيلد الثلاث نسخ نجح. مكتبة Voxy و PhysX صاروا لكل النسخ. Rust و Turnip بس arm64.
 - 2026-11-06 (ط): دقائق GitHub Actions خلصت، البناء موقف. نصيحة النسخة الصح جوا اللانشر (مش مبنية لسا).
 - 2026-11-06 (ي): اتفاقيات الترحيب صارت باسم ONA STUDIO. المستخدم قرر يخلي المستودع عام.
+- 2026-11-06 (ك+ل): أنوية Kryo الضعيفة، إعدادات تلقائية حسب الجهاز، ومود تسريع بينزل لحاله.

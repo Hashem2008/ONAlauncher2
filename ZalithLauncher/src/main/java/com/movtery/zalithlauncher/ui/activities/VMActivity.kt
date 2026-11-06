@@ -971,7 +971,12 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
             com.movtery.zalithlauncher.utils.device.FrameGenControl.clarity = AllSettings.frameGenClarity.getValue() / 100f
             upscaler = GameUpscaler.create(
                 output = surface,
-                mode = AllSettings.upscalerMode.getValue(),
+                // ONA auto settings: a lowered resolution always goes through the upscaler
+                mode = AllSettings.upscalerMode.getValue().let { mode ->
+                    if (mode == com.movtery.zalithlauncher.setting.enums.UpscalerMode.OFF &&
+                        com.movtery.zalithlauncher.utils.device.ShaderBoost.wantsUpscaler
+                    ) com.movtery.zalithlauncher.setting.enums.UpscalerMode.AUTO else mode
+                },
                 sharpness = AllSettings.upscalerSharpness.getValue() / 100f,
                 frameGeneration = AllSettings.frameGeneration.getValue(),
                 // The highest mode the screen can switch to (the launcher asks for it)
