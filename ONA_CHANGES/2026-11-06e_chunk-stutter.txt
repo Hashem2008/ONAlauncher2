@@ -1,0 +1,18 @@
+CHANGE SET 2026-11-06 (e) (branch claude/hala-7rl45s)
+
+User: overall FPS is higher than MJLauncher (and the Controlify button bug is still there in MJLauncher,
+fixed in ONA), but there are FPS drops when NEW CHUNKS load.
+
+Cause (likely): Sodium builds chunk meshes on worker threads, automatic count = all cores the JVM
+sees (ActiveProcessorCount 8 on 8-core phones); they take the render thread's core while chunks stream.
+BestGameSettings' "always_defer_chunk_updates(_v2)" keys do not exist in Sodium 0.6+ (renamed), so they
+never applied there.
+
+Fix (ModPerformanceTuner, applied with "Lighten heavy mods", backed up / restored as before):
+- config/sodium-options.json: performance.chunk_builder_threads 3 / 2 / 2 / 1 (flagship / high / mid /
+  low), performance.chunk_build_defer_mode "ALWAYS" (0.6+; default already ALWAYS), and
+  performance.always_defer_chunk_updates true (0.5). Keys verified with javap in Sodium 0.5.13 (1.20.1),
+  0.8.15 (1.21.11), 0.9.3 (26.3); Gson LOWER_CASE_WITH_UNDERSCORES; only existing keys are changed.
+- config/embeddium-options.json: same chunk_builder_threads.
+For all devices and chips (Snapdragon, Exynos, Dimensity, Helio...) by tier.
+NOT tested on a device. Ask: still drops on new chunks? (F3+2 graph screenshot helps.)

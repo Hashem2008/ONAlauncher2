@@ -127,9 +127,23 @@ object ModPerformanceTuner {
                 "numberOfThreads" to if (strong(tier)) "3" else "2"
             )
         },
+        // Sodium (Fabric / NeoForge): stutter when new chunks load. Chunk meshes are built on worker
+        // threads; Sodium's automatic count fills every core of the phone and the render thread loses
+        // its core while chunks stream in. A fixed count by tier keeps cores free for the render and
+        // world threads, and builds never wait on the frame (keys checked in Sodium 0.5.13, 0.8.15,
+        // 0.9.3: chunk_builder_threads; chunk_build_defer_mode ALWAYS / ONE_FRAME / ZERO_FRAMES on 0.6+,
+        // always_defer_chunk_updates on 0.5)
+        Patch.Json("config/sodium-options.json", "Sodium") { tier ->
+            mapOf<String, Any>(
+                "performance.chunk_builder_threads" to builderThreads(tier),
+                "performance.chunk_build_defer_mode" to "ALWAYS",
+                "performance.always_defer_chunk_updates" to true
+            )
+        },
         // Embeddium (Sodium for Forge): every culling path on, chunk updates deferred
         Patch.Json("config/embeddium-options.json", "Embeddium") { tier ->
             buildMap<String, Any> {
+                put("performance.chunk_builder_threads", builderThreads(tier))
                 put("performance.always_defer_chunk_updates", true)
                 put("performance.animate_only_visible_textures", true)
                 put("performance.use_entity_culling", true)
@@ -236,6 +250,14 @@ object ModPerformanceTuner {
      * Tune every heavy mod config found in the version.
      * @return labels of the mods that were tuned
      */
+    /** Chunk mesh worker threads by tier: enough to stream chunks, never all the cores */
+    private fun builderThreads(tier: DeviceTier): Int = when (tier) {
+        DeviceTier.FLAGSHIP -> 3
+        DeviceTier.HIGH -> 2
+        DeviceTier.MID -> 2
+        DeviceTier.LOW -> 1
+    }
+
     fun apply(version: Version, tier: DeviceTier): List<String> {
         val gameDir = version.getGameDir()
         val tuned = mutableListOf<String>()
