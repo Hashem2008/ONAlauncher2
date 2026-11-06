@@ -11,3 +11,12 @@ CHANGE SET 2026-11-06 (i) (branch claude/hala-7rl45s)
    builds on 2026-11-06). Nothing in the code is wrong. This commit and ef97c22 are NOT built yet.
    Options for the user: raise the spending limit / fix the payment (GitHub Settings > Billing and plans),
    wait for the monthly reset, or build fewer jobs (e.g. arm64 on every push, all three on demand).
+
+3. Fewer Actions minutes (user: "I don't understand, you fix it"):
+   - push_ci.yml: a push builds the arm64 APK only; "Run workflow" (workflow_dispatch) builds all three.
+     build.yml takes input `arches` (JSON list, default all three; release_ci keeps all three).
+   - push_ci.yml paths-ignore: ONA_HANDOFF.txt, ONA_CHANGES/**, DELETED_BUILDS.txt, **/*.md (notes never
+     trigger a build any more, no need for [skip ci]).
+   The minutes themselves can only come back with the monthly reset or billing (user's account).
+   The every-APK rule still holds for the CODE: all three APKs get every change; arm/x86_64 are built
+   when the workflow is run by hand.

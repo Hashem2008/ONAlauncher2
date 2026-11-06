@@ -397,7 +397,8 @@ SAME EXTRAS IN EVERY APK (2026-11-06 h)
 
 CI MINUTES USED UP + APK ADVICE (2026-11-06 i)
 - GitHub refused to start jobs (spending limit / payment): ef97c22 (release-page guide) and the APK advice
-  commit are NOT built. Ask the user how to continue (billing, wait for reset, fewer jobs per push).
+  commit are NOT built. Now: push = arm64 only, Run workflow = all three; notes files never trigger CI.
+  Minutes come back with the monthly reset or the user's billing (cannot be fixed from here).
 - AbiAdvisor + dialog: tells users of a 32-bit APK on 64-bit phones / ARM APK on PCs which APK to take.
   ONA_CHANGES/2026-11-06i_abi-advice-and-ci-minutes.txt.
 

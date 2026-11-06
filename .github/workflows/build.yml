@@ -7,6 +7,11 @@ on:
       variant:
         required: true
         type: string
+      # ONA: which APKs to build, a JSON list (every push builds arm64 only to save Actions minutes)
+      arches:
+        required: false
+        type: string
+        default: '["arm64", "arm", "x86_64"]'
     secrets:
       KEY_PASSWORD:
         required: false
@@ -29,7 +34,7 @@ jobs:
       matrix:
         # ONA: one APK per CPU type instead of a 446 MB "all" APK nobody needs whole:
         # arm64 = almost every phone, arm = old 32-bit phones, x86_64 = emulators / PCs
-        arch: ["arm64", "arm", "x86_64"]
+        arch: ${{ fromJSON(inputs.arches || '["arm64", "arm", "x86_64"]') }}
       fail-fast: false
 
     env:

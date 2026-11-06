@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - '**'
+    # ONA: notes and handoff files never need a build (saves Actions minutes)
+    paths-ignore:
+      - 'ONA_HANDOFF.txt'
+      - 'ONA_CHANGES/**'
+      - 'DELETED_BUILDS.txt'
+      - '**/*.md'
+  # Run workflow by hand: all three APKs (arm64, 32-bit, emulator)
   workflow_dispatch:
 
 jobs:
@@ -14,6 +21,8 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       variant: Debug
+      # A push builds the phone APK (arm64) only; "Run workflow" by hand builds all three
+      arches: ${{ github.event_name == 'workflow_dispatch' && '["arm64", "arm", "x86_64"]' || '["arm64"]' }}
     secrets:
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
