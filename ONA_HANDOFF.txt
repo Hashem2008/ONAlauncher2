@@ -424,6 +424,14 @@ SPEED MODS FOR EVERY MODDED VERSION + GAME SETTINGS v2 (2026-11-06 m)
   Next: user tests on Redmi Pad SE (Forge 1.21 -> should get FerriteCore + advice toast; Fabric/NeoForge
   -> Sodium + Lithium + FerriteCore) and sends latest_game.log.
 
+NEW LOOK: ICON + ONA STYLE + HOME (2026-11-06 n)
+- Pixel-art icon (tools/ona_icon_gen.py generates every icon file), LauncherStyle.ONA = new default
+  (navy + gold on every screen), new home home/OnaHome.kt, top bar rail items hidden on the ONA home.
+  ONA_CHANGES/2026-11-06n_new-look-icon.txt.
+- CI: full build run 42235594795 (cf799f0) SUCCESS, all three APKs. Not device-tested.
+  Next: user feedback / screenshots; then restyle other screens' layouts (versions, download, settings)
+  if the user asks.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -479,3 +487,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (ك+ل): أنوية Kryo الضعيفة، إعدادات تلقائية حسب الجهاز، ومود تسريع بينزل لحاله.
 - 2026-11-06 (م): مودات التسريع (Sodium/Embeddium و FerriteCore و Lithium) بتنضاف لكل نسخة مودات حتى الفاضية،
   وبتنشال لحالها إذا عملت كراش. إعدادات اللعبة v2. بيلد الثلاث نسخ نجح.
+- 2026-11-06 (ن): أيقونة بكسل جديدة، ستايل ONA (كحلي وذهبي) صار الأساسي، وشاشة رئيسية جديدة بسيطة. البيلد نجح.
