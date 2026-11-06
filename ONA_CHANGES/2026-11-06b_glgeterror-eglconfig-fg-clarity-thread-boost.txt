@@ -1,0 +1,34 @@
+CHANGE SET 2026-11-06 (b) (branch claude/hala-7rl45s), user screenshots: Voxy 26.3 still
+"glGetError mismatch", another start "Couldn't find matching EGL config (eglChooseConfig failed,
+EGL_BAD_ATTRIBUTE)", a world at FPS 4 with white terrain (no log sent). User: frame generation is good
+but blurry, must NOT switch on by itself, wants it (and its settings) in the game menu; wants more FPS
+without frame generation.
+
+1. glGetError mismatch, real mechanism (Minecraft 26.3 GlBackend.loadLibrary, read with javap from the
+   official client jar): SDL_GL_LoadLibrary(GL.getFunctionProvider().getPath()) then
+   GL.getFunctionProvider().getFunctionAddress("glGetError") == SDL_GL_GetProcAddress("glGetError").
+   SDL resolves through eglGetProcAddress (EGL 1.5) or straight from that library with
+   SDL_LoadFunction -> dlsym (EGL < 1.5 or fallback). LWJGL asks the library's own
+   glXGetProcAddress(ARB) / eglGetProcAddress / OSMesaGetProcAddress first.
+   Fix (sdl_dlopen_hook.c): SDL_GL_LoadLibrary is proxied (handed to LWJGL's SDL binding through dlsym),
+   the library it gets is remembered; both SDL paths (eglGetProcAddress wrapper and SDL's own dlsym of
+   gl* in that library) now answer with lwjglStyleLookup(that library). Log:
+   "SDL_GL_LoadLibrary(<path>): gl* lookups follow LWJGL on this library".
+2. EGL_BAD_ATTRIBUTE (desktop GL renderers, Mesa EGL): sdl_hook.c proxyEglChooseConfig logs SDL's
+   attribute list once ("eglChooseConfig attribute 0x.... = 0x....") and retries with the core
+   attributes only (RGBA / depth / stencil / renderable / surface type).
+3. Frame generation: never switched on by Shader boost any more (Shader boost only caps resolution).
+   New setting onaFrameGenClarity (0-100, default 70): leans the middle picture on the newest frame and
+   adds its detail back (less blur); 0 = old smooth blend. FrameGenControl (FrameGenerator.kt) holds
+   enabled/clarity; GameUpscaler.syncFrameGeneration() starts/stops the generator live. In-game menu
+   (GameMenuSubscreen): frame generation switch + clarity slider. If no upscaler runs (upscaler OFF and
+   FG was off at launch) the switch says it starts next launch (GameUpscaler.running).
+4. More FPS without FG: GameThreadBooster (utils/device): every 3 s scans /proc/self/task comm names:
+   "Render thread"/"Client thread" -> URGENT_DISPLAY, "Server thread" -> DISPLAY, Chunk*/Worker-Main*/
+   C2ME*/Sodium*/Voxy* -> -2; Android 12+: ADPF PerformanceHintManager session for render+server threads,
+   target = 1 screen refresh, reports 1e9/FPS (CallbackBridge.getCurrentFps) every second. Setting
+   onaBoostGameThreads (default on), started in VMActivity.onCreate for the game, stopped in onDestroy.
+   Log tag GameThreadBooster.
+
+OPEN: the FPS 4 / white terrain world (need latest_game.log). Voxy needs Kopper Zink (ONA Hybrid picks it);
+with Krypton chosen by hand it cannot work.

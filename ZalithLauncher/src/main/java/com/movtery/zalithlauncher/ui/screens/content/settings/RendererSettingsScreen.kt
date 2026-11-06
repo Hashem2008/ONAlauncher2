@@ -155,6 +155,24 @@ fun RendererSettingsScreen(
                         summary = stringResource(R.string.ona_frame_generation_summary)
                     )
 
+                    IntSliderSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.frameGenClarity,
+                        title = stringResource(R.string.ona_frame_gen_clarity_title),
+                        summary = stringResource(R.string.ona_frame_gen_clarity_summary),
+                        valueRange = AllSettings.frameGenClarity.floatRange,
+                        suffix = "%"
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.boostGameThreads,
+                        title = stringResource(R.string.ona_boost_threads_title),
+                        summary = stringResource(R.string.ona_boost_threads_summary)
+                    )
+
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,

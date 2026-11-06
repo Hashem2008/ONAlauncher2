@@ -43,6 +43,16 @@ import java.nio.FloatBuffer
  * The game never waits for any of it; the real frame is shown half a frame later, which is
  * the only cost in input delay (like every frame generation that has no engine motion vectors).
  */
+/**
+ * ONA: frame generation switches the launcher and the in-game menu change while the game runs.
+ * Read by the upscaler thread every frame.
+ */
+object FrameGenControl {
+    @Volatile var enabled: Boolean = false
+    /** 0 = smoothest (both frames blended), 1 = sharpest (leans on the newest frame, sharpened) */
+    @Volatile var clarity: Float = 0.7f
+}
+
 internal class FrameGenerator {
     private var width = 0
     private var height = 0
@@ -173,6 +183,12 @@ internal class FrameGenerator {
         bindTexture(interpProgram, "uMotion", 2, smoothTex)
         GLES20.glUniform2f(GLES20.glGetUniformLocation(interpProgram, "uLumaTexel"), lumaTexelX, lumaTexelY)
         GLES20.glUniform2f(GLES20.glGetUniformLocation(interpProgram, "uMotionTexel"), 1f / motionW, 1f / motionH)
+        // Clarity: how much the middle picture leans on the newest frame instead of blending both
+        // (blending is what looks soft) and how much of the newest frame's detail is added back
+        val clarity = FrameGenControl.clarity.coerceIn(0f, 1f)
+        GLES20.glUniform1f(GLES20.glGetUniformLocation(interpProgram, "uMix"), 0.5f + 0.35f * clarity)
+        GLES20.glUniform1f(GLES20.glGetUniformLocation(interpProgram, "uSharpen"), 0.7f * clarity)
+        GLES20.glUniform2f(GLES20.glGetUniformLocation(interpProgram, "uScreenTexel"), 1f / width, 1f / height)
         draw(interpProgram)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
     }
@@ -355,6 +371,9 @@ uniform sampler2D uCur;
 uniform sampler2D uMotion;
 uniform vec2 uLumaTexel;
 uniform vec2 uMotionTexel;
+uniform float uMix;
+uniform float uSharpen;
+uniform vec2 uScreenTexel;
 const vec3 W = vec3(0.299, 0.587, 0.114);
 vec2 vectorAt(vec2 uv) {
     return (texture2D(uMotion, uv).rg - 0.5) * 32.0 * uLumaTexel;
@@ -371,6 +390,7 @@ void main() {
     vec3 a = texture2D(uPrev, vUv - cand[0] * 0.5).rgb;
     vec3 b = texture2D(uCur, vUv + cand[0] * 0.5).rgb;
     float diff = abs(dot(a - b, W));
+    vec2 chosen = cand[0];
     // Inside a block that moves like its neighbours (most of the screen) only "no motion" is
     // worth a try; the full search runs at motion edges only, so it costs little GPU time
     float spread = 0.0;
@@ -382,10 +402,16 @@ void main() {
         vec3 cb = texture2D(uCur, vUv + cand[i] * 0.5).rgb;
         // the block's own vector wins ties, so flat areas do not flicker between candidates
         float cd = abs(dot(ca - cb, W)) + 0.004;
-        if (cd < diff) { diff = cd; a = ca; b = cb; }
+        if (cd < diff) { diff = cd; a = ca; b = cb; chosen = cand[i]; }
     }
     float lean = max(smoothstep(0.05, 0.22, diff), 1.0 - smoothstep(0.2, 0.6, m.b));
-    gl_FragColor = vec4(mix(mix(a, b, 0.5), b, lean), 1.0);
+    vec3 color = mix(mix(a, b, uMix), b, lean);
+    // Detail of the newest frame (what blending softens) added back
+    vec2 p = vUv + chosen * 0.5;
+    vec3 around = 0.25 * (texture2D(uCur, p + vec2(uScreenTexel.x, 0.0)).rgb + texture2D(uCur, p - vec2(uScreenTexel.x, 0.0)).rgb
+                        + texture2D(uCur, p + vec2(0.0, uScreenTexel.y)).rgb + texture2D(uCur, p - vec2(0.0, uScreenTexel.y)).rgb);
+    color += uSharpen * (b - around);
+    gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
 """
     }

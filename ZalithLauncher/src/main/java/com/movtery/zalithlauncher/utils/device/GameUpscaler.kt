@@ -100,6 +100,7 @@ class GameUpscaler private constructor(
 
     // ONA: frame generation state, only touched on the upscaler thread
     private var generator: FrameGenerator? = null
+    private var fgInitFailed = false
     private val refreshNs = (1_000_000_000.0 / refreshHz.coerceIn(30f, 240f)).toLong()
     private var lastFrameNs = 0L
     private var frameIntervalNs = 0L
@@ -180,8 +181,10 @@ class GameUpscaler private constructor(
             }
         )
         if (program == 0) return false
+        FrameGenControl.enabled = frameGeneration
         if (frameGeneration) {
             generator = FrameGenerator().takeIf { it.init() }
+            if (generator == null) fgInitFailed = true
         }
         aPos = GLES20.glGetAttribLocation(program, "aPos")
         uTexMatrix = GLES20.glGetUniformLocation(program, "uTexMatrix")
@@ -215,6 +218,7 @@ class GameUpscaler private constructor(
             val size = IntArray(2)
             EGL14.eglQuerySurface(display, surface, EGL14.EGL_WIDTH, size, 0)
             EGL14.eglQuerySurface(display, surface, EGL14.EGL_HEIGHT, size, 1)
+            syncFrameGeneration()
             val fg = generator
             if (fg == null) {
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
@@ -247,6 +251,29 @@ class GameUpscaler private constructor(
         } catch (e: Exception) {
             // The game surface was abandoned while the activity goes away
             Logger.warning(TAG, "Upscaler frame dropped", e)
+        }
+    }
+
+    /**
+     * ONA: frame generation follows [FrameGenControl] while the game runs (switch in the game
+     * menu), so it starts and stops without a restart.
+     */
+    private fun syncFrameGeneration() {
+        val want = FrameGenControl.enabled
+        if (want && generator == null && !fgInitFailed) {
+            generator = FrameGenerator().takeIf { it.init() }
+            if (generator == null) fgInitFailed = true
+            lastFrameNs = 0L
+            generating = false
+            Logger.info(TAG, "Frame generation switched on in game: ${generator != null}")
+        } else if (!want && generator != null) {
+            showPendingRealFrame()
+            generator?.release()
+            generator = null
+            generating = false
+            lastFrameNs = 0L
+            frameIntervalNs = 0L
+            Logger.info(TAG, "Frame generation switched off in game")
         }
     }
 
@@ -330,6 +357,7 @@ class GameUpscaler private constructor(
 
     fun release() {
         if (!releaseRequested.compareAndSet(false, true)) return
+        running = false
         val latch = CountDownLatch(1)
         handler.post {
             released = true
@@ -392,6 +420,11 @@ class GameUpscaler private constructor(
     companion object {
         private const val TAG = "GameUpscaler"
 
+        /** An upscaler presents the game right now, so frame generation can be switched in game */
+        @Volatile
+        var running: Boolean = false
+            private set
+
         /**
          * @param mode the user setting, AUTO picks GSR on Adreno and ASR elsewhere
          * @param sharpness 0..1
@@ -408,6 +441,7 @@ class GameUpscaler private constructor(
             if (mode == UpscalerMode.OFF && !frameGeneration) return null
             val upscaler = GameUpscaler(output, mode, frameGeneration, refreshHz)
             return if (upscaler.start(sharpness)) {
+                running = true
                 upscaler
             } else {
                 upscaler.release()

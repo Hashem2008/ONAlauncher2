@@ -430,6 +430,47 @@ private fun GameActionContent(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        // ONA: frame generation, switched and tuned while playing
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                MenuSwitchButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.ona_frame_generation_title),
+                    switch = AllSettings.frameGeneration.state,
+                    onSwitch = { value ->
+                        AllSettings.frameGeneration.save(value)
+                        com.movtery.zalithlauncher.utils.device.FrameGenControl.enabled = value
+                        if (value && !com.movtery.zalithlauncher.utils.device.GameUpscaler.running) {
+                            onShowToast(androidText(R.string.ona_frame_gen_next_launch), Toast.LENGTH_LONG)
+                        }
+                    },
+                    color = color,
+                    contentColor = contentColor,
+                )
+                MenuSliderLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.ona_frame_gen_clarity_title),
+                    value = AllSettings.frameGenClarity.state,
+                    valueRange = AllSettings.frameGenClarity.floatRange,
+                    onValueChange = { value ->
+                        AllSettings.frameGenClarity.updateState(value)
+                        com.movtery.zalithlauncher.utils.device.FrameGenControl.clarity = value / 100f
+                    },
+                    onValueChangeFinished = { value -> AllSettings.frameGenClarity.save(value) },
+                    suffix = "%",
+                    color = color,
+                    contentColor = contentColor,
+                )
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         // 分辨率规则与游戏窗口分辨率
         item {
             Column(

@@ -23,9 +23,9 @@ import java.io.File
 
 /**
  * ONA: shader boost. A shader pack draws every pixel many times, so with one active the game
- * renders below screen resolution (the upscaler brings it back to full size) and frame
- * generation doubles the frames shown. Only for the launch that has a pack switched on; the
- * user's own resolution is kept when it is already lower. Setting "onaShaderBoost" (default on).
+ * renders below screen resolution (the upscaler brings it back to full size). Only for the
+ * launch that has a pack switched on; the user's own resolution is kept when it is already lower.
+ * Frame generation stays the user's choice (it is never switched on from here). Setting "onaShaderBoost" (default on).
  */
 object ShaderBoost {
     private const val TAG = "ShaderBoost"
@@ -35,11 +35,6 @@ object ShaderBoost {
     var resolutionCap: Int = 0
         private set
 
-    /** Frame generation forced on for this launch */
-    @Volatile
-    var frameGeneration: Boolean = false
-        private set
-
     /** Why, for the launch log */
     @Volatile
     var summary: String = "off"
@@ -47,7 +42,6 @@ object ShaderBoost {
 
     fun prepare(gameDir: File) {
         resolutionCap = 0
-        frameGeneration = false
         summary = "off"
         if (!AllSettings.shaderBoost.getValue()) return
         val pack = activeShaderPack(gameDir) ?: return
@@ -58,8 +52,7 @@ object ShaderBoost {
             DeviceTier.MID -> 50
             DeviceTier.LOW -> 45
         }
-        frameGeneration = true
-        summary = "$pack: resolution at most $resolutionCap%, frame generation on"
+        summary = "$pack: resolution at most $resolutionCap%"
         Logger.info(TAG, summary)
     }
 

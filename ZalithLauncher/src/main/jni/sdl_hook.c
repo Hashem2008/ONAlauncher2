@@ -75,6 +75,13 @@ typedef EGLBoolean (*eglSwapBuffers_t)(EGLDisplay dpy, void *surface);
 #define EGL_CONTEXT_CLIENT_VERSION    0x3098
 #define EGL_CONTEXT_MAJOR_VERSION_KHR 0x30FB
 #define EGL_CONTEXT_MINOR_VERSION_KHR 0x30FC
+#define EGL_ALPHA_SIZE        0x3021
+#define EGL_BLUE_SIZE         0x3022
+#define EGL_GREEN_SIZE        0x3023
+#define EGL_RED_SIZE          0x3024
+#define EGL_DEPTH_SIZE        0x3025
+#define EGL_STENCIL_SIZE      0x3026
+#define EGL_SURFACE_TYPE      0x3033
 
 
 
@@ -240,7 +247,39 @@ static EGLBoolean proxyEglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list
 
     EGLBoolean result = sOrigEglChooseConfig(dpy, attrib_list, configs, config_size, num_config);
     if (result && num_config != NULL && *num_config > 0) return result;
-    if (!sdlGlesCompatEnabled()) return result; // 兼容 fallback 仅限移动 ES 渲染器
+    if (!sdlGlesCompatEnabled()) {
+        // ONA: desktop GL renderers (Kopper Zink / Mesa EGL) answered EGL_BAD_ATTRIBUTE to SDL's list
+        // on Minecraft 26.x. Log the list once, then retry with the core attributes every EGL knows.
+        if (attrib_list == NULL) return result;
+        static int logged = 0;
+        if (!logged) {
+            logged = 1;
+            for (int i = 0; i < 64 && attrib_list[i] != EGL_NONE; i += 2) {
+                LOG_TO_W("SDL_Hook: eglChooseConfig attribute 0x%X = 0x%X", attrib_list[i], attrib_list[i + 1]);
+            }
+        }
+        EGLint core[32];
+        int n = 0;
+        for (int i = 0; i < 64 && attrib_list[i] != EGL_NONE && n < 28; i += 2) {
+            EGLint attr = attrib_list[i];
+            if (attr == EGL_RED_SIZE || attr == EGL_GREEN_SIZE || attr == EGL_BLUE_SIZE || attr == EGL_ALPHA_SIZE ||
+                attr == EGL_DEPTH_SIZE || attr == EGL_STENCIL_SIZE || attr == EGL_RENDERABLE_TYPE ||
+                attr == EGL_SURFACE_TYPE) {
+                core[n++] = attr;
+                core[n++] = attrib_list[i + 1];
+            }
+        }
+        core[n++] = EGL_NONE;
+        core[n] = 0;
+        EGLint count = 0;
+        EGLBoolean retry = sOrigEglChooseConfig(dpy, core, configs, config_size, &count);
+        LOG_TO_W("SDL_Hook: eglChooseConfig retried with core attributes: result=%d count=%d", retry, count);
+        if (retry && count > 0) {
+            if (num_config != NULL) *num_config = count;
+            return retry;
+        }
+        return result;
+    }
 
     EGLint fixed[64];
     if (!normalizeEglChooseConfigList(attrib_list, fixed, 64)) return result;

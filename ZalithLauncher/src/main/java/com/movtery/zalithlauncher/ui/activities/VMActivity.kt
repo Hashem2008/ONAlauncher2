@@ -543,6 +543,13 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         getSystemService(DisplayManager::class.java)?.registerDisplayListener(displayListener, null)
         applyMaxRefreshRatePolicy()
 
+        // ONA: game threads get priority + ADPF clock hints (more FPS without frame generation)
+        if (withHandler { type } == HandlerType.GAME && AllSettings.boostGameThreads.getValue()) {
+            threadBooster = com.movtery.zalithlauncher.utils.device.GameThreadBooster(
+                this, currentDisplay()?.let { maxRefreshRateMode(it).refreshRate } ?: 60f
+            ).also { it.start() }
+        }
+
         val logFile = withLauncher { getLogFile() }
         logFile.parentFile?.mkdirs() // 换过一次日志文件路径，此处创建父目录是必要的
         if (!logFile.exists() && !logFile.createNewFile()) throw IOException("Failed to create a new log file")
@@ -770,7 +777,11 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         newSize
     }
 
+    private var threadBooster: com.movtery.zalithlauncher.utils.device.GameThreadBooster? = null
+
     override fun onDestroy() {
+        threadBooster?.stop()
+        threadBooster = null
         getSystemService(DisplayManager::class.java)?.unregisterDisplayListener(displayListener)
         stopAllService()
         withHandler { onDestroy() }
@@ -957,12 +968,12 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         upscaler?.release()
         upscaler = null
         if (withHandler { type } == HandlerType.GAME) {
+            com.movtery.zalithlauncher.utils.device.FrameGenControl.clarity = AllSettings.frameGenClarity.getValue() / 100f
             upscaler = GameUpscaler.create(
                 output = surface,
                 mode = AllSettings.upscalerMode.getValue(),
                 sharpness = AllSettings.upscalerSharpness.getValue() / 100f,
-                frameGeneration = AllSettings.frameGeneration.getValue() ||
-                        com.movtery.zalithlauncher.utils.device.ShaderBoost.frameGeneration,
+                frameGeneration = AllSettings.frameGeneration.getValue(),
                 // The highest mode the screen can switch to (the launcher asks for it)
                 refreshHz = currentDisplay()?.let { maxRefreshRateMode(it).refreshRate } ?: 60f
             )?.also { created ->

@@ -137,6 +137,10 @@ object AllSettings : SettingsRegistry() {
     val frameGeneration = boolSetting("onaFrameGeneration", false)
     /** ONA: lower render resolution + frame generation while a shader pack is on */
     val shaderBoost = boolSetting("onaShaderBoost", true)
+    /** ONA: frame generation clarity 0 (smoothest) .. 100 (sharpest, least blur) */
+    val frameGenClarity = intSetting("onaFrameGenClarity", 70, 0..100)
+    /** ONA: game threads get scheduler priority and ADPF clock hints */
+    val boostGameThreads = boolSetting("onaBoostGameThreads", true)
 
     /**
      * ONA: pick the Vulkan driver for Zink from the GPU (bundled Turnip on Adreno 6xx/7xx,

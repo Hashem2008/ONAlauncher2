@@ -50,23 +50,43 @@ static bool callerIsSdl(void *returnAddress) {
 // eglGetProcAddress / OSMesaGetProcAddress first, its exported symbol after. Mesa (Kopper Zink's
 // libglxshim) answers both, with different pointers, so a plain dlsym gave Minecraft 26.x
 // "glGetError mismatch" with Voxy.
+// Minecraft 26.x calls SDL_GL_LoadLibrary(<LWJGL's GL library path>) and then compares
+// SDL_GL_GetProcAddress("glGetError") with LWJGL's. That path is the library both must agree on.
+typedef bool (*sdl_gl_load_library_t)(const char *path);
+static sdl_gl_load_library_t realSdlGlLoadLibrary;
+static void *sdlGlLibraryHandle;
+
+static bool onaSdlGlLoadLibrary(const char *path) {
+    if (path != NULL && path[0] != '\0') {
+        void *handle = dlopen(path, RTLD_NOW | RTLD_NOLOAD);
+        if (handle == NULL) handle = dlopen(path, RTLD_NOW);
+        if (handle != NULL) {
+            sdlGlLibraryHandle = handle;
+            LOG_TO_I("SDL_Hook: SDL_GL_LoadLibrary(%s): gl* lookups follow LWJGL on this library", path);
+        }
+    }
+    return realSdlGlLoadLibrary != NULL ? realSdlGlLoadLibrary(path) : false;
+}
+
 typedef void *(*lib_get_proc_t)(const char *name);
 static lib_get_proc_t libGetProc;
-static bool libGetProcLooked;
+static void *libGetProcHandle;
 
-static void *lwjglStyleLookup(const char *name) {
-    if (!libGetProcLooked) {
-        libGetProcLooked = true;
+static void *lwjglStyleLookup(void *library, const char *name) {
+    if (library == NULL) return NULL;
+    if (library != libGetProcHandle) {
+        libGetProcHandle = library;
+        libGetProc = NULL;
         static const char *const getters[] = {
             "glXGetProcAddress", "glXGetProcAddressARB", "eglGetProcAddress", "OSMesaGetProcAddress"
         };
         for (size_t i = 0; i < sizeof(getters) / sizeof(getters[0]) && libGetProc == NULL; i++) {
-            libGetProc = (lib_get_proc_t) dlsym(glWrapperHandle, getters[i]);
+            libGetProc = (lib_get_proc_t) dlsym(library, getters[i]);
             if (libGetProc != NULL) LOG_TO_I("SDL_Hook: gl* lookups use %s of the renderer library, like LWJGL", getters[i]);
         }
     }
     void *func = libGetProc != NULL ? libGetProc(name) : NULL;
-    return func != NULL ? func : dlsym(glWrapperHandle, name);
+    return func != NULL ? func : dlsym(library, name);
 }
 
 static void *onaSdlEglGetProcAddress(const char *name) {
@@ -78,8 +98,8 @@ static void *onaSdlEglGetProcAddress(const char *name) {
                 if (glWrapperHandle == NULL) glWrapperHandle = dlopen(glLibrary, RTLD_NOW);
             }
         }
-        if (glWrapperHandle != NULL) {
-            void *wrapperFunc = lwjglStyleLookup(name);
+        if (glWrapperHandle != NULL || sdlGlLibraryHandle != NULL) {
+            void *wrapperFunc = lwjglStyleLookup(sdlGlLibraryHandle != NULL ? sdlGlLibraryHandle : glWrapperHandle, name);
             if (wrapperFunc != NULL) return wrapperFunc;
         }
     }
@@ -148,6 +168,10 @@ static bool modPollEvent(void *event) {
 
 static void *customDlsym(void *handle, const char *symbol) {
     void *result = BYTEHOOK_CALL_PREV(customDlsym, dlsym_func_t, handle, symbol);
+    // SDL with EGL < 1.5 looks gl* up straight in the GL library: answer like LWJGL does
+    bool sdlGlLookup = result != NULL && symbol != NULL && handle != NULL && handle == sdlGlLibraryHandle
+            && strncmp(symbol, "gl", 2) == 0 && strncmp(symbol, "glX", 3) != 0
+            && callerIsSdl(BYTEHOOK_RETURN_ADDRESS());
     bool modSdlCall = result != NULL && symbol != NULL
             && (strcmp(symbol, "SDL_SetEventFilter") == 0 || strcmp(symbol, "SDL_PollEvent") == 0)
             && callerIsJavaFfm(BYTEHOOK_RETURN_ADDRESS());
@@ -156,6 +180,14 @@ static void *customDlsym(void *handle, const char *symbol) {
             && callerIsSdl(BYTEHOOK_RETURN_ADDRESS());
     BYTEHOOK_POP_STACK();
     if (fromSdl) result = onaWrapSdlSymbol(handle, symbol, result);
+    if (sdlGlLookup) {
+        void *same = lwjglStyleLookup(handle, symbol);
+        if (same != NULL) result = same;
+    }
+    if (result != NULL && symbol != NULL && strcmp(symbol, "SDL_GL_LoadLibrary") == 0) {
+        if (realSdlGlLoadLibrary == NULL) realSdlGlLoadLibrary = (sdl_gl_load_library_t) result;
+        return (void *) onaSdlGlLoadLibrary;
+    }
     if (modSdlCall) {
         Dl_info info;
         // only the game's own SDL instance needs protecting
