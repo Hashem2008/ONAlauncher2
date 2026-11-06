@@ -22,3 +22,6 @@ Fixes:
 
 NEED from the user: the LAUNCHER log of this run (.minecraft/versions/<version>/ONALauncher2/latest_game.log,
 header "Launch Minecraft"), it has the SDL_Hook lines; the game log alone does not.
+
+CI RESULT
+- 12caf0a: run 42183154594 SUCCESS. APK in release ona-claude-hala-7rl45s. NOT tested on a device.
