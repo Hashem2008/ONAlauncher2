@@ -266,7 +266,7 @@
     <string name="ona_log_translator_warning">تنبيه</string>
     <string name="ona_log_translator_normal">عادي</string>
     <string name="ona_shader_boost_title">تسريع الشيدر</string>
-    <string name="ona_shader_boost_summary">لما يكون في شيدر شغال، اللعبة بترسم بدقة أقل (الأبسكيل برجّعها حادة) وتوليد الفريمات بيشتغل. فريمات أكثر بكثير مع الشيدر</string>
+    <string name="ona_shader_boost_summary">لما يكون في شيدر أو Voxy شغال، اللعبة بترسم بدقة أقل (الأبسكيل برجّعها حادة). فريمات أكثر بكثير</string>
     <string name="ona_frame_gen_clarity_title">وضوح توليد الفريمات</string>
     <string name="ona_frame_gen_clarity_summary">أعلى = الفريمات المولّدة أوضح (غباش أقل)، أقل = حركة أنعم. بتتغير كمان من قائمة اللعبة وإنت بتلعب</string>
     <string name="ona_frame_gen_next_launch">توليد الفريمات بيشتغل من التشغيل الجاي (الأبسكيلر مطفي هلأ)</string>

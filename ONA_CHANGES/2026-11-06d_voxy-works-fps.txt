@@ -1,0 +1,18 @@
+CHANGE SET 2026-11-06 (d) (branch claude/hala-7rl45s)
+
+CONFIRMED by the user: Voxy on Minecraft 26.3 starts with Kopper Zink after 16b954d (SDL gets
+libEGL_mesa as EGL, gl* follow LWJGL on libglxshim). Complaint: low FPS.
+
+FPS changes:
+- ModPerformanceTuner, Voxy (config/voxy-config.json, keys checked in VoxyConfig 0.2.20, Gson
+  LOWER_CASE_WITH_UNDERSCORES; defaults: section_render_distance 16, service_threads cores/1.5,
+  sub_division_size 64): + sub_division_size 96 / 128 / 160 by tier (bigger = fewer LOD draws),
+  ssao_mode "BASIC" (only if the key exists; values AUTO/BASIC/BETTER/BEST).
+- ShaderBoost: a voxy*.jar also caps render resolution (flagship 75%, high 65, mid 55, low 50; shader
+  packs keep 70/60/50/45). Strings updated.
+- Kopper Zink env (GameLauncher, before the plugin return): MESA_NO_ERROR=1, mesa_glthread=true
+  (getOrPut, a user value wins). IF Voxy / Kopper crashes or glitches after this build, try removing
+  mesa_glthread first (custom env), then MESA_NO_ERROR.
+
+OPEN: user says the phone/screen "turns off, comes back for seconds, turns off" every time. Unclear
+(whole phone reboot vs. game picture blanking). Asked for: what exactly happens + launcher log of that run.

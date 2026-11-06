@@ -266,7 +266,7 @@
     <string name="ona_log_translator_warning">Warning</string>
     <string name="ona_log_translator_normal">Normal</string>
     <string name="ona_shader_boost_title">Shader boost</string>
-    <string name="ona_shader_boost_summary">While a shader pack is on, the game renders at a lower resolution (the upscaler sharpens it back) and frame generation is on. Much more FPS with shaders</string>
+    <string name="ona_shader_boost_summary">While a shader pack or Voxy is on, the game renders at a lower resolution (the upscaler sharpens it back). Much more FPS</string>
     <string name="ona_frame_gen_clarity_title">Frame generation clarity</string>
     <string name="ona_frame_gen_clarity_summary">Higher = sharper generated frames (less blur), lower = smoother motion. Changes live in the game menu too</string>
     <string name="ona_frame_gen_next_launch">Frame generation starts with the next launch (the upscaler is off right now)</string>

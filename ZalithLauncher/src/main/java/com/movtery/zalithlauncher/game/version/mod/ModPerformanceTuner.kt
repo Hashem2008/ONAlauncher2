@@ -195,7 +195,15 @@ object ModPerformanceTuner {
                     DeviceTier.HIGH -> 6.0
                     else -> 4.0
                 },
-                "service_threads" to if (strong(tier)) 3 else 2
+                "service_threads" to if (strong(tier)) 3 else 2,
+                // Bigger screen area per LOD node = fewer, cheaper draws (default 64; checked in
+                // VoxyConfig 0.2.20: Gson LOWER_CASE_WITH_UNDERSCORES)
+                "sub_division_size" to when (tier) {
+                    DeviceTier.FLAGSHIP -> 96.0
+                    DeviceTier.HIGH -> 128.0
+                    else -> 160.0
+                },
+                "ssao_mode" to "BASIC"
             )
         },
         // Particle Rain: weather particle budget

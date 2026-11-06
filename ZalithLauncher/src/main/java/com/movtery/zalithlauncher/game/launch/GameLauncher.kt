@@ -597,6 +597,10 @@ private fun setRendererEnv(
         envMap["ONA_GL_LIBRARY"]?.let { envMap["SDL_OPENGL_LIBRARY"] = it }
         envMap.getOrPut("GALLIUM_DRIVER") { "zink" }
         envMap.getOrPut("MESA_ANDROID_NO_KMS_SWRAST") { "1" }
+        // Speed: no GL error checking in Mesa, and Mesa's GL thread takes the driver work off the
+        // game's render thread (both standard Mesa switches; a user value always wins)
+        envMap.getOrPut("MESA_NO_ERROR") { "1" }
+        envMap.getOrPut("mesa_glthread") { "true" }
     }
 
     if (RendererPluginManager.selectedRendererPlugin != null) return

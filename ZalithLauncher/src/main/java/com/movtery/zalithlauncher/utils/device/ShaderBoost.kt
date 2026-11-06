@@ -44,15 +44,18 @@ object ShaderBoost {
         resolutionCap = 0
         summary = "off"
         if (!AllSettings.shaderBoost.getValue()) return
-        val pack = activeShaderPack(gameDir) ?: return
         val tier = DeviceProfiler.current()?.tier ?: DeviceTier.MID
+        val pack = activeShaderPack(gameDir)
+        // Voxy draws far terrain through Zink (desktop GL on Vulkan), every pixel costs more there
+        val voxy = File(gameDir, "mods").listFiles()?.any { it.name.lowercase().startsWith("voxy") && it.name.endsWith(".jar") } == true
+        if (pack == null && !voxy) return
         resolutionCap = when (tier) {
-            DeviceTier.FLAGSHIP -> 70
-            DeviceTier.HIGH -> 60
-            DeviceTier.MID -> 50
-            DeviceTier.LOW -> 45
+            DeviceTier.FLAGSHIP -> if (pack != null) 70 else 75
+            DeviceTier.HIGH -> if (pack != null) 60 else 65
+            DeviceTier.MID -> if (pack != null) 50 else 55
+            DeviceTier.LOW -> if (pack != null) 45 else 50
         }
-        summary = "$pack: resolution at most $resolutionCap%"
+        summary = "${pack ?: "Voxy"}: resolution at most $resolutionCap%"
         Logger.info(TAG, summary)
     }
 

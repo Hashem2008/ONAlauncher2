@@ -363,6 +363,12 @@ KOPPER ZINK THROUGH SDL (2026-11-06 c)
   Details: ONA_CHANGES/2026-11-06c_kopper-sdl-egl-config.txt. Need the LAUNCHER log for SDL_Hook lines.
 - CI: 12caf0a run 42183154594 SUCCESS; follow-up 16b954d (SDL gets libEGL_mesa as EGL) run 42185231221 SUCCESS. Not device-tested.
 
+VOXY ON 26.3 WORKS + FPS (2026-11-06 d)
+- User confirmed Voxy 26.3 starts (Kopper Zink through SDL). FPS: Voxy sub_division_size/ssao by tier,
+  Voxy resolution cap, MESA_NO_ERROR + mesa_glthread for Kopper Zink.
+  Details: ONA_CHANGES/2026-11-06d_voxy-works-fps.txt. Open: "screen turns off and on" report.
+- CI result: see the change file.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -409,3 +415,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
   اللعبة (ما بيشتغل لحاله)، ومعزز خيوط اللعبة لفريمات أكثر.
 - 2026-11-06 (ج): glGetError انحل؛ الخطأ الجاي EGL_BAD_ATTRIBUTE. SDL صار يجرب نفس إعدادات EGL اللي ONA بيفتح فيها
   Kopper Zink بالنسخ القديمة. لازم لوج اللانشر (latest_game.log) مش لوج اللعبة.
+- 2026-11-06 (د): Voxy على 26.3 اشتغل (أكدها المستخدم). تحسين فريمات Voxy و Zink. مفتوح: الشاشة بتطفي وبتضوي.
