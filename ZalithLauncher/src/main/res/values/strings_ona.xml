@@ -284,4 +284,7 @@
     <string name="ona_auto_speed_mod_summary">Modded versions without Sodium / Embeddium get the one that fits from Modrinth: the game draws several times faster on phones</string>
     <string name="ona_speed_mod_installed">%1$s added for more FPS (you can remove them in Mods)</string>
     <string name="ona_speed_mod_none">No rendering speed mod exists for %1$s. A NeoForge or Fabric version of this game runs much faster</string>
+    <string name="ona_runtime_downloading">Downloading Java %1$d (about %2$d MB), only this once…</string>
+    <string name="ona_runtime_ready">Java %1$d is ready</string>
+    <string name="ona_runtime_failed">Java %1$d could not be downloaded. Check the internet and press Play again</string>
 </resources>

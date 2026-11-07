@@ -54,11 +54,12 @@ object Renderers {
             NGGL4ESRenderer,
             GL4ESRenderer,
             KopperZinkRenderer,
-            MobileGluesRenderer,
-            VirGLRenderer,
-            FreedrenoRenderer,
-            PanfrostRenderer
+            MobileGluesRenderer
         )
+        // ONA Performance leaves their Mesa libraries out of the APK
+        if (com.movtery.zalithlauncher.BuildKeys.ONA_PERFORMANCE != "true") {
+            addRenderers(VirGLRenderer, FreedrenoRenderer, PanfrostRenderer)
+        }
     }
 
     /**

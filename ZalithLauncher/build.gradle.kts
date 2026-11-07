@@ -29,6 +29,11 @@ val defaultCurseForgeApiKey = project.findProperty("curseforge_api_key") as? Str
 
 val projectArch: String = System.getProperty("arch", "all")
 
+// ONA Performance: a small, light APK (-Dlite=true, with -Darch=arm64 and assembleRelease). No Java
+// runtimes inside (the one a version needs is downloaded on its first launch), no Horizon (Rust),
+// no VirGL / Freedreno / Panfrost renderers, code shrunk by R8. Installs next to the normal ONA.
+val onaPerformance: Boolean = System.getProperty("lite") == "true"
+
 fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? = null): String {
     val key = System.getenv(envKey)
     return key ?: fileName?.let {
@@ -70,14 +75,19 @@ android {
         targetSdk = 34
         versionCode = launcherVersionCode
         versionName = launcherVersionName
-        manifestPlaceholders["launcher_name"] = launcherAPPName
+        manifestPlaceholders["launcher_name"] = if (onaPerformance) "ONA Performance" else launcherAPPName
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("releaseBuild")
+            // ONA Performance has no release keys in CI: the debug key signs it, under its own id
+            signingConfig = signingConfigs.getByName(if (onaPerformance) "debugBuild" else "releaseBuild")
+            if (onaPerformance) {
+                applicationIdSuffix = ".performance"
+                versionNameSuffix = "-performance"
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -126,6 +136,13 @@ android {
         jniLibs {
             useLegacyPackaging = true
             pickFirsts += listOf("**/libbytehook.so")
+            if (onaPerformance) {
+                // Mesa renderers almost nobody uses (VirGL, Freedreno, Panfrost) and the Rust engine
+                excludes += listOf(
+                    "**/libOSMesa_2121.so", "**/libOSMesa_8.so", "**/libOSMesa_2300d.so",
+                    "**/libvirgl_test_server.so", "**/libhorizon.so", "**/libhorizonjava.so", "**/libhorizonjavac.so"
+                )
+            }
         }
     }
 
@@ -162,6 +179,12 @@ androidComponents {
                         val tag = "JREAssetsCleanup"
                         logger.lifecycle("[$tag] arch: $projectArch")
                         val jreList = listOf("jre-8", "jre-17", "jre-21", "jre-25")
+                        if (onaPerformance) {
+                            // downloaded on demand by RuntimeDownloader instead
+                            jreList.forEach { File("$assetsDir/runtimes/$it").deleteRecursively() }
+                            File(assetsDir, "horizon.zip").delete()
+                            logger.lifecycle("[$tag] ONA Performance: no Java runtimes, no Horizon inside")
+                        }
                         jreList.forEach { jreVersion ->
                             val runtimeDir = File("$assetsDir/runtimes/$jreVersion")
                             logger.lifecycle("[$tag] runtimeDir: ${runtimeDir.absolutePath}")
@@ -237,6 +260,7 @@ buildKeys {
     string("URL_HOME", launcherUrl, true)
     string("CURSEFORGE_API", getKeyFromLocal("CURSEFORGE_API_KEY", ".curseforge_api.txt", defaultCurseForgeApiKey), true)
     string("BUILD_ARCH", projectArch)
+    string("ONA_PERFORMANCE", onaPerformance.toString())
 }
 
 dependencies {

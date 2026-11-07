@@ -59,3 +59,7 @@
 
 # SoraEditor language-textmate
 -keep class org.jcodings.** { *; }
+# ONA: Gson reads launcher classes by their field names; JNI calls Horizon's activity by name
+-keepattributes Signature,*Annotation*,InnerClasses,EnclosingMethod
+-keepclassmembers class com.movtery.zalithlauncher.** { <fields>; }
+-keep class com.lukagejak.horizon.** { *; }

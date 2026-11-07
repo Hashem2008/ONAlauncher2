@@ -11,7 +11,7 @@ on:
       arches:
         required: false
         type: string
-        default: '["arm64", "arm", "x86_64"]'
+        default: '["arm64", "arm", "x86_64", "performance"]'
     secrets:
       KEY_PASSWORD:
         required: false
@@ -34,7 +34,7 @@ jobs:
       matrix:
         # ONA: one APK per CPU type instead of a 446 MB "all" APK nobody needs whole:
         # arm64 = almost every phone, arm = old 32-bit phones, x86_64 = emulators / PCs
-        arch: ${{ fromJSON(inputs.arches || '["arm64", "arm", "x86_64"]') }}
+        arch: ${{ fromJSON(inputs.arches || '["arm64", "arm", "x86_64", "performance"]') }}
       fail-fast: false
 
     env:
@@ -99,7 +99,7 @@ jobs:
         id: abi
         run: |
           case "${{ matrix.arch }}" in
-            arm64)  echo "abi=arm64-v8a" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_64.so" >> "$GITHUB_OUTPUT" ;;
+            arm64|performance)  echo "abi=arm64-v8a" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_64.so" >> "$GITHUB_OUTPUT" ;;
             arm)    echo "abi=armeabi-v7a" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_32.so" >> "$GITHUB_OUTPUT" ;;
             x86_64) echo "abi=x86_64" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_64.so" >> "$GITHUB_OUTPUT" ;;
             x86)    echo "abi=x86" >> "$GITHUB_OUTPUT"; echo "physx=libPhysXJniBindings_32.so" >> "$GITHUB_OUTPUT" ;;
@@ -190,10 +190,38 @@ jobs:
             fi
           done
 
+      # ONA Performance downloads its Java from this release: keep it in step with assets/runtimes
+      - name: Publish Java runtimes for ONA Performance
+        if: matrix.arch == 'arm64'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=ona-runtimes
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --target "$GITHUB_SHA" \
+              --title "Java runtimes for ONA Performance" \
+              --notes "Java 8 / 17 / 21 / 25 for Android (the files the normal APKs carry). ONA Performance downloads the one a version needs."
+          dir="$RUNNER_TEMP/runtimes"; mkdir -p "$dir"
+          for jre in jre-8 jre-17 jre-21 jre-25; do
+            src="ZalithLauncher/src/main/assets/runtimes/$jre"
+            [ -f "$src/version" ] || continue
+            published=$(curl -fsSL "https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/$jre-version" 2>/dev/null || true)
+            if [ "$published" = "$(cat "$src/version")" ]; then echo "$jre up to date"; continue; fi
+            files=()
+            for f in "$src"/*; do cp "$f" "$dir/$jre-$(basename "$f")"; files+=("$dir/$jre-$(basename "$f")"); done
+            gh release upload "$tag" "${files[@]}" --repo "$GITHUB_REPOSITORY" --clobber && echo "$jre published"
+          done
+
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+          if [ "${{ matrix.arch }}" = "performance" ]; then
+            # small and light: no Java inside (downloaded on demand), no Rust engine, R8 shrunk
+            ./gradlew ZalithLauncher:assembleRelease -Darch=arm64 -Dlite=true
+          else
+            ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+          fi
 
       - name: Upload Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'
@@ -222,12 +250,15 @@ jobs:
         run: |
           branch="${GITHUB_REF_NAME//\//-}"
           if [ "$GITHUB_REF" = "refs/heads/main" ]; then tag=ona-latest; else tag="ona-$branch"; fi
-          apk=$(ls ZalithLauncher/build/outputs/apk/debug/*.apk | head -1)
+          apk=$(ls ZalithLauncher/build/outputs/apk/debug/*.apk ZalithLauncher/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
           case "${{ matrix.arch }}" in
             arm64)  name="ONA-arm64-v8a_64bit-phones.apk"
                     who="64-bit phones and tablets from about 2017 on: Snapdragon, Exynos, MediaTek Dimensity and Helio, Kirin, Google Tensor, Unisoc T6xx/T7xx - احسن خيار لأغلب الجوالات (فيه محرك Rust)" ;;
             arm)    name="ONA-armeabi-v7a_32bit-old-phones.apk"
                     who="old or cheap phones with a 32-bit Android (Android Go, Snapdragon 4xx, Helio A/P2x, Unisoc SC9863) - للجوالات القديمة اللي نظامها 32 بت" ;;
+            performance) name="ONA-Performance_arm64-light.apk"
+                    who="ONA Performance: small and light, for 64-bit phones. Java comes down once on the first launch of a version, no Rust engine - نسخة خفيفة وصغيرة، الجافا بتنزل أول مرة تلعب"
+                    ;;
             x86_64) name="ONA-x86_64_emulators-PC.apk"
                     who="Android emulators and PCs (BlueStacks, LDPlayer, Waydroid, Chromebooks with Intel/AMD) - للمحاكيات والكمبيوتر" ;;
             *)      name="ONA-${{ matrix.arch }}.apk"; who="${{ matrix.arch }}" ;;

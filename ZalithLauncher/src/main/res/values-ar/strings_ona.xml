@@ -284,4 +284,7 @@
     <string name="ona_auto_speed_mod_summary">النسخ اللي فيها مودات وما فيها Sodium أو Embeddium بتاخذ المناسب من Modrinth: الرسم بيصير أسرع بكثير على الجوال</string>
     <string name="ona_speed_mod_installed">انضاف %1$s لفريمات أكثر (بتقدر تشيلهم من المودات)</string>
     <string name="ona_speed_mod_none">ما في مود تسريع رسم لـ %1$s. نسخة NeoForge أو Fabric من نفس اللعبة أسرع بكثير</string>
+    <string name="ona_runtime_downloading">بنزل جافا %1$d (حوالي %2$d ميغا)، أول مرة بس…</string>
+    <string name="ona_runtime_ready">جافا %1$d جاهزة</string>
+    <string name="ona_runtime_failed">ما قدرت أنزل جافا %1$d. تأكد من النت واكبس لعب مرة ثانية</string>
 </resources>

@@ -663,6 +663,22 @@ fun LaunchGameOperation(
                 } else LegacyKotlinSupport.lastMissing?.let { kotlinMod ->
                     eventViewModel.sendToast(androidText(R.string.ona_forgelin_failed, kotlinMod), Toast.LENGTH_LONG)
                 }
+                // ONA Performance carries no Java: the runtime this version needs comes down once
+                val missingJre = withContext(Dispatchers.IO) {
+                    runCatching { com.movtery.zalithlauncher.components.jre.RuntimeDownloader.missingFor(com.movtery.zalithlauncher.context.GlobalContext, version) }.getOrNull()
+                }
+                if (missingJre != null) {
+                    val downloader = com.movtery.zalithlauncher.components.jre.RuntimeDownloader
+                    eventViewModel.sendToast(
+                        androidText(R.string.ona_runtime_downloading, missingJre.majorVersion, downloader.sizeMb(missingJre)),
+                        Toast.LENGTH_LONG
+                    )
+                    val ok = withContext(Dispatchers.IO) { downloader.install(com.movtery.zalithlauncher.context.GlobalContext, missingJre) }
+                    eventViewModel.sendToast(
+                        androidText(if (ok) R.string.ona_runtime_ready else R.string.ona_runtime_failed, missingJre.majorVersion),
+                        Toast.LENGTH_LONG
+                    )
+                }
                 // ONA: modded versions without Sodium / Embeddium get the one that fits (much more FPS)
                 val speedMods = withContext(Dispatchers.IO) {
                     runCatching { com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.ensure(version) }.getOrDefault(emptyList())

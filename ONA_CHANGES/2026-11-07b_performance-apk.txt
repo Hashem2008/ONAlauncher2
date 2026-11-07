@@ -1,0 +1,24 @@
+2026-11-07 (b) - 4th APK: ONA Performance (small, light)
+
+Why so big before (arm64 246 MB): Java runtimes 100 MB (8/17/21/25), native libs 68 MB (Horizon 21,
+OSMesa x3 15), LWJGL 30 MB, debug dex 40 MB (not shrunk).
+
+ONA Performance = matrix arch "performance" in build.yml (dispatch builds 4 APKs now):
+  ./gradlew ZalithLauncher:assembleRelease -Darch=arm64 -Dlite=true
+- build.gradle.kts onaPerformance (-Dlite=true): release type (R8 minify + shrink resources), signed with
+  the DEBUG key (no release secrets in CI), applicationIdSuffix ".performance" (separate app
+  com.onalauncher.app2.performance, name "ONA Performance"), assets runtimes/jre-* and horizon.zip
+  removed in the merge-assets hook, jniLibs excludes libOSMesa_2121/8/2300d, libvirgl_test_server,
+  libhorizon*. BuildKeys.ONA_PERFORMANCE = "true".
+- Renderers: VirGL / Freedreno / Panfrost not registered in Performance.
+- components/jre/RuntimeDownloader.kt: before a launch (LauncherElements), if no installed runtime fits
+  the version's javaVersion.majorVersion (own json or inheritsFrom) and the APK does not carry it,
+  downloads jre-N-version / jre-N-universal.tar.xz / jre-N-bin-<arch>.tar.xz from release "ona-runtimes"
+  and installs it as Internal-N (same as the bundled ones). Toasts ona_runtime_downloading/ready/failed.
+- build.yml step "Publish Java runtimes for ONA Performance" (arm64 job): uploads assets/runtimes/jre-*
+  files as jre-N-<file> to release ona-runtimes when the published jre-N-version differs.
+- proguard-rules.pro: keep field names of com.movtery.zalithlauncher.** (Gson), Signature/annotations,
+  com.lukagejak.horizon.** (JNI by name).
+- APK_GUIDE.md: section 4.
+Risk to watch: R8 (first release-type build of ONA code). If something breaks only in Performance,
+suspect obfuscation/shrinking first (add -keep rules), compare with the debug arm64 build.
