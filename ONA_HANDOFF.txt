@@ -455,6 +455,14 @@ WRONG MOD VERSION AUTOFIX (2026-11-07 a)
 - Host test with real Modrinth jars: Sodium 0.9.2 -> 0.9.3-beta.1 for Reese's 2.2.6-beta.1, 0 problems.
 - CI: full build run 42365092879 (1b2b137) SUCCESS, all three APKs. Not device-tested.
 
+ONA PERFORMANCE APK (2026-11-07 b)
+- 4th matrix entry "performance" (assembleRelease -Darch=arm64 -Dlite=true): 74 MB (normal arm64 246).
+  Inside now: LWJGL assets 29 MB (vulkan jars 13.7, shaderc 5.8), natives 28.5 MB, dex 7 MB (R8 worked).
+  Java comes from release "ona-runtimes" (published by the arm64 job). ONA_CHANGES/2026-11-07b_performance-apk.txt.
+- CI: run 42413965969 (dd0eb27) SUCCESS, 4 APKs. First run failed: RuntimeDownloader used
+  File(version.getVersionPath()) (it is already a File). Not device-tested (R8 risk: test Performance).
+- Next if the user wants smaller: LWJGL (29 MB) on demand like the JREs -> about 40 MB.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -514,3 +522,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (س): حساب أوفلاين لـ Rust: اسم الحساب المحلي بيوصل لـ Horizon. محرك Rust انبنى من جديد والبيلد نجح.
 - 2026-11-06 (ع): الشاشة السودا بعد التحميل بـ 26.3 على Mali: شيدر الشفافية الجديد صار ينعدل قبل الكرت. البيلد نجح.
 - 2026-11-07 (أ): المود الموجود بنسخة غلط (زي Sodium مع Reese's) صار ينصلح لحاله قبل التشغيل. البيلد نجح.
+- 2026-11-07 (ب): نسخة رابعة ONA Performance (74 ميغا بدل 246): الجافا بتنزل أول مرة، بدون Rust، كود مضغوط. البيلد نجح.
