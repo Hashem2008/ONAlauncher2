@@ -322,6 +322,23 @@ RUST (HORIZON) HOME + TOUCH CONTROLS (2026-11-05, on main)
   Logs (export + share), Launcher settings, About. EngineSwitch at the bottom goes back to Java.
 - NEXT: ask the user for the Horizon log (Rust page -> Logs) after entering a world; check the
   "touch controls" line and whether draw_touch runs.
+WRONG MOD VERSION AUTO-FIX (2026-11-07, branch ccr-59c4e9ea-d048gv = this session's branch)
+- User log (26.3 Fabric 0.20.1 "wow", MobileGlues, 18 mods): "Incompatible mods found": Reese's Sodium
+  Options 2.2.6-beta.1+mc26.3 needs sodium =0.9.3-beta.1+mc26.3, Sodium 0.9.2+mc26.3 installed.
+  ModCompat.analyze only checked a requirement was PRESENT, never its version.
+- ModCompat: ModInfo.versions (declared version per id, ${...} placeholders skipped) + outerIds.
+  New PROBLEM_WRONG_VERSION (3): installed provider (outer jar) whose versions satisfy none of the
+  range. satisfies() is lenient (ignores +build metadata, understands ">=x-"), unknown version = no report.
+  fixWrongVersion: newest Modrinth build of the required mod that satisfies ALL requirements on it
+  (12 candidates, betas included, jar metadata checked), else a build of the requiring mod that accepts
+  the installed version. Old jar MOVED to <version>/ona-replaced-mods (fallback *.ona-old), not deleted.
+  Runs automatically via ModAutoResolver before launch; ModProblemsDialog shows it with mod_problem_version.
+- CrashDoctor: Cause.WRONG_MOD_VERSION, detail = Fabric's "Replace mod 'X' ... with version Y" (EN + AR).
+- Tested locally (javac + stubs, real Modrinth): fake sodium 0.9.2 + Reese's -> downloaded
+  sodium-fabric-0.9.3-beta.1+mc26.3.jar, old moved aside, 0 problems. Range cases tested.
+- Commit fa27c14, CI run 42363790575: (result below)
+- NEXT: user launches the same version again; the log must not show "Incompatible mods found".
+  Note: openpartiesandclaims has "mixins_temp_disabled" in its json = only a warning, not an error.
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -358,3 +375,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - القاعدة: ممنوع نطفي أو نحذف أي مود، بس نخليه يشتغل.
 - أول شي بالجلسة الجديدة: تأكد إن خطوة بناء PhysX نجحت بالـ CI، وجرّب على الجوال وابعت اللوقات.
 - بعد كل بناء لازم يتحدّث هذا الملف.
+- 2026-11-07: صار اللانشر يكتشف لو مود بده نسخة ثانية من مود (مثل Sodium) ويركّب النسخة الصح لحاله.
