@@ -48,6 +48,8 @@ public class ModCompat {
     private static final String USER_AGENT = "ONALauncher2 (github.com/Hashem2008/ONAlauncher2)";
     private static final Gson GSON = new Gson();
     private static final int MAX_CANDIDATES = 6;
+    /** Exact version requirements can point at a beta several builds down the list */
+    private static final int MAX_VERSION_CANDIDATES = 12;
 
     /** What a profile runs: the vanilla version, the mod loader and its version */
     public static class Environment {
@@ -70,6 +72,10 @@ public class ModCompat {
         public String name;
         /** Every mod id this jar provides, nested jars included */
         final Set<String> providedIds = new HashSet<>();
+        /** Ids the jar itself declares (not nested jars): the ones a newer build of this file can change */
+        final Set<String> outerIds = new HashSet<>();
+        /** Declared version of every provided id (nested jars included), when the metadata has a real one */
+        final Map<String, List<String>> versions = new HashMap<>();
         final List<Dependency> dependencies = new ArrayList<>();
         boolean hasForgeToml, hasNeoforgeToml, hasFabricJson;
         @Nullable String forgeLoaderRange;
@@ -78,6 +84,8 @@ public class ModCompat {
     public static final int PROBLEM_INCOMPATIBLE = 0;
     public static final int PROBLEM_MISSING = 1;
     public static final int PROBLEM_WRONG_LOADER = 2;
+    /** The required mod is installed but in a version the requiring mod does not accept */
+    public static final int PROBLEM_WRONG_VERSION = 3;
 
     public static class Problem {
         public int kind;
@@ -88,6 +96,10 @@ public class ModCompat {
         public String requiredId;
         public String requiredRange;
         @Nullable public String actualVersion;
+        /** PROBLEM_WRONG_VERSION: the jar that provides the required mod in the wrong version */
+        @Nullable public File providerFile;
+        /** PROBLEM_WRONG_VERSION: every requirement on that mod, a replacement has to satisfy all of them */
+        final List<Dependency> allRequirements = new ArrayList<>();
     }
 
     // ---- Environment ----
@@ -240,6 +252,8 @@ public class ModCompat {
             String modId = table.get("modId");
             if (modId == null) return;
             info.providedIds.add(modId);
+            if (outer) info.outerIds.add(modId);
+            addVersion(info, modId, table.get("version"));
             if (outer && info.name == null) info.name = table.containsKey("displayName") ? table.get("displayName") : modId;
             return;
         }
@@ -268,11 +282,20 @@ public class ModCompat {
         if (json == null || !json.has("id")) return;
         String id = json.get("id").getAsString();
         info.providedIds.add(id);
+        String version = json.has("version") && json.get("version").isJsonPrimitive() ? json.get("version").getAsString() : null;
+        if (outer) info.outerIds.add(id);
+        addVersion(info, id, version);
         if (id.equals("fabric-api")) info.providedIds.add("fabric");
         if (outer && info.name == null) info.name = json.has("name") ? json.get("name").getAsString() : id;
         JsonElement provides = json.get("provides");
         if (provides != null && provides.isJsonArray()) {
-            for (JsonElement element : provides.getAsJsonArray()) info.providedIds.add(element.getAsString());
+            for (JsonElement element : provides.getAsJsonArray()) {
+                if (!element.isJsonPrimitive()) continue;
+                String provided = element.getAsString();
+                info.providedIds.add(provided);
+                if (outer) info.outerIds.add(provided);
+                addVersion(info, provided, version);
+            }
         }
         JsonElement depends = json.get("depends");
         if (depends == null || !depends.isJsonObject()) return;
@@ -292,6 +315,19 @@ public class ModCompat {
             }
             info.dependencies.add(dependency);
         }
+    }
+
+    /** Placeholders such as ${file.jarVersion} or ${version} are not real versions */
+    private static void addVersion(ModInfo info, String modId, @Nullable String version) {
+        if (version == null) return;
+        version = version.trim();
+        if (version.isEmpty() || version.contains("${")) return;
+        List<String> list = info.versions.get(modId);
+        if (list == null) {
+            list = new ArrayList<>();
+            info.versions.put(modId, list);
+        }
+        list.add(version);
     }
 
     // ---- Version ranges ----
@@ -390,6 +426,33 @@ public class ModCompat {
         return dependency.fabricStyle ? matchesFabricRange(version, dependency.range) : matchesMavenRange(version, dependency.range);
     }
 
+    /**
+     * Version check for mod-to-mod requirements. Lenient on purpose: build metadata ("+mc26.3") is
+     * ignored like semver does, so only a real mismatch is reported (a wrong report would swap a jar).
+     */
+    static boolean satisfies(Dependency dependency, String version) {
+        if (matches(dependency, version)) return true;
+        String bareVersion = version.replaceFirst("\\+.*$", "");
+        Dependency bare = new Dependency();
+        bare.modId = dependency.modId;
+        bare.fabricStyle = dependency.fabricStyle;
+        bare.source = dependency.source;
+        bare.range = dependency.range == null ? null : dependency.range.replaceAll("\\+[^\\s|,\\])]*", "");
+        if (matches(bare, bareVersion)) return true;
+        // Fabric ">=1.0.0-": a trailing '-' lets pre-releases of that version count
+        if (bare.fabricStyle && bare.range != null && bare.range.matches(".*-(\\s|\\||$).*")) {
+            bare.range = bare.range.replaceAll("-(?=\\s|\\||$)", "");
+            return matches(bare, bareVersion.replaceFirst("-.*$", ""));
+        }
+        return false;
+    }
+
+    private static boolean anySatisfies(Dependency dependency, @Nullable List<String> versions) {
+        if (versions == null || versions.isEmpty()) return true; // unknown version: never guess
+        for (String version : versions) if (satisfies(dependency, version)) return true;
+        return false;
+    }
+
     /** Only the metadata the running loader reads counts, a Fabric+NeoForge jar must not need NeoForge on Fabric */
     private static boolean appliesTo(Dependency dependency, ModInfo info, Environment environment) {
         if (environment.loader == null || dependency.source == null) return true;
@@ -476,13 +539,22 @@ public class ModCompat {
         File[] files = modsDir.listFiles();
         if (files == null) return problems;
         List<ModInfo> mods = new ArrayList<>();
-        Set<String> provided = builtinIds(environment);
+        Set<String> builtin = builtinIds(environment);
+        Set<String> provided = new HashSet<>(builtin);
+        Map<String, List<String>> providedVersions = new HashMap<>();
+        Map<String, ModInfo> outerProvider = new HashMap<>();
         for (File file : files) {
             if (!file.isFile() || !file.getName().endsWith(".jar")) continue;
             ModInfo info = read(file);
             if (info == null) continue;
             mods.add(info);
             provided.addAll(info.providedIds);
+            for (Map.Entry<String, List<String>> entry : info.versions.entrySet()) {
+                List<String> list = providedVersions.get(entry.getKey());
+                if (list == null) providedVersions.put(entry.getKey(), list = new ArrayList<>());
+                list.addAll(entry.getValue());
+            }
+            for (String id : info.outerIds) if (!outerProvider.containsKey(id)) outerProvider.put(id, info);
         }
         // Sinytra Connector runs the Fabric mods of a (Neo)Forge pack, they are not misplaced
         if (provided.contains("connector") && !"fabric".equals(environment.loader) && !"quilt".equals(environment.loader)) {
@@ -491,6 +563,16 @@ public class ModCompat {
             environment = withConnector;
         }
         Set<String> reportedMissing = new HashSet<>();
+        // Every requirement per mod id, so a replacement build is checked against all of them
+        Map<String, List<Dependency>> requirements = new HashMap<>();
+        for (ModInfo info : mods) {
+            for (Dependency dependency : info.dependencies) {
+                if (!appliesTo(dependency, info, environment)) continue;
+                List<Dependency> list = requirements.get(dependency.modId);
+                if (list == null) requirements.put(dependency.modId, list = new ArrayList<>());
+                list.add(dependency);
+            }
+        }
         for (ModInfo info : mods) {
             Problem incompatible = checkCompatible(info, environment);
             if (incompatible != null) {
@@ -500,7 +582,21 @@ public class ModCompat {
             for (Dependency dependency : info.dependencies) {
                 if (!appliesTo(dependency, info, environment)) continue;
                 String id = dependency.modId;
-                if (provided.contains(id) || isFabricApiModule(id) && provided.contains("fabric-api")) continue;
+                if (provided.contains(id)) {
+                    // Installed, but is it a version this mod accepts? (Reese's Sodium Options needs an exact Sodium)
+                    ModInfo provider = outerProvider.get(id);
+                    if (provider != null && provider != info && !builtin.contains(id) && !isFabricApiModule(id)
+                            && !anySatisfies(dependency, providedVersions.get(id))) {
+                        List<String> actual = providedVersions.get(id);
+                        Problem problem = problem(PROBLEM_WRONG_VERSION, info, id, dependency.range,
+                                android.text.TextUtils.join(", ", actual));
+                        problem.providerFile = provider.file;
+                        problem.allRequirements.addAll(requirements.get(id));
+                        problems.add(problem);
+                    }
+                    continue;
+                }
+                if (isFabricApiModule(id) && provided.contains("fabric-api")) continue;
                 if (!reportedMissing.add(id)) continue;
                 problems.add(problem(PROBLEM_MISSING, info, id, dependency.range, null));
             }
@@ -531,6 +627,7 @@ public class ModCompat {
      */
     public static int fix(Problem problem, File modsDir, Environment environment, boolean allowDisable) {
         try {
+            if (problem.kind == PROBLEM_WRONG_VERSION) return fixWrongVersion(problem, modsDir, environment);
             if (problem.kind == PROBLEM_MISSING) {
                 // A jar the user (or an older fix) disabled may already provide it
                 if (reenableProvider(problem.requiredId, modsDir, environment)) return FIX_REPLACED;
@@ -557,6 +654,107 @@ public class ModCompat {
             Log.w(TAG, "Fix failed for " + problem.modName, e);
             return FIX_FAILED;
         }
+    }
+
+    /** Lets the fixer pick a build by its metadata */
+    interface JarFilter {
+        boolean accept(ModInfo info);
+    }
+
+    /**
+     * The required mod is there in the wrong version: first look for a build of it that every
+     * mod accepts (Sodium 0.9.2 -> 0.9.3-beta.1), else a build of the requiring mod that accepts
+     * the installed version. The old jar is moved to ona-replaced-mods, never deleted.
+     */
+    private static int fixWrongVersion(Problem problem, File modsDir, Environment environment) throws IOException {
+        final String id = problem.requiredId;
+        final List<Dependency> needs = new ArrayList<>(problem.allRequirements);
+        if (needs.isEmpty()) {
+            Dependency only = new Dependency();
+            only.modId = id;
+            only.range = problem.requiredRange;
+            only.fabricStyle = !"forge".equals(environment.loader) && !"neoforge".equals(environment.loader);
+            needs.add(only);
+        }
+        File providerFile = problem.providerFile;
+        // Another problem of this round already swapped that jar, the next analysis re-checks it
+        if (providerFile != null && !providerFile.exists()) return FIX_REPLACED;
+        if (providerFile != null && providerFile.isFile()) {
+            String project = findProjectForFile(providerFile);
+            if (project == null) project = findProjectForModId(id, environment);
+            if (project != null) {
+                File replacement = installMatching(project, modsDir, environment, info -> {
+                    List<String> versions = info.versions.get(id);
+                    if (versions == null || versions.isEmpty() || !info.outerIds.contains(id)) return false;
+                    for (Dependency need : needs) {
+                        boolean ok = false;
+                        for (String version : versions) if (satisfies(need, version)) ok = true;
+                        if (!ok) return false;
+                    }
+                    return true;
+                });
+                if (replacement != null) {
+                    if (!replacement.equals(providerFile)) moveAside(providerFile, modsDir);
+                    Log.i(TAG, "Replaced " + providerFile.getName() + " with " + replacement.getName() + " for " + problem.modName);
+                    return FIX_REPLACED;
+                }
+            }
+        }
+        // No fitting build of the requirement: maybe another build of the requiring mod fits the installed one
+        ModInfo installed = providerFile != null ? read(providerFile) : null;
+        final List<String> installedVersions = installed != null ? installed.versions.get(id) : null;
+        if (installedVersions == null || installedVersions.isEmpty() || problem.file == null || !problem.file.isFile()) return FIX_FAILED;
+        String dependent = findProjectForFile(problem.file);
+        if (dependent == null) return FIX_FAILED;
+        File replacement = installMatching(dependent, modsDir, environment, info -> {
+            for (Dependency dependency : info.dependencies) {
+                if (!dependency.modId.equals(id) || !appliesTo(dependency, info, environment)) continue;
+                if (!anySatisfies(dependency, installedVersions)) return false;
+            }
+            return true;
+        });
+        if (replacement == null) return FIX_FAILED;
+        if (!replacement.equals(problem.file)) moveAside(problem.file, modsDir);
+        Log.i(TAG, "Replaced " + problem.file.getName() + " with " + replacement.getName() + " to fit " + id + " " + installedVersions);
+        return FIX_REPLACED;
+    }
+
+    /** Newest builds first, like installCompatible, but the jar must also pass the filter */
+    @Nullable
+    private static File installMatching(String projectId, File modsDir, Environment environment, JarFilter filter) throws IOException {
+        String url = API + "/project/" + projectId + "/version?game_versions=" + encode("[\"" + environment.gameVersion + "\"]");
+        if (environment.loader != null) url += "&loaders=" + encode("[\"" + environment.loader + "\"]");
+        JsonArray versions = GSON.fromJson(httpGet(url), JsonArray.class);
+        for (int i = 0; i < versions.size() && i < MAX_VERSION_CANDIDATES; i++) {
+            JsonObject file = primaryFile(versions.get(i).getAsJsonObject());
+            if (file == null) continue;
+            String fileName = new File(file.get("filename").getAsString()).getName();
+            File output = new File(modsDir, fileName);
+            if (output.exists()) {
+                ModInfo existing = read(output);
+                if (existing != null && checkCompatible(existing, environment) == null && filter.accept(existing)) return output;
+                continue; // same file name = the same build that does not fit
+            }
+            File candidate = new File(modsDir, fileName + ".check");
+            download(file.get("url").getAsString(), candidate);
+            ModInfo info = read(candidate);
+            if (info == null || checkCompatible(info, environment) != null || !filter.accept(info)) {
+                //noinspection ResultOfMethodCallIgnored
+                candidate.delete();
+                continue;
+            }
+            if (!candidate.renameTo(output)) throw new IOException("Cannot write " + fileName);
+            return output;
+        }
+        return null;
+    }
+
+    /** Keeps the replaced jar out of the loader's way without deleting the user's file */
+    private static void moveAside(File jar, File modsDir) {
+        File parent = modsDir.getParentFile();
+        File dir = new File(parent != null ? parent : modsDir, "ona-replaced-mods");
+        if ((dir.isDirectory() || dir.mkdirs()) && jar.renameTo(new File(dir, jar.getName()))) return;
+        if (!jar.renameTo(new File(jar.getPath() + ".ona-old"))) Log.w(TAG, "Could not move " + jar + " aside");
     }
 
     private static boolean reenableProvider(String modId, File modsDir, Environment environment) {

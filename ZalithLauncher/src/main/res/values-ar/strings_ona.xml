@@ -99,6 +99,8 @@
     <string name="ona_crash_physx_fix">ONA بيشغّل PhysX على أندرويد تلقائياً من نسخة 2.3.1 وطالع. نسخة Physics Mod هاي بتستخدم PhysX أقدم معمول للكمبيوتر بس؛ استخدم نسخة أحدث من المود أو من المودباك (مثلاً 1.20.1).</string>
     <string name="ona_crash_kotlin">مود Forge 1.12 مكتوب بـ Kotlin ناقصه مكتبة Kotlin (Forgelin)</string>
     <string name="ona_crash_kotlin_fix">ONA بنزل Forgelin-Continuous لحاله لما تكبس تشغيل. شغل النت وشغل اللعبة مرة ثانية؛ ولا مود بينحذف أو بينطفى.</string>
+    <string name="ona_crash_mod_version">مود بده مود ثاني بنسخة غير المركّبة</string>
+    <string name="ona_crash_mod_version_fix">شغّل مرة ثانية: ONA بيدوّر على Modrinth على النسخة اللي بتناسب كل المودات (حتى لو بيتا) وبيركّبها. الملف القديم بينحفظ بمجلد ona-replaced-mods جوا مجلد النسخة، وما بينحذف إشي.</string>
     <string name="ona_lighting_fixed">تحديث الإضاءة كان مطفي (البلوك المكسور بصير أسود)، رجعته شغال في: %1$s</string>
     <string name="ona_fpsreducer_fixed">مود (FPS Reducer أو Dynamic FPS) كان ينزّل الفريمات لأنه فاكر الجوال بالخلفية. ظبطته من إعداداته، والمود ضل شغال</string>
     <string name="ona_frame_generation_title">توليد الفريمات (Frame generation)</string>

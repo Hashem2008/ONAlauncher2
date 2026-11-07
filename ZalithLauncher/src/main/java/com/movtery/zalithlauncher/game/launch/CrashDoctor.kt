@@ -55,7 +55,9 @@ object CrashDoctor {
         /** PhysX (Physics Mod) without an Android build for its version */
         PHYSX_OLD(R.string.ona_crash_physx, R.string.ona_crash_physx_fix),
         /** A Forge 1.12 Kotlin mod (Better Foliage...) without the Kotlin runtime (Forgelin) */
-        KOTLIN_MISSING(R.string.ona_crash_kotlin, R.string.ona_crash_kotlin_fix)
+        KOTLIN_MISSING(R.string.ona_crash_kotlin, R.string.ona_crash_kotlin_fix),
+        /** Fabric: a required mod is installed in a version the other mod does not accept */
+        WRONG_MOD_VERSION(R.string.ona_crash_mod_version, R.string.ona_crash_mod_version_fix)
     }
 
     class Diagnosis(val cause: Cause, val detail: String?) {
@@ -128,6 +130,14 @@ object CrashDoctor {
                 text.substringAfter("NoClassDefFoundError: kotlin/", "")
             )?.groupValues?.get(1)
             return Diagnosis(Cause.KOTLIN_MISSING, mod)
+        }
+        // Fabric names the exact swap: "Replace mod 'Sodium' (sodium) 0.9.2+mc26.3 with version 0.9.3-beta.1+mc26.3."
+        if (text.contains("Incompatible mods found") || text.contains("but only the wrong version is present")) {
+            val swaps = Regex("Replace mod '([^']+)' \\([\\w.-]+\\) (\\S+) with version (\\S+?)\\.?(?:\\s|$)").findAll(text)
+                .map { "${it.groupValues[1]} ${it.groupValues[2]} → ${it.groupValues[3]}" }.distinct().toList()
+            if (swaps.isNotEmpty() || text.contains("but only the wrong version is present")) {
+                return Diagnosis(Cause.WRONG_MOD_VERSION, swaps.take(4).joinToString(", ").ifEmpty { null })
+            }
         }
         Regex("requires (?:any version|version [^ ]+(?: or later)?) of '?([\\w.-]+)'?, which is missing").findAll(text)
             .map { it.groupValues[1] }.distinct().toList().takeIf { it.isNotEmpty() }?.let {

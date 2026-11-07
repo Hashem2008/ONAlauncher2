@@ -99,6 +99,8 @@
     <string name="ona_crash_physx_fix">ONA runs PhysX on Android for PhysX 2.3.1 and newer automatically. This Physics Mod version uses an older PhysX that was only built for PC; use a newer version of the mod or of the modpack (for example 1.20.1).</string>
     <string name="ona_crash_kotlin">A Forge 1.12 Kotlin mod is missing the Kotlin runtime (Forgelin)</string>
     <string name="ona_crash_kotlin_fix">ONA downloads Forgelin-Continuous by itself when you press Play. Connect to the internet and launch again; no mod is removed or switched off.</string>
+    <string name="ona_crash_mod_version">A mod needs another mod in a different version</string>
+    <string name="ona_crash_mod_version_fix">Launch again: ONA now finds the version every mod accepts on Modrinth (a beta too) and swaps it in. The old file is kept in the version folder under ona-replaced-mods, nothing is deleted.</string>
     <string name="ona_lighting_fixed">Light updates were off (broken blocks turned black), turned back on in: %1$s</string>
     <string name="ona_fpsreducer_fixed">A mod (FPS Reducer / Dynamic FPS) held the game at a low FPS because it thought the phone was in the background. Fixed in its settings; the mod stays on</string>
     <string name="ona_frame_generation_title">Frame generation</string>
