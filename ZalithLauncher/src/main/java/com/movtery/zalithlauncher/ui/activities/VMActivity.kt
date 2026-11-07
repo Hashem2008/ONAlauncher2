@@ -254,9 +254,10 @@ class VMViewModel : ViewModel() {
                                     OnaTweaks.oomMarker(version.getGameDir()).writeText("1")
                                 }
                                 // ONA: a speed mod ONA added that broke loading is taken out again
-                                com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.onCrash(
-                                    version, CrashDoctor.crashText(version.getLatestLog(), version.getGameDir())
-                                )
+                                val crashText = CrashDoctor.crashText(version.getLatestLog(), version.getGameDir())
+                                com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.onCrash(version, crashText)
+                                // ONA: Fabric said which mod versions fit: the next launch installs them
+                                com.movtery.zalithlauncher.game.version.mod.ModAutoResolver.rememberFabricSolution(version, crashText)
                                 if (diagnosis?.rendererSuspect == true) {
                                     // Nothirium on the GL15 engine crashed too: switch it off next time
                                     MobileModRules.onRendererCrash(version)

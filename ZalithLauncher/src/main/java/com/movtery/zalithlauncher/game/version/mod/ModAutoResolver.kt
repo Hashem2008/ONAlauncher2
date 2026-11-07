@@ -59,7 +59,7 @@ object ModAutoResolver {
         val modsDir = version.modsDir()
         if (!modsDir.isDirectory) return Result(0, emptyList())
 
-        var remaining = runCatching { ModCompat.analyze(modsDir, environment) }.getOrElse {
+        var remaining = runCatching { analyzeWithSolution(version, modsDir, environment) }.getOrElse {
             Logger.warning(TAG, "Could not read the mods of ${version.getVersionName()}", it)
             return Result(0, emptyList())
         }
@@ -81,7 +81,7 @@ object ModAutoResolver {
             var fixedThisRound = 0
             for (problem in todo) {
                 if (System.currentTimeMillis() > deadline) break
-                onProgress(if (problem.kind == ModCompat.PROBLEM_MISSING) problem.requiredId else problem.modName)
+                onProgress(if (problem.kind == ModCompat.PROBLEM_MISSING || problem.kind == ModCompat.PROBLEM_WRONG_VERSION) problem.requiredId else problem.modName)
                 var result = ModCompat.fix(problem, modsDir, environment, false)
                 // ONA: requirements that only live on CurseForge (DeceasedCraft and other Forge packs)
                 if (result == ModCompat.FIX_FAILED && problem.kind == ModCompat.PROBLEM_MISSING &&
@@ -93,7 +93,7 @@ object ModAutoResolver {
                 if (result != ModCompat.FIX_FAILED) fixedThisRound++ else failedNow.add(problemKey(problem))
             }
             fixed += fixedThisRound
-            remaining = runCatching { ModCompat.analyze(modsDir, environment) }.getOrDefault(remaining)
+            remaining = runCatching { analyzeWithSolution(version, modsDir, environment) }.getOrDefault(remaining)
             if (fixedThisRound == 0 || System.currentTimeMillis() > deadline) break
         }
         writeSkipped(skipFile, skipped, failedNow, now)
@@ -101,6 +101,32 @@ object ModAutoResolver {
         remaining = remaining.filter { problemKey(it) !in skipped }
         Logger.info(TAG, "${version.getVersionName()}: fixed $fixed, ${remaining.size} left")
         return Result(fixed, remaining)
+    }
+
+    /** Fabric's own fix after a start that failed on mod versions (see [rememberFabricSolution]) */
+    private const val FABRIC_SOLUTION_FILE = "ona_fabric_solution.txt"
+
+    /**
+     * The game stopped with "Incompatible mods found!": Fabric's suggested swaps ("Replace mod ...
+     * with version ...") are kept for the next launch, where the fixer installs those versions.
+     */
+    fun rememberFabricSolution(version: Version, crashText: String) {
+        val lines = crashText.lines().filter { it.contains("Replace mod '") && it.contains(" with version ") }.distinct()
+        if (lines.isEmpty()) return
+        runCatching { File(version.getVersionPath(), FABRIC_SOLUTION_FILE).writeText(lines.joinToString("\n")) }
+            .onSuccess { Logger.info(TAG, "Fabric's fix kept for the next launch: $lines") }
+    }
+
+    /** What [ModCompat.analyze] finds plus Fabric's kept swaps that still apply */
+    fun analyzeWithSolution(version: Version, modsDir: File, environment: ModCompat.Environment): List<ModCompat.Problem> {
+        val found = ModCompat.analyze(modsDir, environment)
+        val file = File(version.getVersionPath(), FABRIC_SOLUTION_FILE)
+        if (!file.isFile) return found
+        val fromFabric = runCatching { ModCompat.fromFabricSolution(file.readText(), modsDir, environment) }.getOrDefault(emptyList())
+        // the swap is done (or the jar is gone): forget it
+        if (fromFabric.isEmpty()) runCatching { file.delete() }
+        val known = found.map { it.requiredId + "|" + it.providerFile?.name }.toSet()
+        return found + fromFabric.filter { (it.requiredId + "|" + it.providerFile?.name) !in known }
     }
 
     // v2: CurseForge became a source, problems that failed with Modrinth alone are tried again

@@ -49,6 +49,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.mod.CurseForgeModFinder
+import com.movtery.zalithlauncher.game.version.mod.ModAutoResolver
 import com.movtery.zalithlauncher.game.version.mod.ModCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -75,7 +76,7 @@ fun Version.modsDir(): File = File(getGameDir(), "mods")
 suspend fun Version.findModProblems(): List<ModCompat.Problem> {
     val environment = modEnvironment() ?: return emptyList()
     return withContext(Dispatchers.IO) {
-        runCatching { ModCompat.analyze(modsDir(), environment) }.getOrDefault(emptyList())
+        runCatching { ModAutoResolver.analyzeWithSolution(this@findModProblems, modsDir(), environment) }.getOrDefault(emptyList())
     }
 }
 

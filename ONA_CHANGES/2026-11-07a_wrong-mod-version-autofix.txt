@@ -1,0 +1,26 @@
+2026-11-07 (a) - mods in the wrong version are fixed automatically
+
+Log (SM-S948B, Snapdragon 8 Elite Gen 5, 26.3 Fabric "wow" pack): Fabric stopped with
+  Reese's Sodium Options 2.2.6-beta.1 requires sodium =0.9.3-beta.1+mc26.3, 0.9.2+mc26.3 is present
+  -> "Replace mod 'Sodium' (sodium) 0.9.2+mc26.3 with version 0.9.3-beta.1+mc26.3."
+Why ONA missed it: ModCompat.analyze only knew MISSING (id not there) and INCOMPATIBLE (minecraft /
+loader version), not "there, but a version the dependent does not accept".
+
+ModCompat.java
+- ModInfo.versions: version of every provided id (fabric.mod.json "version" + provides, mods.toml
+  [[mods]] version unless it is a ${...} placeholder), nested jars included.
+- PROBLEM_WRONG_VERSION (3) + Problem.providerFile. analyze(): a dependency whose id is there but none
+  of the present versions matches the range.
+- fixWrongVersion(): 1) a build of the required mod's project (project from the provider jar's sha1,
+  else by mod id) whose jar version matches the range, versions whose name contains the exact wanted
+  version tried first, pre-releases included, max 12 downloads; old jar replaced. 2) else a build of
+  the dependent mod that accepts the present version. Only versions of the same projects are swapped.
+- installWhere(projectId, ..., JarCheck): generic "download until a jar fits" helper.
+- fromFabricSolution(log): Fabric's "Replace mod 'X' (id) A with version B." -> WRONG_VERSION problems.
+ModAutoResolver.kt: analyzeWithSolution() = analyze + kept Fabric swaps (ona_fabric_solution.txt,
+  written by rememberFabricSolution() from VMActivity on a failed exit, deleted once nothing applies).
+  findModProblems() (launch check) uses it too, so the resolver runs before the game starts.
+LogTranslator: rule for "Replace mod ... with version ...".
+
+Tested on the host with the real jars from Modrinth (26.3 Fabric): analyze finds the problem, fix()
+installs sodium-fabric-0.9.3-beta.1+mc26.3.jar, removes 0.9.2, analyze then finds 0 problems.
