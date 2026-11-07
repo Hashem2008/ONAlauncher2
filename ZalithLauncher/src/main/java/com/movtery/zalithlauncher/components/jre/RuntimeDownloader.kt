@@ -47,7 +47,7 @@ object RuntimeDownloader {
 
     /** Java major version the version's json asks for (its own or the vanilla one it inherits) */
     fun requiredJava(version: Version): Int {
-        val dir = File(version.getVersionPath())
+        val dir = version.getVersionPath()
         fun read(json: File): Pair<Int?, String?> = runCatching {
             val root = JsonParser.parseString(json.readText()).asJsonObject
             val major = root.getAsJsonObject("javaVersion")?.get("majorVersion")?.asInt
