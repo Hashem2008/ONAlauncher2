@@ -82,6 +82,15 @@ void main() {
         float deep = 1.0 - exp(-depth * 0.28);
         color = mix(color * 1.15, color * vec3(0.30, 0.45, 0.60), deep);
         alpha = mix(0.30, 0.92, deep);
+#ifdef WATER_FOAM
+        // foam along the shore, broken up and drifting
+        float tf = frameTimeCounter * 0.5;
+        float foamNoise = onaValueNoise(worldPos.xz * 1.8 + vec2(tf, -tf * 0.7));
+        float shore = 1.0 - smoothstep(0.0, 0.9, depth);
+        float foam = shore * smoothstep(0.45, 0.75, foamNoise + shore * 0.45);
+        color = mix(color, onaShade(vec3(0.92), n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0), foam * 0.85);
+        alpha = mix(alpha, 1.0, foam * 0.85);
+#endif
 #endif
 #ifdef WATER_REFLECTIONS
         vec3 V = normalize(-viewPos);

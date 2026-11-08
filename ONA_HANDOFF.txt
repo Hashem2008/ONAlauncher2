@@ -534,6 +534,11 @@ SHADER COMMUNITY (2026-11-08 k)
   ONA_CHANGES/2026-11-08k_shader-community.txt (+ renderer follow-up: GL 4.3/compute only for packs
   with .csh, heavy-mod tuner leaves community packs alone). CI: see the next handoff commit.
 
+SHADER REALISM + FPS + HEAVY PACKS (2026-11-08 l)
+- Puddles, shore foam, caustics, lens flare, depth of field (off below HIGH); SSAO / light shafts
+  cheaper; 80+ mod versions get lighter shadows. ONA_CHANGES/2026-11-08l_shader-realism-fps-heavy-packs.txt.
+  CI: see the next handoff commit.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -602,3 +607,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ط): تنزيل فورج وأوبتيفاين والمودباكات صار ينزّل الجافا أول (كان فاشل بنسخة Performance)، وتصليح تعارض Sodium مع Iris لحاله. البيلد نجح.
 - 2026-11-08 (ي): الشيدر ما عاد يبيّض الصحراء (ألوان طبيعية)، أوبتيفاين أخف، ريسورس ONA جديد بالإعدادات (أداء / 16x لـ 512x)، والإعدادات صارت مقسمة بعناوين.
 - 2026-11-08 (ك): "شيدرات المجتمع" بالإعدادات: Complementary و BSL و Photon وغيرهم بينزلوا من أصحابهم وبينضبطوا للجوال لحالهم.
+- 2026-11-08 (ل): خيارات واقعية جديدة بالشيدر (برك مطر، رغوة، ضو تحت الماء، وهج الشمس، تركيز الكاميرا)، فريمات أحسن، وظلال أخف بالمودباكات الثقيلة.

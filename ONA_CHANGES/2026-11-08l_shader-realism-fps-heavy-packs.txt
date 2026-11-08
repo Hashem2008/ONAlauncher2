@@ -1,0 +1,24 @@
+Shader: more realism options, FPS savings, heavy modpacks (2026-11-08 l)
+
+New options (lib/settings.glsl, menus, profiles, en/ar labels). Each is compiled out when off, so
+POTATO..MEDIUM cost exactly what they did:
+- RAIN_PUDDLES (WORLD): rain fills low spots of open flat ground (2-octave value noise in world
+  space, grows with wetness), the puddle is flat, darker and mirror smooth -> the existing sky
+  reflection path. HIGH and up.
+- WATER_FOAM (WATER): foam where the water is shallow (Deep water depth), broken up by drifting
+  noise. HIGH and up.
+- WATER_CAUSTICS (WATER): while swimming, sunlight patterns on the ground (two drifting noise
+  layers). ULTRA and up.
+- LENS_FLARE (LOOK): 4 coloured rings on the sun-centre axis, only while the sun pixel is sky.
+  REALISTIC and up.
+- DEPTH_OF_FIELD + DOF_STRENGTH (LOOK): focus on the screen centre, blur from colortex0 mips (no
+  extra pass), hand and sky untouched. ULTRA_REALISTIC and IMPOSSIBLE.
+FPS:
+- SSAO skipped beyond 40 blocks (faded from 28), where corners are a pixel wide.
+- Light shafts: a quarter of the steps when looking away from the sun (where they are even).
+- GLSL 1.20 has no integer max(): caught by the checker, written as a ternary.
+Heavy modpacks: OnaGraphics.apply caps shadows at 64 blocks (150+ mods: 48) / 2048, no mob shadows,
+fewer samples, when the version has 80+ mods (toast ona_graphics_heavy_capped). OptiFine caps now
+share capOptions(). Memory for heavy packs was already tuned (OnaTweaks.tunedHeap 4-6 GB).
+Checks: ona_shader_check 224/224; all new options forced on at POTATO and IMPOSSIBLE 56/56;
+option script 47 options, all declared, used and labelled (en + ar).

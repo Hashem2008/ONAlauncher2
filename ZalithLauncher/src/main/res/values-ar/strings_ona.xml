@@ -349,4 +349,5 @@
     <string name="ona_community_on">شيدرات المجتمع: %1$s اشتغل (المستوى %2$s، مضبوط لجوالك)</string>
     <string name="ona_community_failed">شيدرات المجتمع: %1$s ما زبط، رح يجرب مرة ثانية بالتشغيل الجاي</string>
     <string name="ona_community_turned_off">شيدرات المجتمع انطفت</string>
+    <string name="ona_graphics_heavy_capped">مودباك ثقيل (%1$d مود): الظلال صارت أقرب وأخف عشان الفريمات</string>
 </resources>

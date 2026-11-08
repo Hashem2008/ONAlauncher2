@@ -39,6 +39,12 @@
 //#define FILM_GRAIN           // light film grain
 //#define CHROMATIC            // colour fringes at the edges like a lens
 #define SUN_STRENGTH 1.00      // [0.60 0.80 1.00 1.20 1.40]
+//#define RAIN_PUDDLES         // rain leaves puddles on open flat ground that mirror the sky
+//#define WATER_FOAM           // white foam where water meets the shore (with Deep water)
+//#define WATER_CAUSTICS       // moving light patterns on the ground while you swim
+//#define DEPTH_OF_FIELD       // what is far from the thing you look at gets soft, like a camera
+#define DOF_STRENGTH 1.00      // [0.50 1.00 1.50 2.00] how soft the out-of-focus parts get
+//#define LENS_FLARE           // glare rings across the screen when you look near the sun
 #define SATURATION 1.10        // [0.80 0.90 1.00 1.10 1.20 1.30]
 #define FOG_START 0.55         // [0.30 0.40 0.55 0.70 0.85]
 

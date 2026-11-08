@@ -135,8 +135,15 @@ object OnaGraphics {
         installPack(context, packsDir)
         var options = profileOptions(context, level)
         if (loader == Loader.OPTIFINE) {
-            val capped = optifineCaps(options)
+            val capped = capOptions(options, maxResolution = 2048, maxDistance = 96f)
             if (capped != options) lines.add(context.getString(R.string.ona_graphics_optifine_capped))
+            options = capped
+        }
+        // heavy modpacks are CPU bound already, and the shadow pass draws the world a second time
+        val mods = version.modsDir().list()?.count { it.endsWith(".jar") } ?: 0
+        if (mods >= 80) {
+            val capped = capOptions(options, maxResolution = 2048, maxDistance = if (mods >= 150) 48f else 64f)
+            if (capped != options) lines.add(context.getString(R.string.ona_graphics_heavy_capped, mods))
             options = capped
         }
         File(packsDir, "$SHADER_NAME.txt").writeText(
@@ -207,8 +214,9 @@ object OnaGraphics {
      * OptiFine draws the world without Sodium and renders the whole shadow distance again for the
      * shadow map, so on a phone the big levels are CPU bound (FPS low even at 25% resolution).
      * Same look, lighter numbers: shadow map 2048 / 96 blocks, fewer samples, no mob shadows.
+     * Heavy modpacks (80+ mods) get the same with 64 (150+: 48) blocks of shadows.
      */
-    private fun optifineCaps(options: Map<String, String>): Map<String, String> {
+    private fun capOptions(options: Map<String, String>, maxResolution: Int, maxDistance: Float): Map<String, String> {
         val out = options.toMutableMap()
         fun capInt(key: String, max: Int) {
             out[key]?.toIntOrNull()?.let { if (it > max) out[key] = max.toString() }
@@ -216,8 +224,8 @@ object OnaGraphics {
         fun capFloat(key: String, max: Float) {
             out[key]?.toFloatOrNull()?.let { if (it > max) out[key] = max.toString() }
         }
-        capInt("shadowMapResolution", 2048)
-        capFloat("shadowDistance", 96.0f)
+        capInt("shadowMapResolution", maxResolution)
+        capFloat("shadowDistance", maxDistance)
         capInt("SSAO_SAMPLES", 8)
         capInt("SSR_STEPS", 16)
         capInt("VL_STEPS", 8)

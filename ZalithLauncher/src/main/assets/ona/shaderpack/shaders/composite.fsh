@@ -86,8 +86,12 @@ void main() {
     vec3 dirW = mat3(gbufferModelViewInverse) * normalize(viewPos);
     float dither = onaNoise(gl_FragCoord.xy);
     float lit = 0.0;
+    float mu = dot(normalize(viewPos), lightDir);
+    // the shafts show towards the sun: a quarter of the steps elsewhere (the air there is even)
+    int steps = mu > 0.15 ? VL_STEPS : (VL_STEPS / 4 > 2 ? VL_STEPS / 4 : 2); // GLSL 1.20 has no integer max()
     for (int i = 0; i < VL_STEPS; i++) {
-        float t = (float(i) + dither) / float(VL_STEPS);
+        if (i >= steps) break;
+        float t = (float(i) + dither) / float(steps);
         vec3 wp = dirW * (t * t * dist);
         vec4 sp = shadowProjection * (shadowModelView * vec4(wp, 1.0));
         vec3 sc = sp.xyz / sp.w;
@@ -95,8 +99,7 @@ void main() {
         sc.xy /= l * SHADOW_DISTORT + (1.0 - SHADOW_DISTORT);
         lit += l < 1.0 ? shadow2D(shadowtex0, sc * 0.5 + 0.5).x : 1.0;
     }
-    lit /= float(VL_STEPS);
-    float mu = dot(normalize(viewPos), lightDir);
+    lit /= float(steps);
     float g = 0.65;
     float phase = (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * mu, 1.5) * 0.08 + 0.03;
     float density = (0.35 + rainStrength * 0.4) * (dist / 48.0);

@@ -3,11 +3,25 @@
 #include "/lib/common.glsl"
 
 uniform sampler2D colortex0;
-#ifdef GODRAYS
+#if defined GODRAYS || defined DEPTH_OF_FIELD || defined LENS_FLARE
 uniform sampler2D depthtex0;
 #endif
-#ifdef BLOOM
+#if defined BLOOM || defined DEPTH_OF_FIELD
 const bool colortex0MipmapEnabled = true;
+#endif
+#ifdef DEPTH_OF_FIELD
+uniform float near;
+uniform float far;
+float onaLinear(float d) {
+    return 2.0 * near * far / (far + near - (d * 2.0 - 1.0) * (far - near));
+}
+#endif
+#ifdef LENS_FLARE
+// one soft coloured ring of the flare
+vec3 onaGhost(vec2 uv, vec2 pos, float size, vec3 tint, float aspect) {
+    float d = length((uv - pos) * vec2(aspect, 1.0));
+    return tint * (smoothstep(size, size * 0.55, d) * 0.6 + smoothstep(size * 1.05, size, d) * smoothstep(size * 0.8, size, d) * 0.6);
+}
 #endif
 uniform float viewWidth;
 uniform float viewHeight;
@@ -25,6 +39,15 @@ void main() {
     vec3 c = vec3(texture2D(colortex0, texcoord + off).r, texture2D(colortex0, texcoord).g, texture2D(colortex0, texcoord - off).b);
 #else
     vec3 c = texture2D(colortex0, texcoord).rgb;
+#endif
+#ifdef DEPTH_OF_FIELD
+    // camera focus on the middle of the screen; the hand and the sky stay as they are
+    float depthHere = texture2D(depthtex0, texcoord).r;
+    if (depthHere > 0.56 && depthHere < 1.0) {
+        float focus = onaLinear(texture2D(depthtex0, vec2(0.5)).r);
+        float blur = clamp(abs(onaLinear(depthHere) - focus) / max(focus, 2.0) * 1.5 * DOF_STRENGTH, 0.0, 1.0);
+        c = mix(c, texture2D(colortex0, texcoord, blur * 3.5).rgb, blur);
+    }
 #endif
 #ifdef BLOOM
     // smaller mip levels are already blurred: two lookups instead of a blur pass
@@ -44,6 +67,21 @@ void main() {
         rays /= 8.0;
         float fall = 1.0 - clamp(length((texcoord - sunScreen) * vec2(viewWidth / viewHeight, 1.0)), 0.0, 1.0);
         c += rayColor * rays * fall * fall * 0.30 * sunAmount;
+    }
+#endif
+#ifdef LENS_FLARE
+    if (sunAmount > 0.0 && all(greaterThan(sunScreen, vec2(0.0))) && all(lessThan(sunScreen, vec2(1.0)))) {
+        // only while the sun itself is not hidden behind a block
+        if (texture2D(depthtex0, sunScreen).r >= 1.0) {
+            float aspect = viewWidth / viewHeight;
+            vec2 axis = vec2(0.5) - sunScreen;
+            vec3 flare = onaGhost(texcoord, sunScreen + axis * 0.55, 0.045, vec3(1.0, 0.70, 0.40), aspect)
+                       + onaGhost(texcoord, sunScreen + axis * 1.05, 0.025, vec3(0.50, 0.85, 1.00), aspect)
+                       + onaGhost(texcoord, sunScreen + axis * 1.45, 0.075, vec3(0.70, 0.55, 1.00), aspect)
+                       + onaGhost(texcoord, sunScreen + axis * 2.05, 0.035, vec3(1.00, 0.85, 0.55), aspect);
+            float center = 1.0 - smoothstep(0.0, 0.7, length(axis));
+            c += flare * rayColor * sunAmount * (0.10 + 0.15 * center);
+        }
     }
 #endif
     c *= EXPOSURE;

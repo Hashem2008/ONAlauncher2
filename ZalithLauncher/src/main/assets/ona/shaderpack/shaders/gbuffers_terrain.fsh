@@ -18,6 +18,11 @@ uniform vec3 fogColor;
 uniform float rainStrength;
 uniform float wetness;
 uniform float far;
+#if defined RAIN_PUDDLES || defined WATER_CAUSTICS
+uniform mat4 gbufferModelViewInverse;
+uniform vec3 cameraPosition;
+uniform float frameTimeCounter;
+#endif
 
 varying vec2 texcoord;
 varying vec2 lmcoord;
@@ -106,6 +111,21 @@ void main() {
         albedo.rgb *= 1.0 - wet * 0.28;
     }
 #endif
+#if defined RAIN_PUDDLES || defined WATER_CAUSTICS
+    vec3 worldPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+#endif
+#ifdef RAIN_PUDDLES
+    // puddles: the low spots of open flat ground fill with water while it rains, and dry up after
+    if (!foliage && wetness > 0.01 && dot(geoN, up) > 0.9) {
+        float mask = onaValueNoise(worldPos.xz * 0.23) * 0.65 + onaValueNoise(worldPos.xz * 0.9) * 0.35;
+        float level = 0.66 - wetness * 0.14;
+        float puddle = smoothstep(level, level + 0.06, mask) * smoothstep(0.88, 0.97, lmcoord.y) * wetness;
+        smoothness = mix(smoothness, 0.97, puddle);
+        reflectance = max(reflectance, 0.02 * puddle);
+        n = normalize(mix(n, geoN, puddle));
+        albedo.rgb *= 1.0 - puddle * 0.35;
+    }
+#endif
     vec2 lm = onaLightmap(lmcoord, length(viewPos));
     float geoNdotL = dot(geoN, lightDir);
 #ifdef SHADOWS
@@ -134,6 +154,16 @@ void main() {
         if (metal) color *= mix(vec3(1.0), albedo.rgb * 1.2 + 0.2, 0.5);
     }
     color += albedo.rgb * emission * 3.0;
+#ifdef WATER_CAUSTICS
+    if (isEyeInWater == 1) {
+        // sunlight bent by the waves above: two drifting noise layers, bright where they meet
+        float tc = frameTimeCounter * 0.7;
+        float c1 = onaValueNoise(worldPos.xz * 0.9 + vec2(tc * 0.30, tc * 0.20));
+        float c2 = onaValueNoise(worldPos.xz * 1.3 - vec2(tc * 0.25, -tc * 0.15));
+        float caustic = pow(1.0 - abs(c1 - c2), 8.0);
+        color += albedo.rgb * sunLight * caustic * 0.9 * vis * smoothstep(0.3, 0.8, lmcoord.y);
+    }
+#endif
     color = onaTonemap(color * exposure);
     float d = length(viewPos) / far;
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);

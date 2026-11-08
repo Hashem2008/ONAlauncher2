@@ -66,6 +66,8 @@ void main() {
 #ifdef SSAO
     else if (depth > 0.56) {
         vec3 p = onaViewPos(texcoord, depth);
+        // far away the corners are a pixel wide: no samples there (the costly part of the pass)
+        if (p.z > -40.0) {
         vec3 n = normalize(cross(dFdx(p), dFdy(p)));
         vec3 helper = abs(n.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
         vec3 t = normalize(cross(helper, n));
@@ -86,7 +88,10 @@ void main() {
             float range = smoothstep(0.0, 1.0, radius / max(abs(p.z - sceneZ), 0.001));
             occlusion += (sceneZ >= s.z + 0.03 ? 1.0 : 0.0) * range;
         }
-        color *= mix(1.0, 1.0 - occlusion / float(SSAO_SAMPLES), 0.75);
+        // fades out before the cut at 40 blocks, so there is no line
+        float fade = 1.0 - smoothstep(28.0, 40.0, -p.z);
+        color *= mix(1.0, 1.0 - occlusion / float(SSAO_SAMPLES) * fade, 0.75);
+        }
     }
 #endif
     gl_FragData[0] = vec4(color, 1.0);

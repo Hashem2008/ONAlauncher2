@@ -349,4 +349,5 @@
     <string name="ona_community_on">Shader Community: %1$s on (profile %2$s, set up for this phone)</string>
     <string name="ona_community_failed">Shader Community: %1$s could not be set up, it is tried again on the next start</string>
     <string name="ona_community_turned_off">Shader Community off</string>
+    <string name="ona_graphics_heavy_capped">Heavy modpack (%1$d mods): shadows closer and lighter for FPS</string>
 </resources>
