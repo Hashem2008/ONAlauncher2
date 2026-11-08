@@ -511,7 +511,7 @@ SHADER V3 + V4 (2026-11-08 f+g)
   light, glow, look: Off..Max) in the shader and in the launcher's ONA Graphics dialog.
   ONA_CHANGES/2026-11-08g_shader-v4-glow-parts.txt. CI: full build run 42493585605 (81ffb8d) SUCCESS, 4 APKs.
   REVERTED (2026-11-08 h): the user found v4 slower (night forest 55 / 34 FPS) and asked for v3 back.
-  Code = v3 again (ONA_CHANGES/2026-11-08h_revert-v4.txt). Do not bring v4 back unless asked;
+  Code = v3 again (ONA_CHANGES/2026-11-08h_revert-v4.txt). CI run 42497379703 (c9344e0) SUCCESS, 4 APKs. Do not bring v4 back unless asked;
   any glow/shine idea must be FPS-free and tested against v3.
 
 STATUS / OPEN ITEMS (check these first)
@@ -578,4 +578,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ب+ج): جرافيك ONA (شيدر خاص بالجوالات + ريسورس باك بينعمل على الجوال) و ONA Renderer (محركنا المبني من كود MobileGlues، محرك واحد لكل النسخ 1.17+). كل البيلدات نجحت.
 - 2026-11-08 (د+هـ): الشيدر v2 (8 مستويات لحد مستحيل)، تشغيل الشيدر من إعدادات اللانشر، نقوش HD من Modrinth، والفريمات صارت بلا حد (كانت 120). البيلد نجح.
 - 2026-11-08 (و+ز): الشيدر v3 (دمج مع Patrix، سماء مصلحة) و v4 (توهج الخامات، لمعان السيارات والمخلوقات، أجزاء من مطفأ لأقصى لكل جزء). بيلد v3 و v4 نجحوا.
-- 2026-11-08 (ح): لغينا v4 ورجعنا v3 لأنه أسرع (طلب المستخدم).
+- 2026-11-08 (ح): لغينا v4 ورجعنا v3 لأنه أسرع (طلب المستخدم). البيلد نجح.
