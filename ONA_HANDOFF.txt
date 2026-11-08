@@ -560,7 +560,8 @@ REALISTIC SHADOWS / 3D CLOUDS / REFRACTION (2026-11-08 n)
   (Complementary's way). Grainy cloud march replaced by shaded 3D-looking clouds. New: floating dust /
   fireflies, shader distance (chunks). Levels: PERFORMANCE ... UNBELIEVABLE (14), old names migrated.
   Never sample a colortex in a gbuffers program again without checking it is bound.
-  ONA_CHANGES/2026-11-08o_fourteen-levels-refraction-fix-particles-distance.txt. CI: see the next handoff commit.
+  ONA_CHANGES/2026-11-08o_fourteen-levels-refraction-fix-particles-distance.txt. CI run 42532923372 (7dc914a)
+  SUCCESS, 4 APKs. Not device-tested: ask for water / cloud / night (fireflies) screenshots and FPS per level.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -633,4 +634,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ل): خيارات واقعية جديدة بالشيدر (برك مطر، رغوة، ضو تحت الماء، وهج الشمس، تركيز الكاميرا)، فريمات أحسن، وظلال أخف بالمودباكات الثقيلة. البيلد نجح.
 - 2026-11-08 (م): صلحنا الغباش (تركيز الكاميرا صار مطفي ومصلّح)، و5 خيارات جديدة: ظلال الغيوم، دوائر المطر، ضباب المسافة، لمعة الرمل والثلج، الألوان. البيلد نجح.
 - 2026-11-08 (ن): ظلال واقعية (حادة عند التلامس)، غيوم ثلاثية الأبعاد، انكسار الماء، وفريمات أحسن بالظلال. الألوان ما تغيرت. البيلد نجح.
-- 2026-11-08 (س): صلحنا خربطة الماء والغيوم، 14 مستوى من أداء لـ "لا يُصدّق"، جزيئات (غبار ويراعات)، ومسافة الشيدر زي التشنكات.
+- 2026-11-08 (س): صلحنا خربطة الماء والغيوم، 14 مستوى من أداء لـ "لا يُصدّق"، جزيئات (غبار ويراعات)، ومسافة الشيدر زي التشنكات. البيلد نجح.
