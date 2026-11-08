@@ -463,6 +463,18 @@ ONA PERFORMANCE APK (2026-11-07 b)
   File(version.getVersionPath()) (it is already a File). Not device-tested (R8 risk: test Performance).
 - Next if the user wants smaller: LWJGL (29 MB) on demand like the JREs -> about 40 MB.
 
+PERFORMANCE 42 MB + FPS WORK (2026-11-08 a)
+- Performance: LWJGL on demand (LwjglDownloader, packs in ona-runtimes), en+ar only -> 42 MB.
+  Verified in the APK: no LWJGL/JRE assets, resources.arsc 0.91 MB, pack name in dex = published pack.
+- All APKs: per-frame ADPF hints in egl_bridge.c (Android 13+), -XX:-DontCompileHugeMethods and
+  -XX:MaxInlineLevel=15, BestGameSettings v3 with Minecraft 26 keys (below flagship: OIT, cutout leaves,
+  RGSS off). ONA_CHANGES/2026-11-08a_performance-40mb-fps.txt.
+- CI: run 42480536065 (48bb5c2) SUCCESS, 4 APKs. First try failed: build.gradle.kts used
+  java.security.MessageDigest (java.* = Gradle java extension in scripts) -> import added.
+  Not device-tested. User's S26 Ultra is FLAGSHIP: the 26.x OIT/leaves/RGSS switches skip it by design;
+  suggested a 120 FPS cap against heat; if drops stay, ask when they happen (new chunks vs after minutes)
+  and consider a "steady" mode for flagships.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -523,3 +535,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-06 (ع): الشاشة السودا بعد التحميل بـ 26.3 على Mali: شيدر الشفافية الجديد صار ينعدل قبل الكرت. البيلد نجح.
 - 2026-11-07 (أ): المود الموجود بنسخة غلط (زي Sodium مع Reese's) صار ينصلح لحاله قبل التشغيل. البيلد نجح.
 - 2026-11-07 (ب): نسخة رابعة ONA Performance (74 ميغا بدل 246): الجافا بتنزل أول مرة، بدون Rust، كود مضغوط. البيلد نجح.
+- 2026-11-08 (أ): Performance صارت 42 ميغا (LWJGL بتنزل أول مرة). للكل: تبليغ أندرويد كل فريم، تسريع جافا، وإعدادات ماينكرافت 26 التلقائية. البيلد نجح.
