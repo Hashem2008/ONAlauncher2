@@ -17,12 +17,13 @@ void onaLightColors() {
     float day = smoothstep(-0.12, 0.22, sunUp);
     float dusk = 1.0 - smoothstep(0.0, 0.40, abs(sunUp));
     // sun and sky balanced so a sunlit block shows its own colour (white light all together)
-    vec3 noon = vec3(1.00, 0.92, 0.78) * 1.20;
-    vec3 sunset = vec3(1.00, 0.56, 0.30) * 0.90;
+    vec3 noon = vec3(1.00, 0.92, 0.78) * 1.585;
+    vec3 sunset = vec3(1.00, 0.56, 0.30) * 1.19;
     vec3 moon = vec3(0.42, 0.52, 0.80) * 0.28;
     sunLight = mix(moon, mix(noon, sunset, dusk), day) * SUN_STRENGTH;
     sunLight *= 1.0 - rainStrength * 0.85;
-    vec3 daySky = vec3(0.80, 0.88, 1.00) * 1.09;
+    // sun about 2.3x the sky light: shade is about a third of sunlight, a little blue, like outside
+    vec3 daySky = vec3(0.70, 0.82, 1.00) * 0.78;
     vec3 nightSky = vec3(0.10, 0.13, 0.22) * 0.60;
     skyLight = mix(nightSky, daySky, day);
     skyLight = mix(skyLight, vec3(0.42, 0.44, 0.48) * (0.15 + 0.55 * day), rainStrength * 0.7);

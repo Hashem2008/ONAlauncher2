@@ -1,10 +1,8 @@
-// ONA Mobile Shaders - shadow lookup. shadowtex1 is compared in hardware (soft edges from every
-// tap), shadowtex0 keeps the raw depth for the realistic filter's blocker search (the same set-up
-// Photon uses; without translucent shadows both hold the same depth).
+// ONA Mobile Shaders - shadow lookup. shadowtex0 is compared in hardware: soft edges from every
+// tap. Only compare lookups are used (raw shadow depth is not readable the same way on every phone).
 #ifdef SHADOWS
-uniform sampler2DShadow shadowtex1;
+uniform sampler2DShadow shadowtex0;
 #if SHADOW_FILTER == 4
-uniform sampler2D shadowtex0;
 uniform mat4 shadowProjection;
 #endif
 varying vec4 shadowClip;
@@ -20,25 +18,25 @@ float onaShadowAny() {
     p.z -= 0.00004;
     float texel = 1.0 / float(shadowMapResolution);
 #if SHADOW_FILTER == 0
-    float vis = shadow2D(shadowtex1, p).x;
+    float vis = shadow2D(shadowtex0, p).x;
 #elif SHADOW_FILTER == 1
-    float vis = shadow2D(shadowtex1, p + vec3(-0.5, -0.5, 0.0) * texel).x;
-    vis += shadow2D(shadowtex1, p + vec3( 0.5, -0.5, 0.0) * texel).x;
-    vis += shadow2D(shadowtex1, p + vec3(-0.5,  0.5, 0.0) * texel).x;
-    vis += shadow2D(shadowtex1, p + vec3( 0.5,  0.5, 0.0) * texel).x;
+    float vis = shadow2D(shadowtex0, p + vec3(-0.5, -0.5, 0.0) * texel).x;
+    vis += shadow2D(shadowtex0, p + vec3( 0.5, -0.5, 0.0) * texel).x;
+    vis += shadow2D(shadowtex0, p + vec3(-0.5,  0.5, 0.0) * texel).x;
+    vis += shadow2D(shadowtex0, p + vec3( 0.5,  0.5, 0.0) * texel).x;
     vis *= 0.25;
 #elif SHADOW_FILTER == 2
     // the 4 outer taps first: when they agree the pixel is fully lit or fully in shadow (most of
     // the screen) and the other 4 are not needed
-    float vis = shadow2D(shadowtex1, p + vec3(-1.0, -0.4, 0.0) * texel).x
-              + shadow2D(shadowtex1, p + vec3( 1.0,  0.4, 0.0) * texel).x
-              + shadow2D(shadowtex1, p + vec3(-0.4,  1.0, 0.0) * texel).x
-              + shadow2D(shadowtex1, p + vec3( 0.4, -1.0, 0.0) * texel).x;
+    float vis = shadow2D(shadowtex0, p + vec3(-1.0, -0.4, 0.0) * texel).x
+              + shadow2D(shadowtex0, p + vec3( 1.0,  0.4, 0.0) * texel).x
+              + shadow2D(shadowtex0, p + vec3(-0.4,  1.0, 0.0) * texel).x
+              + shadow2D(shadowtex0, p + vec3( 0.4, -1.0, 0.0) * texel).x;
     if (vis > 0.01 && vis < 3.99) {
-        vis += shadow2D(shadowtex1, p + vec3(-1.5,  1.2, 0.0) * texel).x;
-        vis += shadow2D(shadowtex1, p + vec3( 1.5, -1.2, 0.0) * texel).x;
-        vis += shadow2D(shadowtex1, p + vec3(-1.2, -1.5, 0.0) * texel).x;
-        vis += shadow2D(shadowtex1, p + vec3( 1.2,  1.5, 0.0) * texel).x;
+        vis += shadow2D(shadowtex0, p + vec3(-1.5,  1.2, 0.0) * texel).x;
+        vis += shadow2D(shadowtex0, p + vec3( 1.5, -1.2, 0.0) * texel).x;
+        vis += shadow2D(shadowtex0, p + vec3(-1.2, -1.5, 0.0) * texel).x;
+        vis += shadow2D(shadowtex0, p + vec3( 1.2,  1.5, 0.0) * texel).x;
         vis *= 0.125;
     } else {
         vis *= 0.25;
@@ -46,26 +44,28 @@ float onaShadowAny() {
 #else
     float radius = 1.8;
 #if SHADOW_FILTER == 4
-    // realistic: a shadow is sharp where the block touches the ground and softer the further away
-    // the blocker is, because the sun is a disc and not a point. First the blockers around here:
+    // realistic: sharp where the block touches the ground, softer the further away the blocker is
+    // (the sun is a disc, not a point). How far the blockers are, from compare lookups only: around
+    // this point, how much is in shadow at all, and how much still is with the point moved 3 blocks
+    // towards the sun (those blockers are further away than that)
     float searchAngle = onaNoise(gl_FragCoord.xy + 17.0) * 6.2831853;
-    float blockerSum = 0.0;
-    float blockers = 0.0;
-    for (int i = 0; i < 6; i++) {
+    float anyBlock = 0.0;
+    for (int i = 0; i < 5; i++) {
         float a = searchAngle + float(i) * 2.3999632;
-        vec2 o = vec2(cos(a), sin(a)) * sqrt((float(i) + 0.5) / 6.0) * 7.0 * texel;
-        float d = texture2D(shadowtex0, p.xy + o).r;
-        if (d < p.z) {
-            blockerSum += d;
-            blockers += 1.0;
-        }
+        vec2 o = vec2(cos(a), sin(a)) * sqrt((float(i) + 0.5) / 5.0) * 6.0 * texel;
+        anyBlock += 1.0 - shadow2D(shadowtex0, vec3(p.xy + o, p.z)).x;
     }
     // nothing around casts a shadow on this point: fully lit, no filtering needed
-    if (blockers < 0.5) return 1.0;
-    // blocks between the blocker and this point, and the blur a sun of half a degree gives there
-    float gap = (p.z - blockerSum / blockers) * 2.0 / abs(shadowProjection[2][2]);
+    if (anyBlock < 0.01) return 1.0;
+    float lift = 1.5 * abs(shadowProjection[2][2]); // 3 blocks in shadow depth
+    float farBlock = 0.0;
+    for (int i = 0; i < 5; i++) {
+        float a = searchAngle + float(i) * 2.3999632;
+        vec2 o = vec2(cos(a), sin(a)) * sqrt((float(i) + 0.5) / 5.0) * 6.0 * texel;
+        farBlock += 1.0 - shadow2D(shadowtex0, vec3(p.xy + o, p.z - lift)).x;
+    }
     float texelsPerBlock = float(shadowMapResolution) * shadowProjection[0][0] * 0.5 / distortion;
-    radius = clamp(gap * 0.018 * texelsPerBlock, 0.7, 7.0);
+    radius = clamp(mix(0.03, 0.12, farBlock / anyBlock) * texelsPerBlock, 0.7, 7.0);
 #endif
     // 12 taps on a disc turned differently for every pixel: smooth penumbra, no banding. The first
     // 4 lie spread around the disc: when they agree the pixel is fully lit or fully in shadow
@@ -74,13 +74,13 @@ float onaShadowAny() {
     float vis = 0.0;
     for (int i = 0; i < 4; i++) {
         float a = float(i) * 1.5707963;
-        vis += shadow2D(shadowtex1, p + vec3(rot * vec2(cos(a), sin(a)) * radius * 0.85 * texel, 0.0)).x;
+        vis += shadow2D(shadowtex0, p + vec3(rot * vec2(cos(a), sin(a)) * radius * 0.85 * texel, 0.0)).x;
     }
     if (vis > 0.01 && vis < 3.99) {
         for (int i = 0; i < 8; i++) {
             float r = sqrt((float(i) + 0.5) / 8.0) * radius;
             float a = float(i) * 2.3999632 + 0.785;
-            vis += shadow2D(shadowtex1, p + vec3(rot * vec2(cos(a), sin(a)) * r * texel, 0.0)).x;
+            vis += shadow2D(shadowtex0, p + vec3(rot * vec2(cos(a), sin(a)) * r * texel, 0.0)).x;
         }
         vis /= 12.0;
     } else {

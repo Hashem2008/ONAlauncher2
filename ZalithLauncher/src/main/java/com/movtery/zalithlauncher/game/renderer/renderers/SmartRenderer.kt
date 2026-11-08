@@ -152,8 +152,11 @@ object SmartRenderer : RendererInterface {
         val physicsMod: Boolean = false,
         /** the active shader pack is ONA Mobile Shaders */
         val onaShaders: Boolean = false,
-        /** the active pack has compute programs (.csh), or it could not be looked into */
-        val computeShaders: Boolean = true
+        /**
+         * the active pack has compute programs (.csh) and gives every image it writes a format, so
+         * it can run on OpenGL 4.3 over OpenGL ES (false when the pack could not be looked into)
+         */
+        val computeShaders: Boolean = false
     )
 
     fun situation(version: Version): Situation {
@@ -170,18 +173,47 @@ object SmartRenderer : RendererInterface {
             modCount = modNames.size,
             physicsMod = modNames.any { it.contains("physics-mod") || it.contains("physicsmod") },
             onaShaders = activePack == com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME,
-            computeShaders = activePack?.let { hasComputePrograms(File(File(gameDir, "shaderpacks"), it)) } ?: true
+            computeShaders = activePack?.let { gl43Safe(File(File(gameDir, "shaderpacks"), it)) } ?: false
         )
     }
 
-    /** True when the pack (zip or folder) has compute programs; unknown packs count as having them */
-    private fun hasComputePrograms(pack: File): Boolean = runCatching {
-        when {
-            pack.isFile -> java.util.zip.ZipFile(pack).use { zip -> zip.entries().asSequence().any { it.name.endsWith(".csh") } }
-            pack.isDirectory -> pack.walkTopDown().any { it.name.endsWith(".csh") }
-            else -> true
+    private val SHADER_FILE = Regex("""\.(glsl|fsh|vsh|csh|gsh)$""")
+    private val IMAGE_UNIFORM = Regex(
+        """^[^\n/]*\buniform\s+(?:\w+\s+)*u?i?image(?:1D|2D|3D|Cube|2DRect|Buffer|1DArray|2DArray|CubeArray|2DMS|2DMSArray)\b[^\n;]*""",
+        RegexOption.MULTILINE
+    )
+    private val IMAGE_FORMAT = Regex("""layout\s*\([^)]*\b(rgba|rg|r)(8|16|32)""")
+
+    /**
+     * OpenGL 4.3 (compute shaders, images) is only safe for a pack that has compute programs and
+     * names the format of every image: OpenGL ES needs it and desktop GLSL does not (writeonly
+     * images may leave it out). Complementary, BSL, Photon and Solas leave it out: on 4.3 they turn
+     * on their voxel / colored light paths and the conversion to OpenGL ES fails ("Unsupported or
+     * invalid OpenGL ES version"); on 4.0 Iris keeps those paths off and the packs load.
+     */
+    private fun gl43Safe(pack: File): Boolean = runCatching {
+        val sources: Sequence<Pair<String, () -> String>> = when {
+            pack.isFile -> {
+                val zip = java.util.zip.ZipFile(pack)
+                try {
+                    val entries = zip.entries().asSequence().filter { SHADER_FILE.containsMatchIn(it.name) }.toList()
+                    if (entries.none { it.name.endsWith(".csh") }) return@runCatching false
+                    return@runCatching entries.none { entry ->
+                        val text = zip.getInputStream(entry).use { it.readBytes().decodeToString() }
+                        IMAGE_UNIFORM.findAll(text).any { !IMAGE_FORMAT.containsMatchIn(it.value) }
+                    }
+                } finally {
+                    zip.close()
+                }
+            }
+            pack.isDirectory -> pack.walkTopDown().filter { it.isFile && SHADER_FILE.containsMatchIn(it.name) }
+                .map { file -> file.name to { file.readText() } }
+            else -> return@runCatching false
         }
-    }.getOrDefault(true)
+        val files = sources.toList()
+        files.any { it.first.endsWith(".csh") } &&
+            files.none { (_, read) -> IMAGE_UNIFORM.findAll(read()).any { !IMAGE_FORMAT.containsMatchIn(it.value) } }
+    }.getOrDefault(false)
 
     /**
      * Hybrid: MobileGlues settings for the engine ONA Hybrid picked. Only what the user did not
@@ -198,9 +230,9 @@ object SmartRenderer : RendererInterface {
         put("maxGlslCacheSize", ConfigScalar.IntValue(cacheMb))
         // ONA Mobile Shaders uses no compute shaders: no need to report 4.3 for it
         if (situation.shaders && !situation.onaShaders && situation.computeShaders) {
-            // Newer shader packs (Complementary, BSL, Photon, Bliss, Solas) use compute shaders, which
-            // Iris / Oculus only run on OpenGL 4.3+: expose MobileGlues' compute support and report 4.3.
-            // Packs without them (MakeUp, Nostalgia, Sildur's) keep the lighter 4.0 path
+            // A pack whose compute programs and images run on OpenGL ES (Bliss names every image
+            // format): expose MobileGlues' compute support and report 4.3. Every other pack keeps the
+            // 4.0 path (see gl43Safe)
             put("enableExtComputeShader", ConfigScalar.IntValue(1))
             put("customGLVersion", ConfigScalar.IntValue(43))
         }

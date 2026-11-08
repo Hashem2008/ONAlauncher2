@@ -26,7 +26,7 @@ uniform float frameTimeCounter;
 uniform ivec2 eyeBrightnessSmooth;
 #endif
 #ifdef VOLUMETRIC_LIGHT
-uniform sampler2DShadow shadowtex1;
+uniform sampler2DShadow shadowtex0;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 #endif
@@ -123,14 +123,16 @@ void main() {
         vec3 sc = vlStart + vlDir * (t * t * dist);
         float l = length(sc.xy);
         sc.xy /= l * SHADOW_DISTORT + (1.0 - SHADOW_DISTORT);
-        lit += l < 1.0 ? shadow2D(shadowtex1, sc * 0.5 + 0.5).x : 1.0;
+        lit += l < 1.0 ? shadow2D(shadowtex0, sc * 0.5 + 0.5).x : 1.0;
     }
     lit /= float(steps);
-    float g = 0.65;
+    float g = 0.6;
     float phase = (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * mu, 1.5) * 0.08 + 0.03;
     float density = (0.35 + rainStrength * 0.4) * (dist / 48.0);
+    // the open sky only gets a little: shafts belong in the air between the trees, not over the sky
+    if (depth >= 1.0) density *= 0.35;
     vec3 air = isEyeInWater == 1 ? vec3(0.10, 0.35, 0.50) : sunLight;
-    color += air * lit * phase * density * 0.5;
+    color += air * lit * phase * density * 0.32;
 #endif
 #ifdef FLOATING_DUST
     {
@@ -154,14 +156,14 @@ void main() {
             if (cell == lastCell) continue;
             lastCell = cell;
             float h = onaHash(cell.xz + cell.y * 17.31);
-            if (h > 0.30) continue; // a speck in 3 cells out of 10
+            if (h > 0.12) continue; // a speck in 1 cell out of 8
             vec3 h3 = vec3(h, onaHash(cell.xz * 1.7 + cell.y * 3.1), onaHash(cell.zx * 2.3 - cell.y * 5.7));
             vec3 mote = cell + 0.2 + h3 * 0.6 + sin(frameTimeCounter * vec3(0.7, 0.5, 0.9) + h3 * 6.28) * 0.1;
             // the nearest point of the view ray to the speck
             vec3 rel = mote - origin;
             float along = dot(rel, dirD);
             if (along <= 0.0 || along * 2.0 > sceneDist) continue; // behind the eye or behind a block
-            float size = 0.010 + 0.004 * h3.y;
+            float size = 0.006 + 0.003 * h3.y;
             float s = smoothstep(size, size * 0.2, length(rel - dirD * along));
             if (s <= 0.0) continue;
             float lit = 1.0;
@@ -169,10 +171,11 @@ void main() {
             vec3 sc = (shadowProjection * (shadowModelView * vec4((mote - drift) * 2.0 - cameraPosition, 1.0))).xyz;
             float l = length(sc.xy);
             sc.xy /= l * SHADOW_DISTORT + (1.0 - SHADOW_DISTORT);
-            lit = l < 1.0 ? shadow2D(shadowtex1, sc * 0.5 + 0.5).x : 1.0;
+            lit = l < 1.0 ? shadow2D(shadowtex0, sc * 0.5 + 0.5).x : 1.0;
 #endif
-            vec3 sunDust = sunLight * lit * 1.6;
-            vec3 firefly = vec3(0.75, 1.0, 0.35) * (0.5 + 0.5 * sin(frameTimeCounter * 3.0 + h3.z * 30.0)) * step(h, 0.06) * 2.0;
+            // dust lights up mostly when you look towards the sun through it
+            vec3 sunDust = sunLight * lit * (0.15 + 2.0 * pow(max(dot(normalize(viewPos), lightDir), 0.0), 8.0));
+            vec3 firefly = vec3(0.75, 1.0, 0.35) * (0.5 + 0.5 * sin(frameTimeCounter * 3.0 + h3.z * 30.0)) * step(h, 0.04) * 2.0;
             specks += s * mix(firefly, sunDust, day) * (1.0 - along * 2.0 / 14.0);
         }
         color += specks * outdoors * (isEyeInWater == 0 ? 1.0 : 0.0);

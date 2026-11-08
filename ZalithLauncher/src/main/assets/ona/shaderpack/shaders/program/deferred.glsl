@@ -55,7 +55,9 @@ vec4 onaShadedClouds(vec3 dirW, vec3 lightW, vec3 lit, float VdotS) {
         float self = clamp((onaCloudNoise(p + toSun) - n) * 3.0 + 0.5, 0.0, 1.0);
         float thick = smoothstep(thr, thr + 0.45, n);
         float silver = pow(max(VdotS, 0.0), 6.0) * (1.0 - thick) * 1.5;
-        color = lit * clamp(1.05 - 0.45 * self - 0.25 * thick + silver, 0.35, 1.6);
+        float shadeAmount = clamp(0.65 * self + 0.30 * thick, 0.0, 0.85);
+        vec3 shadeColor = vec3(0.55, 0.62, 0.74) * max(onaLuma(lit), 0.25);
+        color = mix(lit * 1.05, shadeColor, shadeAmount) + lit * silver;
         alpha = cover * 0.95;
     }
     // high thin streaks, 600 blocks up

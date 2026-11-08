@@ -62,7 +62,7 @@ const float shadowDistance = 64.0;    // [32.0 48.0 64.0 96.0 112.0 128.0 160.0 
 const float shadowDistanceRenderMul = 1.0;
 const float sunPathRotation = -25.0;
 const float ambientOcclusionLevel = 0.85;
-// shadowtex1 compared in hardware, shadowtex0 raw depth for the realistic filter (as Photon does)
-const bool shadowHardwareFiltering1 = true;
+// every shadow lookup is a hardware compare on shadowtex0 (the set-up proven on phones)
+const bool shadowHardwareFiltering = true;
 
 const float SHADOW_DISTORT = 0.85;

@@ -1,0 +1,31 @@
+Shadows back, realistic sun/shade, sky artefacts gone, Complementary loads (2026-11-08 p)
+
+User (S26 Ultra, top levels 22-45 FPS): no shadows / no realism, sky errors (streaks fanning over
+the sky, white dots, rings), Complementary from Shader Community does not load.
+
+Complementary: log "composite.fsh: ERROR: Unsupported or invalid OpenGL ES version", then
+"shadow_sodium_terrain_solid: all images have to define layout format". With OpenGL 4.3 reported
+(compute packs), Complementary turns on its voxel / colored-light paths, whose writeonly images
+have no format qualifier: fine in desktop GLSL, not in OpenGL ES, so MobileGlues' GLSL -> SPIR-V ->
+ESSL conversion fails, glShaderSource is skipped and the driver compiles an empty shader (hence the
+version message). SmartRenderer.gl43Safe(pack): 4.3 + compute only when the pack has .csh AND every
+image uniform has a layout format; checked on the real packs: Bliss yes; Complementary, BSL,
+Photon, Solas, MakeUp no -> OpenGL 4.0, Iris keeps those paths off and the packs load. Unknown
+packs now default to 4.0.
+
+ONA Mobile Shaders:
+- Shadows: back to the proven set-up (global shadowHardwareFiltering, every lookup a compare on
+  shadowtex0). The n set-up (shadowtex1 compared, shadowtex0 raw) is not trusted on phones.
+  SHADOW_FILTER 4 (realistic) now estimates the blocker distance with compare lookups only:
+  5 taps in shadow at all (none -> lit, done), 5 taps still in shadow with the point lifted 3 blocks
+  towards the sun -> penumbra 0.03 .. 0.12 blocks, then the 4+8 disc with early exit.
+- Sun / shade: noon sun (1,0.92,0.78)*1.585, sunset *1.19, day sky (0.70,0.82,1.0)*0.78: sun about
+  2.3x the sky light. Sunlit blocks keep their colour (sand lit = vanilla), shade is about a third
+  of sunlight and a little blue: shadows are clearly visible now (they were ~half before).
+- Sky: light shafts x0.32 and only 35% over open sky (the fan of streaks), Henyey g 0.6; dust 1 cell
+  in 8, half the size, lit mostly when looking towards the sun (it looked like snow); fireflies
+  rarer; lens flare off in every level (the rings read as errors; still in LOOK); cloud shade is
+  blue-grey instead of brown.
+- FPS: IMPOSSIBLE_ULTRA SSAO 16 -> 12; UNBELIEVABLE shadows 224 -> 192 blocks, light shafts 20 -> 16.
+Checks: ona_shader_check 392/392; everything on with each shadow filter and shader distance
+560/560; ona_shader_options_check 56 options, 0 problems; gl43Safe regex run on the real packs.

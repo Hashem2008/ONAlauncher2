@@ -563,6 +563,13 @@ REALISTIC SHADOWS / 3D CLOUDS / REFRACTION (2026-11-08 n)
   ONA_CHANGES/2026-11-08o_fourteen-levels-refraction-fix-particles-distance.txt. CI run 42532923372 (7dc914a)
   SUCCESS, 4 APKs. Not device-tested: ask for water / cloud / night (fireflies) screenshots and FPS per level.
 
+SHADOWS BACK + COMPLEMENTARY FIX (2026-11-08 p)
+- Shadows back on shadowtex0 compare (filter 4 compare-only), sun 2.3x sky (visible shadows, lit
+  colours kept), sky artefacts calmed, lens flare off. Complementary: OpenGL 4.3 only for packs whose
+  images all have a format (SmartRenderer.gl43Safe), else 4.0.
+  ONA_CHANGES/2026-11-08p_shadows-back-realism-complementary-fix.txt. CI: see the next handoff commit.
+- Asked next: an ONA FPS mod for phones (Fabric + Forge), not started yet.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -635,3 +642,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (م): صلحنا الغباش (تركيز الكاميرا صار مطفي ومصلّح)، و5 خيارات جديدة: ظلال الغيوم، دوائر المطر، ضباب المسافة، لمعة الرمل والثلج، الألوان. البيلد نجح.
 - 2026-11-08 (ن): ظلال واقعية (حادة عند التلامس)، غيوم ثلاثية الأبعاد، انكسار الماء، وفريمات أحسن بالظلال. الألوان ما تغيرت. البيلد نجح.
 - 2026-11-08 (س): صلحنا خربطة الماء والغيوم، 14 مستوى من أداء لـ "لا يُصدّق"، جزيئات (غبار ويراعات)، ومسافة الشيدر زي التشنكات. البيلد نجح.
+- 2026-11-08 (ع): رجعت الظلال، الشمس أقوى من الظل (واقعية)، صلحنا أغلاط السما، و Complementary صار يشتغل.
