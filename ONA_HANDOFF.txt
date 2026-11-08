@@ -475,6 +475,23 @@ PERFORMANCE 42 MB + FPS WORK (2026-11-08 a)
   suggested a 120 FPS cap against heat; if drops stay, ask when they happen (new chunks vs after minutes)
   and consider a "steady" mode for flagships.
 
+ONA GRAPHICS + ONA RENDERER (2026-11-08 b+c)
+- ONA Graphics (own shader pack ONA Mobile Shaders, 5 levels; ONA Mobile PBR generated on the phone;
+  "ONA Graphics" button in version overview): ONA_CHANGES/2026-11-08b_ona-graphics.txt.
+  CI run 42483998207 (acb7365) SUCCESS, 4 APKs.
+- ONA Renderer: ONA builds MobileGlues itself (ona_renderer.yml, tools/ona-renderer/patch_renderer.py,
+  release ona-renderer-0c27a3a8b3f5-adf5dcc6, run 42485011145 SUCCESS first try, 4 ABIs). build.yml
+  "Add ONA Renderer" swaps the libs inside libs/MobileGlues-release.aar: every APK logs
+  "ONA Renderer ... inside" (run 42485478998 (6a29933) SUCCESS). SmartRenderer is "ONA Renderer": 1.17+
+  always the ONA engine (others only after a crash there); Voxy / Physics -> Kopper Zink; <=1.16 GL4ES.
+  OnaGraphics.offerPack puts ONA Mobile Shaders into every Iris/Oculus/OptiFine version at launch.
+  ONA_CHANGES/2026-11-08c_ona-renderer.txt.
+- NOTE: workflow_dispatch only works for workflows on main; ona_renderer.yml also runs on pushes to
+  claude/** touching tools/ona-renderer/** or the workflow. Change patch_renderer.py -> new tag -> run
+  it before the APK build (build.yml computes the same tag).
+- Not device-tested. Next: user's logs with ONA Renderer (F3 / log "MobileGlues 2.0.1 ... (ONA Renderer)"),
+  ONA Mobile Shaders on the phone, then engine-level fixes in patch_renderer.py from those logs.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -536,3 +553,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-07 (أ): المود الموجود بنسخة غلط (زي Sodium مع Reese's) صار ينصلح لحاله قبل التشغيل. البيلد نجح.
 - 2026-11-07 (ب): نسخة رابعة ONA Performance (74 ميغا بدل 246): الجافا بتنزل أول مرة، بدون Rust، كود مضغوط. البيلد نجح.
 - 2026-11-08 (أ): Performance صارت 42 ميغا (LWJGL بتنزل أول مرة). للكل: تبليغ أندرويد كل فريم، تسريع جافا، وإعدادات ماينكرافت 26 التلقائية. البيلد نجح.
+- 2026-11-08 (ب+ج): جرافيك ONA (شيدر خاص بالجوالات + ريسورس باك بينعمل على الجوال) و ONA Renderer (محركنا المبني من كود MobileGlues، محرك واحد لكل النسخ 1.17+). كل البيلدات نجحت.
