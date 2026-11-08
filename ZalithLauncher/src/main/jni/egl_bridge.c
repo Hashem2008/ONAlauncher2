@@ -317,7 +317,81 @@ static int frameCount = 0;
 static int fps = 0;
 static time_t lastTime = 0;
 
+// ---------------------------------------------------------------------------------------------
+// ONA: per-frame ADPF hints (Android 13+, NDK APerformanceHint). The render thread tells the
+// system after every frame how long it took against the screen's frame budget, so the CPU clocks
+// rise inside the frame that falls behind (chunk loading, a GC, a busy server tick) instead of
+// after a second of slow frames. This is what native games do; it only adds boost when needed
+// and never lowers the governor's own choice. Loaded with dlsym: minSdk is 26.
+//   ONA_FRAME_TARGET_NS: frame budget (from the screen's refresh rate), ONA_ADPF=0: off
+// ---------------------------------------------------------------------------------------------
+typedef void* (*PFN_APerformanceHint_getManager)(void);
+typedef void* (*PFN_APerformanceHint_createSession)(void*, const int32_t*, size_t, int64_t);
+typedef int (*PFN_APerformanceHint_reportActualWorkDuration)(void*, int64_t);
+static PFN_APerformanceHint_reportActualWorkDuration adpf_report;
+static void* adpf_session;
+static int adpf_state;          // 0 = not tried yet, 1 = running, -1 = not available
+static int64_t adpf_last_ns;
+static int64_t adpf_pending_ns; // very fast frames are reported in small groups
+static int adpf_pending_frames;
+
+static int64_t ona_now_ns(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t) ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
+
+static void ona_adpf_start(int64_t now) {
+    adpf_state = -1;
+    const char* off = getenv("ONA_ADPF");
+    if (off != NULL && strcmp(off, "0") == 0) return;
+    void* android = dlopen("libandroid.so", RTLD_NOW);
+    if (android == NULL) return;
+    PFN_APerformanceHint_getManager get_manager =
+            (PFN_APerformanceHint_getManager) dlsym(android, "APerformanceHint_getManager");
+    PFN_APerformanceHint_createSession create_session =
+            (PFN_APerformanceHint_createSession) dlsym(android, "APerformanceHint_createSession");
+    adpf_report = (PFN_APerformanceHint_reportActualWorkDuration)
+            dlsym(android, "APerformanceHint_reportActualWorkDuration");
+    if (get_manager == NULL || create_session == NULL || adpf_report == NULL) return; // Android 12 and older
+    void* manager = get_manager();
+    if (manager == NULL) return;
+    int64_t target = 16666666;
+    const char* wanted = getenv("ONA_FRAME_TARGET_NS");
+    if (wanted != NULL) {
+        long long value = atoll(wanted);
+        if (value >= 4000000LL && value <= 50000000LL) target = (int64_t) value;
+    }
+    int32_t tid = (int32_t) gettid();
+    adpf_session = create_session(manager, &tid, 1, target);
+    if (adpf_session == NULL) return;
+    adpf_state = 1;
+    adpf_last_ns = now;
+    printf("ONA: ADPF per-frame hints on the render thread (%d), frame budget %lld us\n",
+           tid, (long long) (target / 1000));
+}
+
+static void ona_adpf_frame(void) {
+    if (adpf_state < 0) return;
+    int64_t now = ona_now_ns();
+    if (adpf_state == 0) {
+        ona_adpf_start(now);
+        return;
+    }
+    int64_t duration = now - adpf_last_ns;
+    adpf_last_ns = now;
+    if (duration <= 0 || duration > 1000000000LL) return; // paused, minimised
+    adpf_pending_ns += duration;
+    adpf_pending_frames++;
+    // one report per frame, or per few frames above ~250 FPS (each report is a binder call)
+    if (adpf_pending_ns < 4000000LL && adpf_pending_frames < 4) return;
+    adpf_report(adpf_session, adpf_pending_ns / adpf_pending_frames);
+    adpf_pending_ns = 0;
+    adpf_pending_frames = 0;
+}
+
 void calculateFPS() {
+    ona_adpf_frame();
     frameCount++;
     time_t currentTime = time(NULL);
 

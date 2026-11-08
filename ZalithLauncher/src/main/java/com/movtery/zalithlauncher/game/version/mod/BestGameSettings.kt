@@ -36,8 +36,11 @@ import java.io.File
  */
 object BestGameSettings {
     private const val TAG = "BestGameSettings"
-    /** v2: more keys (old versions' VBO / FBO, more Sodium options), every file is set once more */
-    private const val APPLIED_LIST = "ona_best_settings_v2.txt"
+    /**
+     * v3: Minecraft 26's own heavy options (order independent transparency, cutout leaves, RGSS
+     * texture filtering, chunk fade-in, vignette, weather radius); every file is set once more
+     */
+    private const val APPLIED_LIST = "ona_best_settings_v3.txt"
 
     private val GSON = GsonBuilder().setPrettyPrinting().create()
 
@@ -53,7 +56,7 @@ object BestGameSettings {
     /** Keys whose current value is only lowered */
     private val LOWER_ONLY = setOf(
         "renderDistance", "simulationDistance", "maxShadowRenderDistance",
-        "shadowMapResolution", "shadowDistance", "shadowResMul", "mipmapLevels"
+        "shadowMapResolution", "shadowDistance", "shadowResMul", "mipmapLevels", "weatherRadius"
     )
 
     private fun sodiumLike(tier: DeviceTier): Map<String, Any> = mapOf(
@@ -71,6 +74,38 @@ object BestGameSettings {
         "quality.cloud_quality" to "FAST",
         "advanced.enable_memory_tracing" to false
     )
+
+    /**
+     * Minecraft 26.x video options (keys checked in the 26.3 client's Options / GraphicsPreset):
+     *  - improvedTransparency: order independent transparency draws every translucent surface in
+     *    several extra passes (depth bounds, transmittance, accumulate, composite): the heaviest
+     *    switch on a phone GPU, off below flagships.
+     *  - cutoutLeaves: see-through leaves are alpha tested, which turns off the early depth test of
+     *    tile GPUs (Mali, Adreno, PowerVR); opaque leaves are much faster in forests.
+     *  - textureFiltering: 1 (RGSS) samples every texture four times per pixel, 0 = plain.
+     *  - chunkSectionFadeInTime 0: new chunks appear at once instead of blending in.
+     *  - vignette off, weatherRadius lower (only lowered).
+     * Changing single options makes the preset "custom", as the game itself does.
+     * Keys a version does not have are skipped (only keys already in options.txt are changed).
+     */
+    private fun minecraft26(tier: DeviceTier): Map<String, String> {
+        val flagship = tier == DeviceTier.FLAGSHIP
+        return buildMap {
+            put("graphicsPreset", "custom")
+            put("vignette", "false")
+            put("chunkSectionFadeInTime", if (flagship) "0.25" else "0")
+            put("weatherRadius", when (tier) {
+                DeviceTier.FLAGSHIP -> "10"
+                DeviceTier.HIGH -> "7"
+                else -> "5"
+            })
+            if (!flagship) {
+                put("improvedTransparency", "false")
+                put("cutoutLeaves", "false")
+                put("textureFiltering", "0")
+            }
+        }
+    }
 
     private val TARGETS = listOf(
         Target.Colon("options.txt", "Minecraft") { tier ->
@@ -105,7 +140,7 @@ object BestGameSettings {
                 // 1.12 and older: vertex buffers and framebuffers on, the fast path on GL4ES
                 "useVbo" to "true",
                 "fboEnable" to "true"
-            )
+            ) + minecraft26(tier)
         },
         Target.Json("config/sodium-options.json", "Sodium") { sodiumLike(it) },
         Target.Json("config/embeddium-options.json", "Embeddium") { sodiumLike(it) },
@@ -233,6 +268,7 @@ object BestGameSettings {
     fun reset(version: Version) {
         File(version.getVersionPath(), APPLIED_LIST).delete()
         File(version.getVersionPath(), "ona_best_settings.txt").delete()
+        File(version.getVersionPath(), "ona_best_settings_v2.txt").delete()
     }
 
     /** Change existing `key<separator>value` lines, keeping the quoting of each value */

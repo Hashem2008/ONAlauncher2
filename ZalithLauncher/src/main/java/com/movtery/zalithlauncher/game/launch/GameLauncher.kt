@@ -280,6 +280,8 @@ class GameLauncher(
         }
         // ONA: PhysX mods load the Android ARM64 build of their physx-jni
         args.addAll(runCatching { PhysxSupport.jvmArgs(version) }.getOrDefault(emptyList()))
+        // ONA: the JIT compiles Minecraft's (and mixin-merged) huge methods too
+        args.addAll(OnaTweaks.jitArgs(args))
     }
 
     private suspend fun launchGame(
@@ -555,6 +557,16 @@ private fun setRendererEnv(
     if (renderer is MobileGluesRenderer || MobileModRules.isGl4esFamily(renderer)) {
         envMap["ONA_GL_FORMAT_FIX"] = "1"
     }
+
+    // ONA: per-frame ADPF hints on the render thread (egl_bridge.c) get the screen's frame budget
+    runCatching {
+        val display = com.movtery.zalithlauncher.context.GlobalContext
+            .getSystemService(android.hardware.display.DisplayManager::class.java)
+            ?.getDisplay(android.view.Display.DEFAULT_DISPLAY)
+        val hz = display?.supportedModes?.maxOfOrNull { it.refreshRate } ?: 60f
+        envMap["ONA_FRAME_TARGET_NS"] = (1_000_000_000.0 / hz.coerceIn(30f, 165f)).toLong().toString()
+    }
+    if (!AllSettings.boostGameThreads.getValue()) envMap["ONA_ADPF"] = "0"
 
     renderer.getRendererEGL()?.let { eglName ->
         envMap["POJAVEXEC_EGL"] = eglName

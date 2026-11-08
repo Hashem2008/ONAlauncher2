@@ -116,6 +116,11 @@ abstract class Launcher(
         val versionDir = lwjglVersionDir(lwjglVersion)
         val coreLib = File(lwjglNativesDir, "liblwjgl.so")
 
+        // ONA Performance: LWJGL is not inside the APK, the pack comes down once per version
+        if (!com.movtery.zalithlauncher.components.LwjglDownloader.ensure(context, versionDir)) {
+            LoggerBridge.appendInfo("LWJGL: the LWJGL $versionDir pack could not be downloaded (no internet?)")
+        }
+
         if (coreLib.isFile) {
             LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir natives check passed: path=$lwjglNativesDir (liblwjgl.so found)")
             return

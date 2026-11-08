@@ -1,0 +1,27 @@
+2026-11-08 (a) - Performance APK ~43 MB + FPS work for every APK
+
+PERFORMANCE APK (only -Dlite=true)
+- LWJGL not inside any more (was 29 MB): merge-assets hook deletes app_runtime/lwjgl.
+  components/LwjglDownloader.kt: Launcher.verifyLwjglNatives() first calls ensure(versionDir); it
+  downloads ona-runtimes/<pack> (zip of app_runtime/lwjgl/<v> + arm64 natives from the AAR), unzips
+  into files/components/lwjgl/<v> (zip-slip guarded), writes ona_pack. Pack name =
+  lwjgl-<v>-arm64-v8a-<first 12 of version file>-<first 8 of AAR sha1>.zip, computed the same way in
+  build.gradle.kts (BuildKeys.LWJGL333_PACK / LWJGL341_PACK) and in build.yml, so each APK gets the
+  pack that matches it. Packs: 3.3.3 12.7 MB, 3.4.1 16.5 MB. Toasts ona_lwjgl_downloading/ready/failed.
+- androidResources.localeFilters en + ar.
+- build.yml step renamed "Publish downloads for ONA Performance", runs in the arm64 AND performance
+  jobs (whichever is first), publishes JREs (by version file) and LWJGL packs (by name) when missing.
+
+FPS (all four APKs)
+- egl_bridge.c calculateFPS(): per-frame ADPF hints on the render thread (NDK APerformanceHint via
+  dlsym, Android 13+): frame duration each frame (grouped above ~250 FPS), target ONA_FRAME_TARGET_NS
+  (GameLauncher: 1e9 / max refresh rate). ONA_ADPF=0 when "boost game threads" is off. Works for the
+  GLFW path (pojavSwapBuffers) and the SDL path (sdl_hook proxyEglSwapBuffers calls calculateFPS).
+  GameThreadBooster no longer opens its 1 s Java session on Android 13+ (priorities stay).
+- OnaTweaks.jitArgs(): -XX:-DontCompileHugeMethods (huge / mixin-merged methods get JIT compiled
+  instead of staying interpreted), -XX:MaxInlineLevel=15 (Java 8). User values win.
+- BestGameSettings v3 (every file set once more): Minecraft 26.x keys (checked in the 26.3 client):
+  graphicsPreset "custom", vignette false, chunkSectionFadeInTime 0 (0.25 flagship), weatherRadius
+  lowered (5/5/7/10); below flagship: improvedTransparency false (OIT, many extra passes),
+  cutoutLeaves false (alpha test kills early-Z on tile GPUs), textureFiltering 0 (RGSS = 4 samples).
+Not device-tested.

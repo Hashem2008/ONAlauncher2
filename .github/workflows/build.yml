@@ -190,9 +190,10 @@ jobs:
             fi
           done
 
-      # ONA Performance downloads its Java from this release: keep it in step with assets/runtimes
-      - name: Publish Java runtimes for ONA Performance
-        if: matrix.arch == 'arm64'
+      # ONA Performance downloads its Java and LWJGL from this release: keep it in step with the
+      # files the normal APKs carry (assets/runtimes/jre-*, assets/app_runtime/lwjgl + natives AARs)
+      - name: Publish downloads for ONA Performance
+        if: matrix.arch == 'arm64' || matrix.arch == 'performance'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -200,17 +201,34 @@ jobs:
           tag=ona-runtimes
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --target "$GITHUB_SHA" \
-              --title "Java runtimes for ONA Performance" \
-              --notes "Java 8 / 17 / 21 / 25 for Android (the files the normal APKs carry). ONA Performance downloads the one a version needs."
-          dir="$RUNNER_TEMP/runtimes"; mkdir -p "$dir"
+              --title "Downloads for ONA Performance" \
+              --notes "Java 8 / 17 / 21 / 25 and LWJGL packs for Android (the files the normal APKs carry). ONA Performance downloads the ones a version needs." || true
+          published=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' || true)
+          dir="$RUNNER_TEMP/ona-downloads"; mkdir -p "$dir"
           for jre in jre-8 jre-17 jre-21 jre-25; do
             src="ZalithLauncher/src/main/assets/runtimes/$jre"
             [ -f "$src/version" ] || continue
-            published=$(curl -fsSL "https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/$jre-version" 2>/dev/null || true)
-            if [ "$published" = "$(cat "$src/version")" ]; then echo "$jre up to date"; continue; fi
+            online=$(curl -fsSL "https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/$jre-version" 2>/dev/null || true)
+            if [ "$online" = "$(cat "$src/version")" ]; then echo "$jre up to date"; continue; fi
             files=()
             for f in "$src"/*; do cp "$f" "$dir/$jre-$(basename "$f")"; files+=("$dir/$jre-$(basename "$f")"); done
             gh release upload "$tag" "${files[@]}" --repo "$GITHUB_REPOSITORY" --clobber && echo "$jre published"
+          done
+          # LWJGL: same name as build.gradle.kts lwjglPackName(): jars version + natives AAR sha1
+          for v in 3.3.3 3.4.1; do
+            src="ZalithLauncher/src/main/assets/app_runtime/lwjgl/$v"
+            aar="ZalithLauncher/libs/lwjgl-$v-natives-release.aar"
+            [ -f "$src/version" ] && [ -f "$aar" ] || continue
+            jars=$(tr -d '[:space:]' < "$src/version"); natives=$(sha1sum "$aar" | cut -c1-8)
+            name="lwjgl-$v-arm64-v8a-${jars:0:12}-$natives.zip"
+            if echo "$published" | grep -qx "$name"; then echo "$name up to date"; continue; fi
+            work="$dir/lwjgl-$v"; mkdir -p "$work/natives/arm64-v8a"
+            cp -r "$src"/. "$work"/
+            unzip -q -o "$aar" "assets/app_runtime/lwjgl/$v/natives/arm64-v8a/*" -d "$dir/aar-$v"
+            cp "$dir/aar-$v/assets/app_runtime/lwjgl/$v/natives/arm64-v8a/"* "$work/natives/arm64-v8a/"
+            (cd "$work" && zip -q -r -X "$dir/$name" .)
+            ls -la "$dir/$name"
+            gh release upload "$tag" "$dir/$name" --repo "$GITHUB_REPOSITORY" --clobber && echo "$name published"
           done
 
       - name: Build APK for ${{ matrix.arch }}

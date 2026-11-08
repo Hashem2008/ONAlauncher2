@@ -110,6 +110,8 @@ class GameThreadBooster(private val context: Context, refreshHz: Float) {
 
     private fun openSession(tids: Set<Int>) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        // Android 13+: the render thread reports every frame itself (egl_bridge.c, NDK hints)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return
         closeSession()
         runCatching {
             val manager = context.getSystemService(PerformanceHintManager::class.java) ?: return

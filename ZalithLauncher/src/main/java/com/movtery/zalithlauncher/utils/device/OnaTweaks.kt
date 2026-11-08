@@ -172,6 +172,20 @@ object OnaTweaks {
     }
 
     /**
+     * JIT options for more CPU-side FPS, on every Java the launcher ships (8 to 25):
+     *  - DontCompileHugeMethods off: methods over 8000 bytes of bytecode are normally never compiled
+     *    and stay interpreted; Minecraft has several (world generation, rendering) and mixins make
+     *    mod-patched methods even bigger, so they ran many times slower than the rest.
+     *  - MaxInlineLevel 15: the default of Java 14+ also on Java 8 (1.12 and older), deeper inlining
+     *    of Minecraft's small getter chains.
+     * The user's own values win.
+     */
+    fun jitArgs(userArgs: List<String>): List<String> = buildList {
+        if (userArgs.none { it.contains("DontCompileHugeMethods") }) add("-XX:-DontCompileHugeMethods")
+        if (userArgs.none { it.startsWith("-XX:MaxInlineLevel") }) add("-XX:MaxInlineLevel=15")
+    }
+
+    /**
      * Frame rate options from the launcher settings written into options.txt before each launch.
      * @param cap 0 leaves the game setting alone, 260 is unlimited
      * @param maxRenderDistance 0 leaves it alone, otherwise render and simulation distance are

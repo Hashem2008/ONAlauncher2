@@ -287,4 +287,7 @@
     <string name="ona_runtime_downloading">Downloading Java %1$d (about %2$d MB), only this once…</string>
     <string name="ona_runtime_ready">Java %1$d is ready</string>
     <string name="ona_runtime_failed">Java %1$d could not be downloaded. Check the internet and press Play again</string>
+    <string name="ona_lwjgl_downloading">Downloading LWJGL %1$s (game files, about 15 MB), only this once…</string>
+    <string name="ona_lwjgl_ready">LWJGL %1$s is ready</string>
+    <string name="ona_lwjgl_failed">LWJGL %1$s could not be downloaded. Check the internet and press Play again</string>
 </resources>

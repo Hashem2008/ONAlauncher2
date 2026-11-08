@@ -34,6 +34,20 @@ val projectArch: String = System.getProperty("arch", "all")
 // no VirGL / Freedreno / Panfrost renderers, code shrunk by R8. Installs next to the normal ONA.
 val onaPerformance: Boolean = System.getProperty("lite") == "true"
 
+/**
+ * ONA Performance downloads LWJGL: the pack name build.yml publishes for an LWJGL version (arm64),
+ * from the jar version file and the natives AAR checksum, so every APK fetches the matching pack.
+ */
+fun lwjglPackName(version: String): String {
+    val versionFile = file("src/main/assets/app_runtime/lwjgl/$version/version")
+    val aar = file("libs/lwjgl-$version-natives-release.aar")
+    if (!versionFile.isFile || !aar.isFile) return ""
+    val jars = versionFile.readText().trim().take(12)
+    val natives = java.security.MessageDigest.getInstance("SHA-1").digest(aar.readBytes())
+        .joinToString("") { "%02x".format(it) }.take(8)
+    return "lwjgl-$version-arm64-v8a-$jars-$natives.zip"
+}
+
 fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? = null): String {
     val key = System.getenv(envKey)
     return key ?: fileName?.let {
@@ -130,6 +144,8 @@ android {
     // ONA: Horizon (Rust) reads assets/horizon.zip as a zip through the asset manager: store it
     androidResources {
         noCompress += listOf("zip")
+        // ONA Performance: only the languages its players use (smaller resources)
+        if (onaPerformance) localeFilters += listOf("en", "ar")
     }
 
     packaging {
@@ -183,7 +199,9 @@ androidComponents {
                             // downloaded on demand by RuntimeDownloader instead
                             jreList.forEach { File("$assetsDir/runtimes/$it").deleteRecursively() }
                             File(assetsDir, "horizon.zip").delete()
-                            logger.lifecycle("[$tag] ONA Performance: no Java runtimes, no Horizon inside")
+                            // LWJGL too: LwjglDownloader fetches the pack a version needs
+                            File(assetsDir, "app_runtime/lwjgl").deleteRecursively()
+                            logger.lifecycle("[$tag] ONA Performance: no Java runtimes, no LWJGL, no Horizon inside")
                         }
                         jreList.forEach { jreVersion ->
                             val runtimeDir = File("$assetsDir/runtimes/$jreVersion")
@@ -261,6 +279,8 @@ buildKeys {
     string("CURSEFORGE_API", getKeyFromLocal("CURSEFORGE_API_KEY", ".curseforge_api.txt", defaultCurseForgeApiKey), true)
     string("BUILD_ARCH", projectArch)
     string("ONA_PERFORMANCE", onaPerformance.toString())
+    string("LWJGL333_PACK", lwjglPackName("3.3.3"))
+    string("LWJGL341_PACK", lwjglPackName("3.4.1"))
 }
 
 dependencies {

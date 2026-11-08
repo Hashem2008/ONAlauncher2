@@ -287,4 +287,7 @@
     <string name="ona_runtime_downloading">بنزل جافا %1$d (حوالي %2$d ميغا)، أول مرة بس…</string>
     <string name="ona_runtime_ready">جافا %1$d جاهزة</string>
     <string name="ona_runtime_failed">ما قدرت أنزل جافا %1$d. تأكد من النت واكبس لعب مرة ثانية</string>
+    <string name="ona_lwjgl_downloading">بنزل LWJGL %1$s (ملفات اللعبة، حوالي 15 ميغا)، أول مرة بس…</string>
+    <string name="ona_lwjgl_ready">LWJGL %1$s جاهزة</string>
+    <string name="ona_lwjgl_failed">ما قدرت أنزل LWJGL %1$s. تأكد من النت واكبس لعب مرة ثانية</string>
 </resources>

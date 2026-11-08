@@ -45,9 +45,9 @@
 
 ### ⚡ 4. `ONA-Performance_arm64-light.apk`
 
-**عربي:** نسخة **خفيفة وصغيرة** لجوالات الـ 64 بت (نفس جوالات arm64). ما فيها جافا جواها: أول مرة تلعب نسخة، بتنزل الجافا اللي بتحتاجها **مرة وحدة بس** (لازم نت). ما فيها محرك Rust، وما فيها رندررات VirGL و Freedreno و Panfrost. بتنزل كتطبيق **منفصل** جنب ONA العادي.
+**عربي:** نسخة **خفيفة وصغيرة** لجوالات الـ 64 بت (نفس جوالات arm64). ما فيها جافا ولا LWJGL جواها: أول مرة تلعب نسخة، بتنزل الملفات اللي بتحتاجها **مرة وحدة بس** (لازم نت). فيها العربي والإنجليزي بس. ما فيها محرك Rust، وما فيها رندررات VirGL و Freedreno و Panfrost. بتنزل كتطبيق **منفصل** جنب ONA العادي.
 
-**English:** A **small, light** build for 64-bit phones (the same phones as arm64). No Java inside: the first time you play a version, the Java it needs is downloaded **once** (needs internet). No Rust engine, no VirGL / Freedreno / Panfrost renderers. Installs as a **separate** app next to the normal ONA.
+**English:** A **small, light** build for 64-bit phones (the same phones as arm64). No Java or LWJGL inside: the first time you play a version, the files it needs are downloaded **once** (needs internet). Arabic and English only. No Rust engine, no VirGL / Freedreno / Panfrost renderers. Installs as a **separate** app next to the normal ONA.
 
 > الفريمات بالعبة نفسها زي النسخة العادية: الحجم ما بيأثر على الفريمات. | In-game FPS is the same as the normal build: APK size does not change FPS.
 
