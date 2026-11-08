@@ -552,7 +552,8 @@ REALISTIC SHADOWS / 3D CLOUDS / REFRACTION (2026-11-08 n)
   shadow filters (FPS), volumetric clouds, water refraction (colortex3 from deferred), cheaper light
   shafts, IMPOSSIBLE rebalanced. CLOUD_SHADOWS "Invalid pack option" fixed; run
   tools/ona_shader_options_check.py after every shader edit. Colours unchanged (user asked).
-  ONA_CHANGES/2026-11-08n_realistic-shadows-clouds-refraction.txt. CI: see the next handoff commit.
+  ONA_CHANGES/2026-11-08n_realistic-shadows-clouds-refraction.txt. CI run 42527808547 (807d61c) SUCCESS,
+  4 APKs. Not device-tested: ask for IMPOSSIBLE screenshots (clouds, tree shadows, water) + F3 FPS.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -624,4 +625,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ك): "شيدرات المجتمع" بالإعدادات: Complementary و BSL و Photon وغيرهم بينزلوا من أصحابهم وبينضبطوا للجوال لحالهم.
 - 2026-11-08 (ل): خيارات واقعية جديدة بالشيدر (برك مطر، رغوة، ضو تحت الماء، وهج الشمس، تركيز الكاميرا)، فريمات أحسن، وظلال أخف بالمودباكات الثقيلة. البيلد نجح.
 - 2026-11-08 (م): صلحنا الغباش (تركيز الكاميرا صار مطفي ومصلّح)، و5 خيارات جديدة: ظلال الغيوم، دوائر المطر، ضباب المسافة، لمعة الرمل والثلج، الألوان. البيلد نجح.
-- 2026-11-08 (ن): ظلال واقعية (حادة عند التلامس)، غيوم ثلاثية الأبعاد، انكسار الماء، وفريمات أحسن بالظلال. الألوان ما تغيرت.
+- 2026-11-08 (ن): ظلال واقعية (حادة عند التلامس)، غيوم ثلاثية الأبعاد، انكسار الماء، وفريمات أحسن بالظلال. الألوان ما تغيرت. البيلد نجح.
