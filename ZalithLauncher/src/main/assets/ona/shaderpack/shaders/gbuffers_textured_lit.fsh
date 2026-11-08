@@ -26,7 +26,7 @@ void main() {
     albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.a);
     vec3 n = normalize(normal);
 #ifdef SHADOWS
-    float vis = onaShadow(dot(n, lightDir));
+    float vis = (SHADER_DISTANCE == 0 || length(viewPos) < float(SHADER_DISTANCE) * 16.0) ? onaShadow(dot(n, lightDir)) : smoothstep(0.75, 0.97, lmcoord.y);
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
 #endif

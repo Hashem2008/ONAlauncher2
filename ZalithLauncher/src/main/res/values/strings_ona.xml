@@ -350,4 +350,13 @@
     <string name="ona_community_failed">Shader Community: %1$s could not be set up, it is tried again on the next start</string>
     <string name="ona_community_turned_off">Shader Community off</string>
     <string name="ona_graphics_heavy_capped">Heavy modpack (%1$d mods): shadows closer and lighter for FPS</string>
+    <string name="ona_graphics_lvl_performance">Performance</string>
+    <string name="ona_graphics_lvl_extra">Extra</string>
+    <string name="ona_graphics_lvl_max">Max</string>
+    <string name="ona_graphics_lvl_realistic_plus">Realistic Plus</string>
+    <string name="ona_graphics_lvl_realistic_pro">Realistic Pro</string>
+    <string name="ona_graphics_lvl_realistic_pro_max">Realistic Pro Max</string>
+    <string name="ona_graphics_lvl_impossible_plus">Impossible +</string>
+    <string name="ona_graphics_lvl_impossible_ultra">Impossible Ultra</string>
+    <string name="ona_graphics_lvl_unbelievable">Unbelievable</string>
 </resources>

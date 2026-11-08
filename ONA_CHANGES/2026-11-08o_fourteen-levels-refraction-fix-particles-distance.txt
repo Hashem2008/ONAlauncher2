@@ -1,0 +1,40 @@
+Shader: water garbage fixed, smooth 3D clouds, particles, shader distance, 14 levels (2026-11-08 o)
+
+User screenshots (S26 Ultra, IMPOSSIBLE, 71-93 FPS): the water showed rows of block textures, the
+3D clouds were one big grainy sheet. Log: no shader errors, no invalid options.
+
+Fixes
+- Water: the refraction of n sampled colortex3 in gbuffers_water; on this setup Iris gave the water
+  pass no colortex3 binding, so the sampler read texture unit 0 = the block atlas. Refraction now
+  done the way Complementary does it (composite1 there): in composite, on water pixels (colortex1
+  mask), the picture is shifted by the wave slope (normal minus up) x water thickness (depthtex1),
+  only from spots that are water too. No extra buffer, deferred no longer writes colortex3.
+- Clouds: the 8/12-step march without temporal filtering looked grainy and like a flat sheet.
+  VOLUMETRIC_CLOUDS ("3D clouds") is now a shaded layer: self-shadowing from the cover towards the
+  sun (bright sunlit edges, dark bellies), darker thick middles, backlit silver edges, puff detail,
+  and a high thin cirrus layer at 600 blocks. No marching, no grain, ~6 noise lookups per sky pixel.
+  CLOUD_STEPS removed.
+New
+- FLOATING_DUST (MOTION screen "Motion and particles"): procedural particles in composite: a speck
+  in 3 of 10 two-block cells of air within 14 blocks, drifting and wobbling, found by stepping the
+  view ray cell by cell; by day lit only where the sun reaches (shadow lookup when light shafts are
+  on) like dust in sunbeams, at night 1 in 5 are pulsing green-yellow fireflies; outdoors only.
+- SHADER_DISTANCE (main screen, 0 2 4 6 8 12 16 chunks, 0 = everywhere, default 0 in every level):
+  the full shader only around the player, like the chunk render distance: beyond it terrain skips
+  normal / specular maps, shine, wet, puddles, sparkle and shadow lookups (lightmap-based light),
+  faded over 12 blocks; water reflections, refraction, SSR, SSAO and entity shadows stop there too.
+- 14 levels, each adding to the one before (one table in the build script):
+  PERFORMANCE, LOW, MEDIUM, HIGH, ULTRA, EXTRA (realistic sky, wet, filter 3, 112 blocks), MAX (light
+  shafts, lens flare, refraction, parallax 8, 128), REALISTIC_PLUS (realistic shadows, 3D clouds,
+  sparkle, SSAO 6), REALISTIC_PRO (3072, SSAO 8, SSR 12), REALISTIC_PRO_MAX (160, shafts 12, SSR 16,
+  parallax 16), IMPOSSIBLE (4096, SSAO 12, SSR 24), IMPOSSIBLE_PLUS (particles, SSR 32, shafts 16),
+  IMPOSSIBLE_ULTRA (192, SSAO 16, parallax 24), UNBELIEVABLE (224 blocks, shafts 20, parallax 32).
+  Lists extended: shadowDistance 112/224, VL_STEPS 20, POM_SAMPLES 32. Depth of field off in all.
+Launcher
+- OnaGraphicsLevel = the 14 levels (titles en/ar), fromName() maps the old names (POTATO ->
+  PERFORMANCE, REALISTIC -> MAX, ULTRA_REALISTIC -> REALISTIC_PRO_MAX); OnaGraphics.migrateSetting()
+  moves a saved old name to the new one (at launch and when the renderer settings open);
+  LauncherElements no longer uses valueOf (an unknown name silently turned ONA Graphics off).
+Checks: ona_shader_check 392/392 (28 programs x 14 levels); everything on with each of the 5 shadow
+filters and shader distance 0 / 4 at PERFORMANCE and UNBELIEVABLE 560/560;
+ona_shader_options_check 56 options, 0 problems.

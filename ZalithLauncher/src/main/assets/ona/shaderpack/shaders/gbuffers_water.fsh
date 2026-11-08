@@ -14,9 +14,6 @@ const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 uniform sampler2D texture;
 #ifdef WATER_DEPTH
 uniform sampler2D depthtex1;
-#ifdef WATER_REFRACTION
-uniform sampler2D colortex3; // the opaque world, saved by deferred before the water is drawn
-#endif
 uniform float near;
 uniform float viewWidth;
 uniform float viewHeight;
@@ -91,20 +88,7 @@ void main() {
 #endif
     vec3 color;
     float alpha = albedo.a;
-#ifdef WATER_REFRACTION
-    vec3 behind = vec3(0.0);
-#endif
     if (water) {
-#ifdef WATER_REFRACTION
-        // what lies under the surface, seen through the waves: the bend grows with the water in
-        // between and shrinks with distance
-        vec2 screenUv = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
-        float under = max(onaLinearDepth(texture2D(depthtex1, screenUv).r) - onaLinearDepth(gl_FragCoord.z), 0.0);
-        vec2 bent = screenUv + (n.xy - normalize(normal).xy) * min(under, 4.0) * 0.02 / max(length(viewPos) * 0.08, 1.0);
-        // a spot in front of the water (the shore, a boat) must not show up under it
-        if (texture2D(depthtex1, bent).r < gl_FragCoord.z) bent = screenUv;
-        behind = texture2D(colortex3, bent).rgb;
-#endif
         vec3 tint = glcolor.rgb * vec3(0.55, 0.75, 0.85);
         color = onaShade(mix(albedo.rgb, tint, 0.5), n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0);
         alpha = 0.62;
@@ -126,6 +110,11 @@ void main() {
 #endif
 #endif
 #ifdef WATER_REFLECTIONS
+#if SHADER_DISTANCE > 0
+        if (length(viewPos) < float(SHADER_DISTANCE) * 16.0) {
+#else
+        {
+#endif
         vec3 V = normalize(-viewPos);
         float fresnel = 0.02 + 0.98 * pow(1.0 - max(dot(n, V), 0.0), 5.0);
         vec3 sky = onaUntonemap(onaSky(reflect(-V, n), normalize(sunPosition), up, skyColor, fogColor, rainStrength)) / exposure;
@@ -134,6 +123,7 @@ void main() {
         alpha = mix(alpha, 1.0, fresnel * outside * 0.6);
         vec3 H = normalize(lightDir + V);
         color += sunLight * pow(max(dot(n, H), 0.0), 220.0) * 10.0 * vis * outside;
+        }
 #endif
     } else {
         color = onaShade(albedo.rgb, n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0);
@@ -145,13 +135,6 @@ void main() {
     color = mix(color, fogTint, fog * fog);
 #ifdef DISTANCE_HAZE
     color = mix(color, fogTint, (1.0 - exp(-length(viewPos) * (0.0035 + rainStrength * 0.008))) * 0.6);
-#endif
-#ifdef WATER_REFRACTION
-    if (water) {
-        // drawn over the bent view instead of over the straight one
-        color = mix(behind, color, alpha);
-        alpha = 1.0;
-    }
 #endif
     gl_FragData[0] = vec4(color, alpha);
     // for the reflection pass: water normal (view space) and a water mask

@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -199,6 +200,9 @@ fun RendererSettingsScreen(
                 ) {
                     SettingsSectionTitle(stringResource(R.string.ona_section_graphics))
 
+                    // a level name saved by an older version shows (and stays) as its new name
+                    LaunchedEffect(Unit) { com.movtery.zalithlauncher.game.graphics.OnaGraphics.migrateSetting() }
+
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
@@ -210,7 +214,8 @@ fun RendererSettingsScreen(
                             when (id) {
                                 "OFF" -> stringResource(R.string.ona_graphics_off)
                                 "AUTO" -> stringResource(R.string.ona_graphics_auto)
-                                else -> stringResource(com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.valueOf(id).titleRes)
+                                else -> com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.fromName(id)
+                                    ?.let { stringResource(it.titleRes) } ?: id
                             }
                         },
                         getItemId = { it }

@@ -5,12 +5,7 @@
 #include "/lib/common.glsl"
 
 /* RENDERTARGETS: 0 */
-#ifdef WATER_REFRACTION
-/* RENDERTARGETS: 0,3 */
-#endif
 /*
-const int colortex3Format = RGBA8;
-const bool colortex3Clear = false;
 const int colortex2Format = RGBA8;
 const bool colortex2Clear = true;
 const vec4 colortex2ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -34,56 +29,39 @@ varying vec2 texcoord;
 
 #ifdef VOLUMETRIC_CLOUDS
 #ifdef ONA_CLOUDS
-// Clouds with a body, marched through a layer 260-340 blocks up: the flat clouds' cover says where
-// (the same noise, so cloud shadows still match), the height in the layer gives the shape: flat
-// bottoms and round tops, the way cumulus look (the 2D-noise-with-height idea of BSL / Complementary)
-const float CLOUD_BOTTOM = 260.0;
-const float CLOUD_TOP = 340.0;
-
-float onaCloudDensity(vec3 wp) {
-    float h = (wp.y - CLOUD_BOTTOM) / (CLOUD_TOP - CLOUD_BOTTOM);
-    vec2 p = wp.xz * 0.0025 + vec2(frameTimeCounter * 0.004, frameTimeCounter * 0.0015);
-    float n = onaValueNoise(p) * 0.65 + onaValueNoise(p * 2.7) * 0.35;
-    // small puffs that change with height, so the sides are not straight walls
-    n += (onaValueNoise(p * 9.0 + h * 2.3) - 0.5) * 0.10;
-    float shape = smoothstep(0.0, 0.12, h) * (1.0 - smoothstep(0.30, 1.0, h));
-    float threshold = mix(0.98, 0.55 - rainStrength * 0.25, shape);
-    return smoothstep(threshold, threshold + 0.10, n);
+// 3D-looking clouds without marching through them (so no grain, and cheap): the cloud layer is
+// shaded like a body. Where the cover grows towards the sun the cloud is in its own shadow (dark
+// bellies, bright sunlit edges), thick middles are darker, thin edges glow when the sun is behind,
+// and a high thin layer drifts slower above for depth.
+float onaCloudNoise(vec2 p) {
+    return onaValueNoise(p) * 0.65 + onaValueNoise(p * 2.7) * 0.35;
 }
 
-// rgb: cloud light reaching the eye (screen colours), a: how much of the sky behind still shows
-vec4 onaVolumetricClouds(vec3 dirW, vec3 lightW, vec3 lit, float VdotS) {
-    if (abs(dirW.y) < 0.0005) return vec4(0.0, 0.0, 0.0, 1.0);
-    float tBottom = (CLOUD_BOTTOM - cameraPosition.y) / dirW.y;
-    float tTop = (CLOUD_TOP - cameraPosition.y) / dirW.y;
-    float t0 = max(min(tBottom, tTop), 0.0);
-    float t1 = max(tBottom, tTop);
-    if (t1 <= 0.0 || t0 > 6000.0) return vec4(0.0, 0.0, 0.0, 1.0);
-    t1 = min(t1, t0 + 500.0); // grazing rays: a limited march
-    float stepLen = (t1 - t0) / float(CLOUD_STEPS);
-    float t = t0 + stepLen * onaNoise(gl_FragCoord.xy);
-    float trans = 1.0;
-    vec3 light = vec3(0.0);
-    // light scattered forward: bright edges when the sun is behind a cloud
-    float forward = 1.0 + 1.5 * pow(max(VdotS, 0.0), 8.0);
-    for (int i = 0; i < CLOUD_STEPS; i++) {
-        vec3 wp = cameraPosition + dirW * t;
-        float density = onaCloudDensity(wp);
-        if (density > 0.01) {
-            float h = clamp((wp.y - CLOUD_BOTTOM) / (CLOUD_TOP - CLOUD_BOTTOM), 0.0, 1.0);
-            // how much cloud lies between this point and the sun: dark bellies, bright tops
-            float direct = exp(-onaCloudDensity(wp + lightW * 22.0) * 2.2) * forward;
-            vec3 c = min(lit * (0.42 + 0.30 * h + 0.55 * direct), vec3(1.25));
-            float a = 1.0 - exp(-density * stepLen * 0.045);
-            light += trans * a * c;
-            trans *= 1.0 - a;
-            if (trans < 0.03) break;
-        }
-        t += stepLen;
+// rgb: cloud light (screen colours), a: how much of the sky behind still shows
+vec4 onaShadedClouds(vec3 dirW, vec3 lightW, vec3 lit, float VdotS) {
+    if (dirW.y < 0.01) return vec4(0.0, 0.0, 0.0, 1.0);
+    float horizon = smoothstep(0.01, 0.15, dirW.y);
+    vec2 p = (cameraPosition.xz + dirW.xz * ((300.0 - cameraPosition.y) / dirW.y)) * 0.0025;
+    p += vec2(frameTimeCounter * 0.004, frameTimeCounter * 0.0015);
+    float n = onaCloudNoise(p);
+    float thr = 0.55 - rainStrength * 0.25;
+    float puff = onaValueNoise(p * 9.0 + frameTimeCounter * 0.01) - 0.5;
+    float cover = smoothstep(thr, thr + 0.30, n + puff * 0.12) * horizon;
+    vec3 color = vec3(0.0);
+    float alpha = 0.0;
+    if (cover > 0.003) {
+        // more cloud towards the sun = this side is in the cloud's own shadow
+        vec2 toSun = normalize(lightW.xz + vec2(0.0001)) * 0.035;
+        float self = clamp((onaCloudNoise(p + toSun) - n) * 3.0 + 0.5, 0.0, 1.0);
+        float thick = smoothstep(thr, thr + 0.45, n);
+        float silver = pow(max(VdotS, 0.0), 6.0) * (1.0 - thick) * 1.5;
+        color = lit * clamp(1.05 - 0.45 * self - 0.25 * thick + silver, 0.35, 1.6);
+        alpha = cover * 0.95;
     }
-    // far away the clouds melt into the haze of the horizon
-    float fade = 1.0 - smoothstep(2500.0, 6000.0, t0);
-    return vec4(light * fade, mix(1.0, trans, fade));
+    // high thin streaks, 600 blocks up
+    vec2 q = (cameraPosition.xz + dirW.xz * ((600.0 - cameraPosition.y) / dirW.y)) * vec2(0.0009, 0.0030);
+    float cirrus = smoothstep(0.62, 0.92, onaValueNoise(q + frameTimeCounter * 0.002)) * 0.35 * horizon * (1.0 - rainStrength);
+    return vec4(color * alpha + lit * cirrus * (1.0 - alpha), (1.0 - alpha) * (1.0 - cirrus));
 }
 #endif
 #endif
@@ -113,7 +91,7 @@ void main() {
             litV *= 1.0 - rainStrength * 0.45;
             vec3 sunW = mat3(gbufferModelViewInverse) * sunDir;
             // the moon lights them at night, from the other side
-            vec4 clouds = onaVolumetricClouds(dirW, sunUpV > 0.0 ? sunW : -sunW, litV, dot(dir, sunDir));
+            vec4 clouds = onaShadedClouds(dirW, sunUpV > 0.0 ? sunW : -sunW, litV, dot(dir, sunDir));
             sky = sky * clouds.a + clouds.rgb;
             objects *= clouds.a;
         }
@@ -142,7 +120,7 @@ void main() {
     else if (depth > 0.56) {
         vec3 p = onaViewPos(texcoord, depth);
         // far away the corners are a pixel wide: no samples there (the costly part of the pass)
-        if (p.z > -40.0) {
+        if (p.z > -40.0 && (SHADER_DISTANCE == 0 || -p.z < float(SHADER_DISTANCE) * 16.0)) {
         vec3 n = normalize(cross(dFdx(p), dFdy(p)));
         vec3 helper = abs(n.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
         vec3 t = normalize(cross(helper, n));
@@ -170,8 +148,4 @@ void main() {
     }
 #endif
     gl_FragData[0] = vec4(color, 1.0);
-#ifdef WATER_REFRACTION
-    // the opaque world as it is now, for the water to show it bent
-    gl_FragData[1] = vec4(color, 1.0);
-#endif
 }

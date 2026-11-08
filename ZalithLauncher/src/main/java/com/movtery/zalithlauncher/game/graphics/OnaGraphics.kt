@@ -44,17 +44,36 @@ import java.util.zip.ZipOutputStream
 
 /** ONA Graphics levels = the profiles of "ONA Mobile Shaders" (shaders.properties), weakest first */
 enum class OnaGraphicsLevel(@StringRes val titleRes: Int) {
-    POTATO(R.string.ona_graphics_potato),
+    PERFORMANCE(R.string.ona_graphics_lvl_performance),
     LOW(R.string.ona_graphics_low),
     MEDIUM(R.string.ona_graphics_medium),
     HIGH(R.string.ona_graphics_high),
     ULTRA(R.string.ona_graphics_ultra),
-    REALISTIC(R.string.ona_graphics_realistic),
-    ULTRA_REALISTIC(R.string.ona_graphics_ultra_realistic),
-    IMPOSSIBLE(R.string.ona_graphics_impossible);
+    EXTRA(R.string.ona_graphics_lvl_extra),
+    MAX(R.string.ona_graphics_lvl_max),
+    REALISTIC_PLUS(R.string.ona_graphics_lvl_realistic_plus),
+    REALISTIC_PRO(R.string.ona_graphics_lvl_realistic_pro),
+    REALISTIC_PRO_MAX(R.string.ona_graphics_lvl_realistic_pro_max),
+    IMPOSSIBLE(R.string.ona_graphics_impossible),
+    IMPOSSIBLE_PLUS(R.string.ona_graphics_lvl_impossible_plus),
+    IMPOSSIBLE_ULTRA(R.string.ona_graphics_lvl_impossible_ultra),
+    UNBELIEVABLE(R.string.ona_graphics_lvl_unbelievable);
 
     /** From MEDIUM up the shader reads the PBR maps (bumps, shine, glow) */
     val usesPbr: Boolean get() = ordinal >= MEDIUM.ordinal
+
+    companion object {
+        /** Names saved by older versions, to the level that looks the same now */
+        private val LEGACY = mapOf(
+            "POTATO" to PERFORMANCE,
+            "REALISTIC" to MAX,
+            "ULTRA_REALISTIC" to REALISTIC_PRO_MAX
+        )
+
+        /** The level for a saved name (old names included), or null */
+        fun fromName(name: String): OnaGraphicsLevel? =
+            entries.firstOrNull { it.name == name } ?: LEGACY[name]
+    }
 }
 
 /**
@@ -71,7 +90,7 @@ object OnaGraphics {
     private const val ASSET_DIR = "ona/shaderpack"
 
     fun autoLevel(tier: DeviceTier): OnaGraphicsLevel = when (tier) {
-        DeviceTier.LOW -> OnaGraphicsLevel.POTATO
+        DeviceTier.LOW -> OnaGraphicsLevel.PERFORMANCE
         DeviceTier.MID -> OnaGraphicsLevel.LOW
         DeviceTier.HIGH -> OnaGraphicsLevel.MEDIUM
         DeviceTier.FLAGSHIP -> OnaGraphicsLevel.HIGH
@@ -109,6 +128,15 @@ object OnaGraphics {
         }
         lines.add(context.getString(R.string.ona_graphics_loader_added, installed.name))
         return if (project == "iris") Loader.IRIS else Loader.OCULUS
+    }
+
+    /** The launcher setting still holding a level name from an older version: the new name */
+    fun migrateSetting() {
+        val saved = com.movtery.zalithlauncher.setting.AllSettings.onaGraphics.getValue()
+        if (saved == "OFF" || saved == "AUTO") return
+        val level = OnaGraphicsLevel.fromName(saved)
+        val now = level?.name ?: "AUTO"
+        if (now != saved) com.movtery.zalithlauncher.setting.AllSettings.onaGraphics.save(now)
     }
 
     /** @param level null turns ONA Graphics off (shaders off, PBR pack out of the list) */

@@ -45,6 +45,13 @@ varying vec2 tileCoord;
 void main() {
     vec2 uv = texcoord;
     vec3 geoN = normalize(normal);
+#if SHADER_DISTANCE > 0
+    // shader distance: the full shader only this far around the player, like the chunk render
+    // distance; further away plain lighting (no maps, shine or shadow lookups), faded over 12 blocks
+    float zone = 1.0 - smoothstep(float(SHADER_DISTANCE) * 16.0 - 12.0, float(SHADER_DISTANCE) * 16.0, length(viewPos));
+#else
+    float zone = 1.0;
+#endif
 #if POM_SAMPLES > 0 && PBR > 0
     // parallax: walk into the surface along the view ray until the height map is reached
     // (only HD packs with height in the normal map alpha move; flat maps stay as they are)
@@ -72,7 +79,7 @@ void main() {
     float ao = 1.0;
     vec3 up = normalize(upPosition);
 #if PBR > 0
-    if (tangentOk > 0.5) {
+    if (tangentOk > 0.5 && zone > 0.0) {
         vec4 nmap = texture2D(normals, uv);
         // only a real normal map: an empty texture (resource pack without maps) would bend
         // every face to black
@@ -82,8 +89,8 @@ void main() {
             vec3 bent = mat3(tangent, binormal, geoN) * tn;
             float len = length(bent);
             if (len > 0.1) {
-                n = bent / len;
-                ao = mix(1.0, clamp(nmap.b, 0.0, 1.0), 0.7);
+                n = normalize(mix(geoN, bent / len, zone));
+                ao = mix(1.0, clamp(nmap.b, 0.0, 1.0), 0.7 * zone);
             }
         }
     }
@@ -94,21 +101,23 @@ void main() {
     float emission = 0.0;
     float sss = 0.0;
 #if PBR > 1
-    vec4 spec = texture2D(specular, uv);
-    smoothness = spec.r;
-    metal = spec.g > 0.898;
-    reflectance = max(spec.g, 0.04);
-    emission = spec.a < 0.999 ? spec.a : 0.0;
-    sss = spec.b > 0.254 ? (spec.b - 0.254) / 0.746 : 0.0;
+    if (zone > 0.0) {
+        vec4 spec = texture2D(specular, uv);
+        smoothness = spec.r * zone;
+        metal = spec.g > 0.898 && zone > 0.5;
+        reflectance = max(spec.g, 0.04);
+        emission = spec.a < 0.999 ? spec.a : 0.0;
+        sss = spec.b > 0.254 ? (spec.b - 0.254) / 0.746 * zone : 0.0;
+    }
 #endif
     bool foliage = blockId > 10000.5 && blockId < 10003.5;
 #ifdef FOLIAGE_SSS
-    if (foliage) sss = max(sss, 0.6);
+    if (foliage) sss = max(sss, 0.6 * zone);
 #endif
 #ifdef WET_SURFACES
     // rain: open ground gets darker and shiny, walls a little
     if (!foliage) {
-        float wet = wetness * smoothstep(0.88, 0.97, lmcoord.y) * (dot(geoN, up) > 0.7 ? 1.0 : 0.35);
+        float wet = wetness * smoothstep(0.88, 0.97, lmcoord.y) * (dot(geoN, up) > 0.7 ? 1.0 : 0.35) * zone;
         smoothness = mix(smoothness, 0.92, wet * 0.85);
         reflectance = max(reflectance, 0.02 + wet * 0.02);
         albedo.rgb *= 1.0 - wet * 0.28;
@@ -119,10 +128,10 @@ void main() {
 #endif
 #ifdef RAIN_PUDDLES
     // puddles: the low spots of open flat ground fill with water while it rains, and dry up after
-    if (!foliage && wetness > 0.01 && dot(geoN, up) > 0.9) {
+    if (!foliage && wetness > 0.01 && dot(geoN, up) > 0.9 && zone > 0.0) {
         float mask = onaValueNoise(worldPos.xz * 0.23) * 0.65 + onaValueNoise(worldPos.xz * 0.9) * 0.35;
         float level = 0.66 - wetness * 0.14;
-        float puddle = smoothstep(level, level + 0.06, mask) * smoothstep(0.88, 0.97, lmcoord.y) * wetness;
+        float puddle = smoothstep(level, level + 0.06, mask) * smoothstep(0.88, 0.97, lmcoord.y) * wetness * zone;
         smoothness = mix(smoothness, 0.97, puddle);
         reflectance = max(reflectance, 0.02 * puddle);
         n = normalize(mix(n, geoN, puddle));
@@ -136,7 +145,8 @@ void main() {
     vec2 lm = onaLightmap(lmcoord, length(viewPos));
     float geoNdotL = dot(geoN, lightDir);
 #ifdef SHADOWS
-    float vis = sss > 0.0 ? onaShadowAny() : onaShadow(geoNdotL);
+    float vis = smoothstep(0.75, 0.97, lmcoord.y);
+    if (zone > 0.0) vis = mix(vis, sss > 0.0 ? onaShadowAny() : onaShadow(geoNdotL), zone);
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
 #endif
@@ -151,7 +161,7 @@ void main() {
 #endif
     vec3 color = onaShade(albedo.rgb, n, lm, vis * (sss > 0.0 && geoNdotL < 0.0 ? 0.0 : 1.0), ao);
 #ifdef SPARKLE
-    if ((blockId > 10029.5 && blockId < 10031.5) && dot(geoN, up) > 0.7) {
+    if ((blockId > 10029.5 && blockId < 10031.5) && dot(geoN, up) > 0.7 && zone > 0.5) {
         // a few texels catch the sun, and change as you move (sand and snow glitter)
         vec3 Vs = normalize(-viewPos);
         float spark = onaHash(floor(worldPos.xz * 16.0) + floor((Vs.x + Vs.y) * 9.0));

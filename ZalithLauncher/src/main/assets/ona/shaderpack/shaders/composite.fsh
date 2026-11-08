@@ -16,6 +16,15 @@ uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
 uniform float rainStrength;
 uniform int isEyeInWater;
+#ifdef WATER_REFRACTION
+uniform sampler2D depthtex1;
+uniform vec3 upPosition;
+#endif
+#ifdef FLOATING_DUST
+uniform vec3 cameraPosition;
+uniform float frameTimeCounter;
+uniform ivec2 eyeBrightnessSmooth;
+#endif
 #ifdef VOLUMETRIC_LIGHT
 uniform sampler2DShadow shadowtex1;
 uniform mat4 shadowModelView;
@@ -42,9 +51,25 @@ void main() {
     vec3 color = texture2D(colortex0, texcoord).rgb;
     float depth = texture2D(depthtex0, texcoord).r;
     vec3 viewPos = onaViewPos(texcoord, depth);
+#ifdef WATER_REFRACTION
+    {
+        // refraction the way Complementary does it: on water the picture is shifted by the waves,
+        // taken only from spots that are water too, so nothing above the surface is pulled under it
+        vec4 w = texture2D(colortex1, texcoord);
+        if (w.a > 0.5 && (SHADER_DISTANCE == 0 || length(viewPos) < float(SHADER_DISTANCE) * 16.0)) {
+            vec3 wn = normalize(w.rgb * 2.0 - 1.0);
+            vec3 upV = normalize(upPosition);
+            vec3 slope = wn - upV * dot(wn, upV);
+            // the more water between the surface and the ground behind it, the stronger the bend
+            float under = clamp(viewPos.z - onaViewPos(texcoord, texture2D(depthtex1, texcoord).r).z, 0.0, 4.0);
+            vec2 rc = texcoord + slope.xy * under * 0.012 / max(-viewPos.z * 0.06, 1.0);
+            if (texture2D(colortex1, rc).a > 0.5) color = texture2D(colortex0, rc).rgb;
+        }
+    }
+#endif
 #ifdef SSR
     vec4 info = texture2D(colortex1, texcoord);
-    if (info.a > 0.5 && isEyeInWater == 0) {
+    if (info.a > 0.5 && isEyeInWater == 0 && (SHADER_DISTANCE == 0 || length(viewPos) < float(SHADER_DISTANCE) * 16.0)) {
         // march the reflected ray through the depth buffer: the world mirrored in the water
         vec3 n = normalize(info.rgb * 2.0 - 1.0);
         vec3 v = normalize(viewPos);
@@ -106,6 +131,52 @@ void main() {
     float density = (0.35 + rainStrength * 0.4) * (dist / 48.0);
     vec3 air = isEyeInWater == 1 ? vec3(0.10, 0.35, 0.50) : sunLight;
     color += air * lit * phase * density * 0.5;
+#endif
+#ifdef FLOATING_DUST
+    {
+        // particles: a speck of dust in some of the little cells of air around the eye, drifting
+        // and wobbling; by day it only shows where the sun reaches it (like dust in sunbeams), at
+        // night some of them are fireflies that glow by themselves
+        vec3 dirD = mat3(gbufferModelViewInverse) * normalize(viewPos);
+        float sceneDist = length(viewPos);
+        float maxT = min(sceneDist, 14.0);
+        float day = smoothstep(0.20, 0.50, onaLuma(sunLight));
+        float outdoors = float(eyeBrightnessSmooth.y) / 240.0;
+        vec3 drift = vec3(frameTimeCounter * 0.07, -frameTimeCounter * 0.05, frameTimeCounter * 0.04);
+        vec3 origin = cameraPosition * 0.5 + drift; // cells of 2 blocks moving with the air
+        float dd = onaNoise(gl_FragCoord.xy + 31.0);
+        vec3 specks = vec3(0.0);
+        vec3 lastCell = vec3(-99999.0);
+        for (int i = 0; i < 12; i++) {
+            float t = 0.6 + (float(i) + dd) * 1.1;
+            if (t > maxT) break;
+            vec3 cell = floor(origin + dirD * (t * 0.5));
+            if (cell == lastCell) continue;
+            lastCell = cell;
+            float h = onaHash(cell.xz + cell.y * 17.31);
+            if (h > 0.30) continue; // a speck in 3 cells out of 10
+            vec3 h3 = vec3(h, onaHash(cell.xz * 1.7 + cell.y * 3.1), onaHash(cell.zx * 2.3 - cell.y * 5.7));
+            vec3 mote = cell + 0.2 + h3 * 0.6 + sin(frameTimeCounter * vec3(0.7, 0.5, 0.9) + h3 * 6.28) * 0.1;
+            // the nearest point of the view ray to the speck
+            vec3 rel = mote - origin;
+            float along = dot(rel, dirD);
+            if (along <= 0.0 || along * 2.0 > sceneDist) continue; // behind the eye or behind a block
+            float size = 0.010 + 0.004 * h3.y;
+            float s = smoothstep(size, size * 0.2, length(rel - dirD * along));
+            if (s <= 0.0) continue;
+            float lit = 1.0;
+#ifdef VOLUMETRIC_LIGHT
+            vec3 sc = (shadowProjection * (shadowModelView * vec4((mote - drift) * 2.0 - cameraPosition, 1.0))).xyz;
+            float l = length(sc.xy);
+            sc.xy /= l * SHADOW_DISTORT + (1.0 - SHADOW_DISTORT);
+            lit = l < 1.0 ? shadow2D(shadowtex1, sc * 0.5 + 0.5).x : 1.0;
+#endif
+            vec3 sunDust = sunLight * lit * 1.6;
+            vec3 firefly = vec3(0.75, 1.0, 0.35) * (0.5 + 0.5 * sin(frameTimeCounter * 3.0 + h3.z * 30.0)) * step(h, 0.06) * 2.0;
+            specks += s * mix(firefly, sunDust, day) * (1.0 - along * 2.0 / 14.0);
+        }
+        color += specks * outdoors * (isEyeInWater == 0 ? 1.0 : 0.0);
+    }
 #endif
     gl_FragData[0] = vec4(color, 1.0);
 }

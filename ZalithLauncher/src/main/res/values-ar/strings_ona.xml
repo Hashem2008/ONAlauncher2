@@ -350,4 +350,13 @@
     <string name="ona_community_failed">شيدرات المجتمع: %1$s ما زبط، رح يجرب مرة ثانية بالتشغيل الجاي</string>
     <string name="ona_community_turned_off">شيدرات المجتمع انطفت</string>
     <string name="ona_graphics_heavy_capped">مودباك ثقيل (%1$d مود): الظلال صارت أقرب وأخف عشان الفريمات</string>
+    <string name="ona_graphics_lvl_performance">أداء</string>
+    <string name="ona_graphics_lvl_extra">إكسترا</string>
+    <string name="ona_graphics_lvl_max">ماكس</string>
+    <string name="ona_graphics_lvl_realistic_plus">واقعي بلس</string>
+    <string name="ona_graphics_lvl_realistic_pro">واقعي برو</string>
+    <string name="ona_graphics_lvl_realistic_pro_max">واقعي برو ماكس</string>
+    <string name="ona_graphics_lvl_impossible_plus">مستحيل +</string>
+    <string name="ona_graphics_lvl_impossible_ultra">مستحيل ألترا</string>
+    <string name="ona_graphics_lvl_unbelievable">لا يُصدّق</string>
 </resources>
