@@ -332,6 +332,13 @@ private fun VersionManagementLayout(
         listOf(logFile, java.io.File(version.getGameDir(), "logs/latest.log"))
     }
     var showLogTranslator by remember { mutableStateOf(false) }
+    var showOnaGraphics by remember { mutableStateOf(false) }
+    if (showOnaGraphics) {
+        com.movtery.zalithlauncher.ui.screens.content.elements.OnaGraphicsDialog(
+            version = version,
+            onDismiss = { showOnaGraphics = false }
+        )
+    }
     if (showLogTranslator) {
         LogTranslatorDialog(logs = translatableLogs, onDismiss = { showLogTranslator = false })
     }
@@ -387,6 +394,14 @@ private fun VersionManagementLayout(
                 ) {
                     Text(
                         text = stringResource(R.string.versions_overview_log)
+                    )
+                }
+                OutlinedButton(
+                    modifier = Modifier.padding(end = 12.dp),
+                    onClick = { showOnaGraphics = true }
+                ) {
+                    Text(
+                        text = stringResource(R.string.ona_graphics_button)
                     )
                 }
                 OutlinedButton(

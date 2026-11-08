@@ -1,0 +1,38 @@
+2026-11-08 (b) - ONA Graphics: ONA Mobile Shaders + ONA Mobile PBR (all four APKs)
+
+User log (S26 Ultra, Performance APK, Fabulously Optimized 26.3 + Complementary): runs fine, exit 0;
+ADPF per-frame hints on ("frame budget 8333 us"), GLFix splits fragment output arrays (also Sodium's
+_frag_output_00[2]), Complementary POTATO works. Adreno 840 driver prints "Global Value @fullLiteral"
+lines while compiling (driver noise, harmless).
+
+ONA MOBILE SHADERS (assets/ona/shaderpack/shaders, ONA's own code, GPL-3.0)
+- Forward shading for phones: lighting in the gbuffers programs (no G-buffers), RGBA8 colour, one
+  light final pass (bloom from colortex0 mip levels via texture bias, optional 8-tap sun rays).
+- Programs: gbuffers_terrain (waving plants, labPBR normals/specular, emission, metal), _water (waves,
+  fresnel sky reflection, sun glint), _textured_lit (entities, hand, rain), _textured (particles,
+  clouds), _skybasic (own sky gradient from skyColor/fogColor, sunset glow, stars kept), _skytextured,
+  _basic, unlit _spidereyes/_armor_glint/_beaconbeam, shadow (distorted, hardware PCF), final.
+- Levels = profiles POTATO / LOW / MEDIUM / HIGH / ULTRA; program.shadow.enabled=SHADOWS so POTATO and
+  LOW have no shadow pass at all. oldLighting=false, shadowTranslucent=false.
+- tools/ona_shader_check.py <shaders dir> <tmp dir>: resolves #include, applies each profile, compiles
+  every program with glslangValidator: 120/120 OK (24 programs x 5 levels).
+
+ONA MOBILE PBR (game/graphics/OnaPbr.java + OnaGraphics.kt)
+- Made ON THE PHONE from the version's own client jar (nothing of Mojang's shipped): for every
+  textures/block/*.png a labPBR _n (Sobel of brightness, cavity AO in B) and _s (smoothness, F0 /
+  metal ids 230 iron, 231 gold, 234 copper, 255 netherite; ore specks shine; emission for lava,
+  glowstone, froglights, torches...; porosity/SSS for plants). Animated textures get the .mcmeta too.
+  pack.mcmeta from the jar's version.json (26.3: min/max_format 97; older: pack_format +
+  supported_formats). Zip "resourcepacks/ONA Mobile PBR.zip", stamp file .ona_mobile_pbr (generation,
+  jar name, size) so it is made once. Host test with the 26.3 textures: 1287 maps in 0.5 s (PC).
+- OnaGraphics.apply(version, level): installs Iris (fabric/quilt/neoforge) or Oculus (forge) via
+  ModCompat when no shader loader (OptiFine detected too), copies the pack fresh, writes
+  shaderpacks/ONA Mobile Shaders.txt with the level's values, sets iris/oculus.properties (or
+  optionsshaders.txt), PBR from MEDIUM up (options.txt resourcePacks last = top priority, removed from
+  incompatibleResourcePacks), off = shaders off + pack out of the list.
+- Auto level: LOW tier -> POTATO, MID -> LOW, HIGH -> MEDIUM, FLAGSHIP -> HIGH (ULTRA by hand).
+- UI: "ONA Graphics" button in the version overview -> OnaGraphicsDialog (levels, recommended mark,
+  progress, result lines). Strings ona_graphics_* EN/AR.
+- ShaderProfileTuner and BestGameSettings skip ONA's pack; ShaderBoost: ONA pack without shadows = no
+  resolution cap, with shadows = cap + 15 points.
+Not device-tested (shader runs through Iris -> MobileGlues on the phone: first real test there).

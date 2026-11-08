@@ -47,6 +47,8 @@ object ShaderProfileTuner {
     /** @return label for the toast when a profile was written now, null otherwise */
     fun apply(gameDir: File, tier: DeviceTier, modCount: Int): String? {
         val packName = activePack(gameDir) ?: return null
+        // ONA's own pack gets its level from ONA Graphics
+        if (packName == com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME) return null
         val packDir = File(gameDir, "shaderpacks")
         val pack = File(packDir, packName).takeIf { it.exists() } ?: return null
         val optionsFile = File(packDir, "$packName.txt")

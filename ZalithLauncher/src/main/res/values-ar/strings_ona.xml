@@ -290,4 +290,27 @@
     <string name="ona_lwjgl_downloading">بنزل LWJGL %1$s (ملفات اللعبة، حوالي 15 ميغا)، أول مرة بس…</string>
     <string name="ona_lwjgl_ready">LWJGL %1$s جاهزة</string>
     <string name="ona_lwjgl_failed">ما قدرت أنزل LWJGL %1$s. تأكد من النت واكبس لعب مرة ثانية</string>
+    <string name="ona_graphics_button">جرافيك ONA</string>
+    <string name="ona_graphics_title">جرافيك ONA</string>
+    <string name="ona_graphics_summary">شيدر ONA الخاص بالجوالات، وريسورس باك بينعمل من نقوش لعبتك (بروز ولمعان وتوهج)، بيتركبوا مع بعض. اختار المستوى:</string>
+    <string name="ona_graphics_potato">بطاطا (أضعف الجوالات، تقريباً بدون ما ينقص فريمات)</string>
+    <string name="ona_graphics_low">منخفض (نباتات بتتحرك، مي أحلى)</string>
+    <string name="ona_graphics_medium">متوسط (+ ظلال خفيفة، أسطح بارزة)</string>
+    <string name="ona_graphics_high">عالي (+ ظلال ناعمة، لمعان، توهج)</string>
+    <string name="ona_graphics_ultra">ألترا (+ أوضح ظلال، أشعة الشمس)</string>
+    <string name="ona_graphics_off">إطفاء</string>
+    <string name="ona_graphics_recommended">(المناسب لجهازك)</string>
+    <string name="ona_graphics_apply">تطبيق</string>
+    <string name="ona_graphics_working">لحظة…</string>
+    <string name="ona_graphics_turned_off">جرافيك ONA انطفى (الشيدر مطفي، والباك انشال من القائمة)</string>
+    <string name="ona_graphics_needs_loader">هاي النسخة ما فيها لودر مودات. الشيدر بده نسخة Fabric أو NeoForge أو Forge، أو OptiFine.</string>
+    <string name="ona_graphics_installing_loader">بركّب %1$s…</string>
+    <string name="ona_graphics_loader_failed">ما قدرت أركّب %1$s لهاي النسخة. نزّله من التحميلات وجرب مرة ثانية.</string>
+    <string name="ona_graphics_loader_added">انضاف %1$s (هو اللي بشغّل الشيدر)</string>
+    <string name="ona_graphics_copying">بركّب ONA Mobile Shaders…</string>
+    <string name="ona_graphics_level_set">ONA Mobile Shaders اشتغل، المستوى: %1$s</string>
+    <string name="ona_graphics_pbr_on">ONA Mobile PBR اشتغل (بروز ولمعان وتوهج)</string>
+    <string name="ona_graphics_pbr_failed">ما قدرت أعمل ONA Mobile PBR: العب النسخة مرة وبعدين جرب</string>
+    <string name="ona_graphics_making_pbr">بعمل ONA Mobile PBR من نقوش لعبتك…</string>
+    <string name="ona_graphics_making_pbr_progress">بعمل ONA Mobile PBR: %1$d / %2$d</string>
 </resources>

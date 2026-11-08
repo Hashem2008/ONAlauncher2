@@ -66,7 +66,17 @@ object ShaderBoost {
             }
         }
         if (AllSettings.shaderBoost.getValue()) {
-            val pack = activeShaderPack(gameDir)
+            var pack = activeShaderPack(gameDir)
+            // ONA's own pack is made for phones: without shadows it costs about nothing (no lower
+            // resolution needed), with shadows it gets a milder cap than a desktop pack
+            var lighter = 0
+            if (pack == com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME) {
+                val shadows = runCatching {
+                    File(gameDir, "shaderpacks/${pack}.txt").readLines()
+                        .any { it.trim() == "SHADOWS=true" }
+                }.getOrDefault(true)
+                if (!shadows) pack = null else lighter = 15
+            }
             // Voxy draws far terrain through Zink (desktop GL on Vulkan), every pixel costs more there
             val voxy = File(gameDir, "mods").listFiles()?.any { it.name.lowercase().startsWith("voxy") && it.name.endsWith(".jar") } == true
             if (pack != null || voxy) {
@@ -76,7 +86,8 @@ object ShaderBoost {
                     DeviceTier.MID -> if (pack != null) 50 else 55
                     DeviceTier.LOW -> if (pack != null) 45 else 50
                 }
-                resolutionCap = if (resolutionCap > 0) minOf(resolutionCap, cap) else cap
+                val packCap = minOf(cap + (if (pack != null) lighter else 0), 100)
+                resolutionCap = if (resolutionCap > 0) minOf(resolutionCap, packCap) else packCap
                 parts.add(pack ?: "Voxy")
             }
         }
