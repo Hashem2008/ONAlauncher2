@@ -679,6 +679,14 @@ fun LaunchGameOperation(
                         Toast.LENGTH_LONG
                     )
                 }
+                // ONA Graphics: ONA Mobile Shaders ready in every version that can load shaders
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        com.movtery.zalithlauncher.game.graphics.OnaGraphics.offerPack(
+                            com.movtery.zalithlauncher.context.GlobalContext, version
+                        )
+                    }
+                }
                 // ONA: modded versions without Sodium / Embeddium get the one that fits (much more FPS)
                 val speedMods = withContext(Dispatchers.IO) {
                     runCatching { com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.ensure(version) }.getOrDefault(emptyList())

@@ -1,0 +1,24 @@
+2026-11-08 (c) - ONA Renderer: ONA's own MobileGlues build, one engine, ONA Graphics in every version
+
+Why: the user's friend pointed out that ONA Hybrid is not a renderer, only a switch between
+renderers, and switching per version makes every version behave differently. A renderer written
+from zero is not realistic (MobileGlues alone is ~167k lines); ONA now builds MobileGlues itself.
+
+- tools/ona-renderer/patch_renderer.py: ONA patches on MobileGlues (MobileGL-Dev/MobileGlues,
+  LGPL-2.1): version string "(ONA Renderer)", vendor keeps the authors + "ONA STUDIO", ONA_RENDERER=1.
+- .github/workflows/ona_renderer.yml (workflow_dispatch / push to main): pinned MG_COMMIT 0c27a3a8
+  (dev, 2026-10-11), submodules glslang, SPIRV-Cross, xxhash, ska (not perfetto), NDK 27.3, CMake +
+  Ninja for arm64-v8a, armeabi-v7a, x86_64, x86, ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON (16 KB page
+  phones), stripped; release ona-renderer-<commit12>-<patch sha8> with ona-renderer-libs.zip.
+- build.yml "Add ONA Renderer": downloads that release and replaces jni/*/libmobileglues.so inside
+  libs/MobileGlues-release.aar for every APK (MobileGlues + SFPEW paths all use it). Missing release
+  -> warning, prebuilt MobileGlues stays.
+- SmartRenderer = "ONA Renderer": every 1.17+ version starts on the ONA engine (MobileGlues); Krypton
+  / Zink only after it crashed on that version. Exceptions kept on purpose: Voxy -> Kopper Zink,
+  Physics Mod 1.20+ -> Kopper Zink first, 1.16 and older -> GL4ES family (fixed-function games).
+  MobileGluesRenderer shown as "MobileGlues (ONA engine)". User-visible "ONA Hybrid" -> "ONA Renderer".
+- Tuning: with ONA Mobile Shaders active, shader cache 128 MB and no GL 4.3 / compute exposure.
+- OnaGraphics.offerPack (every launch): versions with Iris / Oculus / OptiFine get ONA Mobile Shaders
+  in shaderpacks (ready in the list, not switched on), refreshed when the APK's pack checksum changes
+  (ona_revision.txt), options file for the device level written once.
+Not device-tested.

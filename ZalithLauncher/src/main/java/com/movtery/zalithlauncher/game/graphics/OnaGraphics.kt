@@ -136,9 +136,7 @@ object OnaGraphics {
         // 2. The shader pack, fresh from the APK, and the options of the level
         onProgress(context.getString(R.string.ona_graphics_copying))
         val packsDir = File(gameDir, "shaderpacks").apply { mkdirs() }
-        val packDir = File(packsDir, SHADER_NAME)
-        packDir.deleteRecursively()
-        copyAssets(context, ASSET_DIR, packDir)
+        installPack(context, packsDir)
         File(packsDir, "$SHADER_NAME.txt").writeText(
             level.options.entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
         )
@@ -161,6 +159,49 @@ object OnaGraphics {
         }
         Logger.info(TAG, "${version.getVersionName()}: ONA Graphics $level ($loader)")
         Result(true, lines)
+    }
+
+    /**
+     * ONA Mobile Shaders comes with every version that can load shaders (Iris, Oculus, OptiFine),
+     * whatever renderer it uses: it is ready in the game's shader list, nothing is switched on.
+     * A newer pack from an updated launcher replaces the old one; the player's options stay.
+     */
+    fun offerPack(context: Context, version: Version) {
+        if (detectLoader(version) == Loader.NONE) return
+        val packsDir = File(version.getGameDir(), "shaderpacks")
+        val marker = File(File(packsDir, SHADER_NAME), REVISION_FILE)
+        if (marker.isFile && marker.readText().trim() == packRevision(context)) return
+        packsDir.mkdirs()
+        installPack(context, packsDir)
+        val options = File(packsDir, "$SHADER_NAME.txt")
+        if (!options.isFile) {
+            val tier = com.movtery.zalithlauncher.utils.device.DeviceProfiler.current()?.tier ?: DeviceTier.MID
+            options.writeText(autoLevel(tier).options.entries.joinToString("\n", postfix = "\n") { (k, v) -> "$k=$v" })
+        }
+        Logger.info(TAG, "${version.getVersionName()}: $SHADER_NAME ready in the shader list")
+    }
+
+    private const val REVISION_FILE = "ona_revision.txt"
+
+    /** Checksum of the pack in the APK: changes whenever the shader code changes */
+    private fun packRevision(context: Context): String {
+        val crc = java.util.zip.CRC32()
+        fun walk(path: String) {
+            val children = context.assets.list(path).orEmpty()
+            if (children.isEmpty()) {
+                crc.update(path.toByteArray())
+                context.assets.open(path).use { crc.update(it.readBytes()) }
+            } else children.sorted().forEach { walk("$path/$it") }
+        }
+        walk(ASSET_DIR)
+        return java.lang.Long.toHexString(crc.value)
+    }
+
+    private fun installPack(context: Context, packsDir: File) {
+        val packDir = File(packsDir, SHADER_NAME)
+        packDir.deleteRecursively()
+        copyAssets(context, ASSET_DIR, packDir)
+        File(packDir, REVISION_FILE).writeText(packRevision(context))
     }
 
     private fun detectLoader(version: Version): Loader {

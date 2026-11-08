@@ -1,0 +1,86 @@
+# ONA: builds ONA Renderer, ONA's own build of MobileGlues (MobileGL-Dev/MobileGlues, LGPL-2.1),
+# for every CPU type, and publishes the libraries as a release of this repository. build.yml puts
+# them into every APK in place of the prebuilt MobileGlues. Run it by hand (Actions > ONA Renderer
+# > Run workflow) after changing the pinned commit or tools/ona-renderer/patch_renderer.py.
+name: ONA Renderer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - tools/ona-renderer/**
+      - .github/workflows/ona_renderer.yml
+
+permissions:
+  contents: write
+
+env:
+  MG_REPO: MobileGL-Dev/MobileGlues
+  MG_COMMIT: 0c27a3a8b3f51babd59fcca8ff59f28cbee1eecd
+  NDK_VERSION: 27.3.13750724
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - name: Checkout ONA
+        uses: actions/checkout@v6
+
+      - name: Checkout MobileGlues
+        run: |
+          git init -q mg
+          cd mg
+          git remote add origin "https://github.com/$MG_REPO.git"
+          git fetch -q --depth 1 origin "$MG_COMMIT"
+          git checkout -q FETCH_HEAD
+          # perfetto (profiling only) is left out: it is huge and off in release builds
+          git submodule update --init --depth 1 \
+            MobileGlues-cpp/3rdparty/glslang MobileGlues-cpp/3rdparty/SPIRV-Cross \
+            MobileGlues-cpp/3rdparty/xxhash MobileGlues-cpp/include/ska
+          git log -1 --format='MobileGlues %H %cd'
+
+      - name: Patch for ONA
+        run: python3 -I tools/ona-renderer/patch_renderer.py mg
+
+      - name: Install NDK and Ninja
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ninja-build zip
+          sdkm=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)
+          yes | "$sdkm" --install "ndk;$NDK_VERSION" > /dev/null
+          echo "NDK=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: Build for every CPU type
+        run: |
+          strip="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
+          for abi in arm64-v8a armeabi-v7a x86_64 x86; do
+            echo "::group::$abi"
+            cmake -S mg/MobileGlues-cpp -B "build/$abi" -G Ninja \
+              -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
+              -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-26 -DANDROID_STL=c++_static \
+              -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON -DCMAKE_BUILD_TYPE=Release
+            cmake --build "build/$abi" -j 4 --target mobileglues
+            lib=$(find "build/$abi" -name libmobileglues.so | head -1)
+            mkdir -p "dist/jni/$abi"
+            "$strip" --strip-unneeded -o "dist/jni/$abi/libmobileglues.so" "$lib"
+            echo "::endgroup::"
+          done
+          ls -la dist/jni/*
+          strings dist/jni/arm64-v8a/libmobileglues.so | grep -m1 "ONA Renderer"
+
+      - name: Publish as a release of this repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          patch=$(sha1sum tools/ona-renderer/patch_renderer.py | cut -c1-8)
+          tag="ona-renderer-${MG_COMMIT:0:12}-$patch"
+          cp mg/LICENSE dist/MOBILEGLUES_LICENSE.txt
+          echo "$MG_REPO@$MG_COMMIT + tools/ona-renderer/patch_renderer.py ($patch)" > dist/SOURCE.txt
+          (cd dist && zip -qr -X ../ona-renderer-libs.zip .)
+          gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$tag" ona-renderer-libs.zip --prerelease \
+            --title "ONA Renderer ${MG_COMMIT:0:12} ($patch)" \
+            --notes "ONA's own build of MobileGlues ($MG_REPO@$MG_COMMIT, LGPL-2.1) with tools/ona-renderer/patch_renderer.py. Used by build.yml."
+          echo "Published $tag"

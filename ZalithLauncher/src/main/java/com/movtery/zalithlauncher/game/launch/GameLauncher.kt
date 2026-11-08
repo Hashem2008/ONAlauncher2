@@ -395,7 +395,7 @@ class GameLauncher(
             appendInfo("ONA Device: ${profile.socName} | ${profile.gpuName} | ${profile.ramMb} MB | ${profile.tier} (${profile.score})")
             appendInfo("ONA Vulkan driver: ${if (profile.turnipRecommended || !AllSettings.smartDriver.getValue()) "launcher setting" else "system (smart)"}")
         }
-        if (version.usesSmartRenderer()) appendInfo("ONA Hybrid renderer: ${SmartRenderer.lastReason}")
+        if (version.usesSmartRenderer()) appendInfo("ONA Renderer: ${SmartRenderer.lastReason}")
         if (VoxySupport.hasVoxy(version)) {
             appendInfo("ONA Voxy: renderer ${VoxySupport.preferredRenderer().getRendererName()}, Turnip plugin ${VoxySupport.turnipPluginDriverId() ?: "none (bundled)"}, compat mod ${VoxySupport.hasCompatMod(version)}")
         }

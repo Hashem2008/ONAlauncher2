@@ -178,6 +178,27 @@ jobs:
             echo "::warning::Horizon engine release $tag not found; this APK has no Rust engine"
           fi
 
+      # ONA Renderer: ONA's own MobileGlues build (ona_renderer.yml) replaces the prebuilt one in
+      # the AAR, for every APK. Without the release the APK keeps the prebuilt MobileGlues.
+      - name: Add ONA Renderer
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          commit=$(sed -n 's/^  MG_COMMIT: //p' .github/workflows/ona_renderer.yml)
+          patch=$(sha1sum tools/ona-renderer/patch_renderer.py | cut -c1-8)
+          tag="ona-renderer-${commit:0:12}-$patch"
+          dir="$RUNNER_TEMP/ona-renderer"
+          mkdir -p "$dir"
+          if gh release download "$tag" --repo "$GITHUB_REPOSITORY" -p ona-renderer-libs.zip -D "$dir"; then
+            unzip -q -o "$dir/ona-renderer-libs.zip" -d "$dir/x"
+            (cd "$dir/x" && zip -q "$GITHUB_WORKSPACE/ZalithLauncher/libs/MobileGlues-release.aar" jni/*/libmobileglues.so)
+            unzip -p ZalithLauncher/libs/MobileGlues-release.aar jni/arm64-v8a/libmobileglues.so | strings | grep -m1 "ONA Renderer" && \
+              echo "ONA Renderer $tag inside"
+          else
+            echo "::warning::ONA Renderer release $tag not found (run the ONA Renderer workflow); this APK keeps the prebuilt MobileGlues"
+          fi
+
       # ONA: LWJGL/*/src changes only reach the game when the merged jars in assets are rebuilt
       - name: Check LWJGL jars carry the ONA patches
         run: |

@@ -46,9 +46,9 @@ object SmartRenderer : RendererInterface {
 
     override fun getRendererId(): String = NGGL4ESRenderer.getRendererId()
     override fun getUniqueIdentifier(): String = ID
-    override fun getRendererName(): String = "ONA Hybrid (Auto)"
+    override fun getRendererName(): String = "ONA Renderer"
     override fun getRendererSummary(): String =
-        "Krypton + GL4ES + MobileGlues + Zink in one: best engine per version, mods and GPU, tuned for each"
+        "ONA's own engine (MobileGlues built and tuned by ONA): one engine for every version from 1.17, with ONA Graphics"
     override fun getRendererEnv(): Lazy<Map<String, String>> = NGGL4ESRenderer.getRendererEnv()
     override fun getDlopenLibrary(): Lazy<List<String>> = NGGL4ESRenderer.getDlopenLibrary()
     override fun getRendererLibrary(): String = NGGL4ESRenderer.getRendererLibrary()
@@ -102,14 +102,12 @@ object SmartRenderer : RendererInterface {
                     if (anyVulkan) add(KopperZinkRenderer)
                     add(MobileGluesRenderer)
                 }
-                shaders || modernSodium || !mc.isLowerVer("1.21.5") -> {
-                    add(MobileGluesRenderer)
-                    if (goodVulkan) add(KopperZinkRenderer)
-                    add(NGGL4ESRenderer)
-                }
+                // ONA Renderer: one engine for every 1.17+ version, ONA's own MobileGlues build
+                // (tools/ona-renderer). The others are only used after it crashed on this version.
                 else -> {
-                    add(NGGL4ESRenderer)
                     add(MobileGluesRenderer)
+                    add(NGGL4ESRenderer)
+                    if (goodVulkan) add(KopperZinkRenderer)
                 }
             }
             if (goodVulkan) add(KopperZinkRenderer)
@@ -151,7 +149,9 @@ object SmartRenderer : RendererInterface {
         val shaders: Boolean,
         val sodiumLike: Boolean,
         val modCount: Int,
-        val physicsMod: Boolean = false
+        val physicsMod: Boolean = false,
+        /** the active shader pack is ONA Mobile Shaders */
+        val onaShaders: Boolean = false
     )
 
     fun situation(version: Version): Situation {
@@ -165,7 +165,11 @@ object SmartRenderer : RendererInterface {
             shaders = shaderMod || shaderPacks && sodiumLike,
             sodiumLike = sodiumLike,
             modCount = modNames.size,
-            physicsMod = modNames.any { it.contains("physics-mod") || it.contains("physicsmod") }
+            physicsMod = modNames.any { it.contains("physics-mod") || it.contains("physicsmod") },
+            onaShaders = runCatching {
+                com.movtery.zalithlauncher.utils.device.ShaderBoost.activeShaderPack(gameDir) ==
+                    com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME
+            }.getOrDefault(false)
         )
     }
 
@@ -176,12 +180,14 @@ object SmartRenderer : RendererInterface {
     fun mobileGluesTuning(situation: Situation): Map<String, ConfigScalar> = buildMap {
         // A bigger translated shader cache: shader packs and big packs stutter less after the first run
         val cacheMb = when {
+            situation.onaShaders -> 128
             situation.shaders -> 256
             situation.modCount >= 80 -> 128
             else -> 64
         }
         put("maxGlslCacheSize", ConfigScalar.IntValue(cacheMb))
-        if (situation.shaders) {
+        // ONA Mobile Shaders uses no compute shaders: no need to report 4.3 for it
+        if (situation.shaders && !situation.onaShaders) {
             // Newer shader packs (Complementary, Photon, Bliss...) use compute shaders, which Iris /
             // Oculus only run on OpenGL 4.3+: expose MobileGlues' compute support and report 4.3
             put("enableExtComputeShader", ConfigScalar.IntValue(1))

@@ -46,14 +46,14 @@
     <string name="ona_shaders_low">low</string>
     <string name="ona_shaders_medium">medium</string>
     <string name="ona_shaders_high">high</string>
-    <string name="ona_device_recommended">Best settings: resolution %1$d%% + %2$s, driver %3$s, render distance up to %4$d, about %5$d mods run comfortably, shaders up to %6$s. Renderer: ONA Hybrid picks it per version.</string>
+    <string name="ona_device_recommended">Best settings: resolution %1$d%% + %2$s, driver %3$s, render distance up to %4$d, about %5$d mods run comfortably, shaders up to %6$s. Renderer: ONA Renderer picks it per version.</string>
     <string name="ona_device_apply">Apply best settings</string>
     <string name="ona_device_applied">Best settings applied</string>
     <string name="ona_crash_header">ONA crash doctor:</string>
     <string name="ona_crash_renderer">The game crashed inside the renderer or the GPU driver</string>
-    <string name="ona_crash_renderer_fix">With the ONA Hybrid renderer the next launch of this version automatically uses another renderer. If you picked a renderer yourself, switch to ONA Hybrid or another renderer in the version settings. Lowering the resolution scale and turning shaders off also helps.</string>
+    <string name="ona_crash_renderer_fix">With the ONA Renderer renderer the next launch of this version automatically uses another renderer. If you picked a renderer yourself, switch to ONA Renderer or another renderer in the version settings. Lowering the resolution scale and turning shaders off also helps.</string>
     <string name="ona_crash_native">The game crashed in native code</string>
-    <string name="ona_crash_native_fix">Usually the renderer, the driver or a mod with native code. Try another renderer (ONA Hybrid switches automatically), then remove recently added mods.</string>
+    <string name="ona_crash_native_fix">Usually the renderer, the driver or a mod with native code. Try another renderer (ONA Renderer switches automatically), then remove recently added mods.</string>
     <string name="ona_crash_oom">The game ran out of memory</string>
     <string name="ona_crash_oom_fix">Give the game more RAM in the version settings (or turn on smart memory), lower the render distance, or remove heavy mods / shader packs.</string>
     <string name="ona_crash_heap">The RAM given to the game is more than the phone can reserve</string>
@@ -67,7 +67,7 @@
     <string name="ona_crash_java">Wrong Java version for this game or mod</string>
     <string name="ona_crash_java_fix">Turn on automatic Java selection, or pick a newer Java in the version settings.</string>
     <string name="ona_crash_graphics">The renderer could not create the game window</string>
-    <string name="ona_crash_graphics_fix">This renderer does not support this game version. Use ONA Hybrid or another renderer (MobileGlues for new versions, GL4ES for old ones).</string>
+    <string name="ona_crash_graphics_fix">This renderer does not support this game version. Use ONA Renderer or another renderer (MobileGlues for new versions, GL4ES for old ones).</string>
     <string name="ona_crash_shader">The shader pack failed to load</string>
     <string name="ona_crash_shader_fix">Pick a lighter shader pack, update Iris / Oculus, or use the MobileGlues renderer.</string>
     <string name="ona_mobile_mods_off">Switched off for %2$s (they crash it on phones): %1$s. They come back on with another renderer.</string>
@@ -134,9 +134,9 @@
     <string name="ona_guide_title">ONA guide</string>
     <string name="ona_guide_summary">What the launcher does for you and how to use each feature. Tap to open.</string>
     <string name="ona_guide_how_prefix">How to use:</string>
-    <string name="ona_guide_hybrid_title">ONA Hybrid renderer</string>
+    <string name="ona_guide_hybrid_title">ONA Renderer renderer</string>
     <string name="ona_guide_hybrid_what">Picks the best engine for every launch by itself: Krypton for older versions, MobileGlues for shaders, Sodium and new versions, GL4ES for very old versions and Zink for Voxy. If one crashes, the next launch uses another.</string>
-    <string name="ona_guide_hybrid_how">Renderer settings, Renderer, choose ONA Hybrid (Auto). Leave it there for all versions.</string>
+    <string name="ona_guide_hybrid_how">Renderer settings, Renderer, choose ONA Renderer. Leave it there for all versions.</string>
     <string name="ona_guide_upscaler_title">Upscaler (GSR / ASR)</string>
     <string name="ona_guide_upscaler_what">The game is drawn at a lower resolution, then the upscaler enlarges it to your screen and sharpens it. Fewer pixels to draw means much more FPS with almost the same look. GSR is made for Adreno (Snapdragon), ASR works on every phone.</string>
     <string name="ona_guide_upscaler_how">Upscaler = Auto, then lower the Resolution scale to 67-85%. Sharpness 40-60% looks best. Applies on the next game start.</string>
@@ -151,7 +151,7 @@
     <string name="ona_guide_mods_how">Keep Lighten heavy mods on. Turn it off to put the original settings back.</string>
     <string name="ona_guide_shaders_title">Shaders</string>
     <string name="ona_guide_shaders_what">Installing a shader pack also installs Iris or Oculus. Shader render targets the phone cannot draw into are converted when possible. Light packs run best: BSL, Complementary (Potato / Low), Sildur Vibrant Lite, MakeUp Ultra Fast.</string>
-    <string name="ona_guide_shaders_how">Download a shader pack into the version, use ONA Hybrid, then pick the pack in game (Options, Video, Shader Packs).</string>
+    <string name="ona_guide_shaders_how">Download a shader pack into the version, use ONA Renderer, then pick the pack in game (Options, Video, Shader Packs).</string>
     <string name="ona_guide_deps_title">Mods and their requirements</string>
     <string name="ona_guide_deps_what">When you install a mod or start a version, missing required mods are downloaded by themselves from Modrinth, also hidden ones like Forgelin for old Forge Kotlin mods. Mods are never deleted or turned off.</string>
     <string name="ona_guide_deps_how">Nothing to do. If a toast says something was installed, just start again.</string>

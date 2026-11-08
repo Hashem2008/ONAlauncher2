@@ -236,7 +236,8 @@ object MobileGluesRenderer : ConfigurableRenderer {
 
     override fun supportsSfpewByDefault(): Boolean = true
 
-    override fun getRendererName(): String = "MobileGlues"
+    // ONA: every APK carries ONA's own MobileGlues build (tools/ona-renderer, ona_renderer.yml)
+    override fun getRendererName(): String = "MobileGlues (ONA engine)"
 
     override fun getRendererSummary(): String = "OpenGL 4.0"
 
