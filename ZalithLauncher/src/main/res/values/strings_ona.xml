@@ -327,4 +327,21 @@
     <string name="ona_graphics_textures_downloading">Downloading %1$s…</string>
     <string name="ona_graphics_textures_added">%1$s on (on top of the other packs)</string>
     <string name="ona_graphics_textures_failed">%1$s could not be downloaded</string>
+    <string name="ona_section_device">Your device</string>
+    <string name="ona_section_fps">FPS</string>
+    <string name="ona_section_graphics">Shaders and textures</string>
+    <string name="ona_section_upscaler">Upscaler and frame generation</string>
+    <string name="ona_section_auto">Automatic speed-ups</string>
+    <string name="ona_section_resolution">Resolution and screen</string>
+    <string name="ona_section_renderer">Renderer and driver</string>
+    <string name="ona_section_advanced">Advanced</string>
+    <string name="ona_resource_setting_title">ONA Resource (textures for every version)</string>
+    <string name="ona_resource_setting_summary">Performance: light textures made on the phone, for more FPS. 16x to 512x+: a realistic pack of that size from Modrinth, made to work with ONA Mobile Shaders. Set up when a version starts.</string>
+    <string name="ona_resource_off">Off</string>
+    <string name="ona_resource_performance">Performance (more FPS)</string>
+    <string name="ona_resource_turned_off">ONA Resource off</string>
+    <string name="ona_resource_performance_on">ONA Resource: Performance pack on (light textures)</string>
+    <string name="ona_resource_pack_on">ONA Resource: %1$s (%2$s) on</string>
+    <string name="ona_resource_failed">ONA Resource %1$s could not be set up, it is tried again on the next start</string>
+    <string name="ona_graphics_optifine_capped">OptiFine: shadows at 2048 / 96 blocks for FPS (OptiFine is heavier than Iris on phones)</string>
 </resources>

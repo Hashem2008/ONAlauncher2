@@ -124,8 +124,14 @@ object OnaGraphics {
         onProgress(context.getString(R.string.ona_graphics_copying))
         val packsDir = File(gameDir, "shaderpacks").apply { mkdirs() }
         installPack(context, packsDir)
+        var options = profileOptions(context, level)
+        if (loader == Loader.OPTIFINE) {
+            val capped = optifineCaps(options)
+            if (capped != options) lines.add(context.getString(R.string.ona_graphics_optifine_capped))
+            options = capped
+        }
         File(packsDir, "$SHADER_NAME.txt").writeText(
-            profileOptions(context, level).entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
+            options.entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
         )
         selectShader(gameDir, loader)
         lines.add(context.getString(R.string.ona_graphics_level_set, context.getString(level.titleRes)))
@@ -186,6 +192,29 @@ object OnaGraphics {
             }
         }
         return options
+    }
+
+    /**
+     * OptiFine draws the world without Sodium and renders the whole shadow distance again for the
+     * shadow map, so on a phone the big levels are CPU bound (FPS low even at 25% resolution).
+     * Same look, lighter numbers: shadow map 2048 / 96 blocks, fewer samples, no mob shadows.
+     */
+    private fun optifineCaps(options: Map<String, String>): Map<String, String> {
+        val out = options.toMutableMap()
+        fun capInt(key: String, max: Int) {
+            out[key]?.toIntOrNull()?.let { if (it > max) out[key] = max.toString() }
+        }
+        fun capFloat(key: String, max: Float) {
+            out[key]?.toFloatOrNull()?.let { if (it > max) out[key] = max.toString() }
+        }
+        capInt("shadowMapResolution", 2048)
+        capFloat("shadowDistance", 96.0f)
+        capInt("SSAO_SAMPLES", 8)
+        capInt("SSR_STEPS", 16)
+        capInt("VL_STEPS", 8)
+        capInt("POM_SAMPLES", 8)
+        if (out["SHADOW_ENTITIES"] == "true") out["SHADOW_ENTITIES"] = "false"
+        return out
     }
 
     /** Checksum of the pack in the APK: changes whenever the shader code changes */
@@ -327,7 +356,7 @@ object OnaGraphics {
     }
 
     /** The vanilla client jar the version plays (its own, or the one it inherits) */
-    private fun clientJar(version: Version): File? {
+    internal fun clientJar(version: Version): File? {
         version.getClientJar().takeIf { it.isFile && hasTextures(it) }?.let { return it }
         val json = File(version.getVersionPath(), "${version.getVersionName()}.json")
         val inherits = runCatching {
@@ -442,7 +471,7 @@ object OnaGraphics {
         return true
     }
 
-    private fun writePng(out: ZipOutputStream, path: String, pixels: IntArray, w: Int, h: Int) {
+    internal fun writePng(out: ZipOutputStream, path: String, pixels: IntArray, w: Int, h: Int) {
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         bitmap.setPremultiplied(false) // the alpha channel carries data (emission), keep colours exact
         bitmap.setPixels(pixels, 0, w, 0, 0, w, h)
@@ -455,8 +484,11 @@ object OnaGraphics {
     }
 
     /** pack.mcmeta with the resource pack format of this very game version */
-    private fun packMeta(zip: ZipFile, version: Version): String {
-        val description = "ONA Mobile PBR: bumps, shine and glow for ONA Mobile Shaders"
+    internal fun packMeta(
+        zip: ZipFile,
+        version: Version,
+        description: String = "ONA Mobile PBR: bumps, shine and glow for ONA Mobile Shaders"
+    ): String {
         val pack = JsonObject().apply { addProperty("description", description) }
         val packVersion = runCatching {
             val json = zip.getInputStream(zip.getEntry("version.json")).use { it.readBytes().decodeToString() }

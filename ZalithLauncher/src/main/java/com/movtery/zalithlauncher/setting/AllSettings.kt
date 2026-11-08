@@ -542,6 +542,9 @@ object AllSettings : SettingsRegistry() {
     /** ONA Graphics for every version that can load shaders: OFF, AUTO or a level name */
     val onaGraphics = stringSetting("onaGraphics", "OFF")
 
+    /** ONA Resource for every version: OFF, PERFORMANCE or a texture size (16x ... 512x+) */
+    val onaResource = stringSetting("onaResource", "OFF")
+
     /** ONA: the build + device the "better APK for this device" advice was last shown for */
     val abiAdviceShown = stringSetting("onaAbiAdviceShown", "")
 

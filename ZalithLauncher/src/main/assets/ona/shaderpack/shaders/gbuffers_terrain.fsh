@@ -126,7 +126,7 @@ void main() {
         color += sunLight * onaSpecular(n, V, lightDir, smoothness, f0) * vis * outside * SPECULAR_STRENGTH;
         if (smoothness > 0.4) {
             vec3 r = reflect(-V, n);
-            vec3 sky = onaSky(r, normalize(sunPosition), up, skyColor, fogColor, rainStrength);
+            vec3 sky = onaUntonemap(onaSky(r, normalize(sunPosition), up, skyColor, fogColor, rainStrength)) / exposure;
             float fresnel = reflectance + (1.0 - reflectance) * pow(1.0 - max(dot(n, V), 0.0), 5.0);
             float amount = (smoothness - 0.4) / 0.6;
             color = mix(color, sky * (metal ? albedo.rgb * 1.4 : vec3(1.0)), clamp(fresnel * amount * lmcoord.y * SPECULAR_STRENGTH, 0.0, 0.8));

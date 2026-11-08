@@ -1,0 +1,38 @@
+Shader light balance, OptiFine FPS, ONA Resource setting, settings in sections (2026-11-08 j)
+
+User report (S26 Ultra, desert at noon): too bright, sand looks like snow; shader FPS bad on
+OptiFine 26.2; settings are hard to find; wants "Resource ONA" (performance, 16x ... 512x).
+
+Shader (assets/ona/shaderpack/shaders):
+- Why it looked like snow: a per-channel ACES curve pushed every bright colour to white, the blue
+  sky light (0.52,0.68,1.0) added to the warm sun made sunlit light neutral-blue, and bloom started
+  at 0.55 so every sunlit block glowed. Checked numerically: sand in the sun came out
+  (0.92,0.91,0.89) = white; grass (0.81,0.88,0.73) = washed out.
+- New onaTonemap (lib/common.glsl): extended Reinhard on the brightness only (x1.2, white 2.83),
+  hue kept, very bright colours roll to white without a hue shift. onaUntonemap for the sky colours
+  mixed before the curve (terrain wet/metal reflections, water reflections).
+- lib/light_vsh.glsl: noon sun (1.00,0.92,0.78)*1.20, sunset *0.90, day sky (0.80,0.88,1.00)*1.09:
+  sun + sky = white, so a sunlit block shows its own colour. Result: sand lit (0.87,0.82,0.62) =
+  vanilla, side (0.61,0.59,0.47), shadow (0.54,0.55,0.48); grass lit (0.50,0.74,0.33).
+- final.fsh bloom from 0.80 (was 0.55), x0.30: only the sun / lamps glow.
+- Water sun glint x10 (the sun is weaker now). SHADOW_ENTITIES referenced in shadow.vsh: it was an
+  "Invalid pack option" in Iris and OptiFine (menu entry missing).
+- tools/ona_shader_check.py 224/224.
+
+OptiFine: OnaGraphics.apply caps the level on OptiFine (no Sodium, shadow pass redraws the whole
+shadow distance: CPU bound even at 25% resolution): shadow map <= 2048, distance <= 96, SSAO <= 8,
+SSR <= 16, light shafts <= 8, parallax <= 8, no mob shadows. Toast ona_graphics_optifine_capped.
+
+ONA Resource (new, game/graphics/OnaResource.kt, AllSettings.onaResource, launcher setting):
+OFF / PERFORMANCE / 16x / 32x / 64x / 128x / 256x / 512x+, applied at launch before ONA Graphics
+(so the PBR maps follow it), only when the choice changed (stamp ona_resource.txt in the version).
+- PERFORMANCE: "ONA Performance Pack.zip" made on the phone from the client jar: block and item
+  textures at half size (alpha-weighted 2x2, cut-out stays cut-out), animated textures frozen on
+  their first frame except water / lava. Just above vanilla (OnaTexturePacks.enableAboveVanilla),
+  every other pack still wins. Remade when the game jar changes.
+- 16x...: OnaTexturePacks.search(size).first() installed on top (PBR packs first).
+- OFF / change: ONA's previous pack leaves resourcePacks (OnaTexturePacks.removePack), file kept.
+
+Settings (RendererSettingsScreen): same cards, now in titled sections: Your device, FPS, Shaders
+and textures (ONA Graphics, ONA Resource, shader boost), Upscaler and frame generation, Automatic
+speed-ups, Resolution and screen, Renderer and driver, Advanced. FPS moved right under the device.

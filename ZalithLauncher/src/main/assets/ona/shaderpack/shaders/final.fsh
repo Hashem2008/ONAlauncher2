@@ -29,8 +29,8 @@ void main() {
 #ifdef BLOOM
     // smaller mip levels are already blurred: two lookups instead of a blur pass
     vec3 b = texture2D(colortex0, texcoord, 3.0).rgb * 0.5 + texture2D(colortex0, texcoord, 5.0).rgb * 0.5;
-    b = max(b - 0.55, 0.0) / 0.45;
-    c += b * b * 0.35;
+    b = max(b - 0.80, 0.0) / 0.20;
+    c += b * b * 0.30;
 #endif
 #ifdef GODRAYS
     if (sunAmount > 0.0) {

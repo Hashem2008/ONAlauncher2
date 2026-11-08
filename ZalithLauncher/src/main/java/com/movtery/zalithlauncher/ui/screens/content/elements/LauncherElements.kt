@@ -679,6 +679,15 @@ fun LaunchGameOperation(
                         Toast.LENGTH_LONG
                     )
                 }
+                // ONA Resource: the textures picked in the settings (before the PBR maps, made from them)
+                val resource = withContext(Dispatchers.IO) {
+                    runCatching {
+                        com.movtery.zalithlauncher.game.graphics.OnaResource.applyOnLaunch(
+                            com.movtery.zalithlauncher.context.GlobalContext, version, AllSettings.onaResource.getValue()
+                        )
+                    }.getOrNull()
+                }
+                resource?.let { eventViewModel.sendToast(androidText(it), Toast.LENGTH_LONG) }
                 // ONA Graphics: ONA Mobile Shaders ready in every version that can load shaders, and
                 // switched on at the chosen level when the launcher setting says so
                 val graphics = withContext(Dispatchers.IO) {

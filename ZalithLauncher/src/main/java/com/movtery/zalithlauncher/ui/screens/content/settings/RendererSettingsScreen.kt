@@ -105,13 +105,14 @@ fun RendererSettingsScreen(
                 .padding(all = 12.dp),
             isVisible = isVisible
         ) {
-            // ONA: device report, recommendations and the upscaler
             AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .animated(ctx)
                 ) {
+                    SettingsSectionTitle(stringResource(R.string.ona_section_device))
+
                     OnaGuideCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top
@@ -124,12 +125,135 @@ fun RendererSettingsScreen(
 
                     OnaAdvisorCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle
+                        position = CardPosition.Bottom
+                    )
+                }
+            }
+
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    SettingsSectionTitle(stringResource(R.string.ona_section_fps))
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top,
+                        unit = AllSettings.sustainedPerformance,
+                        title = stringResource(R.string.settings_renderer_sustained_performance_title),
+                        summary = stringResource(R.string.settings_renderer_sustained_performance_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.requestMaxRefreshRate,
+                        title = stringResource(R.string.settings_renderer_max_refresh_rate_title),
+                        summary = stringResource(R.string.settings_renderer_max_refresh_rate_summary)
+                    )
+
+                    val fpsOff = stringResource(R.string.settings_ona_fps_cap_off)
+                    val fpsUnlimited = stringResource(R.string.settings_ona_fps_cap_unlimited)
+                    IntSliderSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.gameFpsCap,
+                        title = stringResource(R.string.settings_ona_fps_cap_title),
+                        summary = stringResource(R.string.settings_ona_fps_cap_summary),
+                        valueRange = AllSettings.gameFpsCap.floatRange,
+                        steps = 25,
+                        valueText = { value ->
+                            when (value.toInt()) {
+                                0 -> fpsOff
+                                260 -> fpsUnlimited
+                                else -> "${value.toInt()} FPS"
+                            }
+                        }
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.gameDisableVsync,
+                        title = stringResource(R.string.settings_ona_disable_vsync_title),
+                        summary = stringResource(R.string.settings_ona_disable_vsync_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.autoTuneMemory,
+                        title = stringResource(R.string.settings_ona_auto_memory_title),
+                        summary = stringResource(R.string.settings_ona_auto_memory_summary)
+                    )
+                }
+            }
+
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    SettingsSectionTitle(stringResource(R.string.ona_section_graphics))
+
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top,
+                        unit = AllSettings.onaGraphics,
+                        items = listOf("OFF", "AUTO") + com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.entries.map { it.name },
+                        title = stringResource(R.string.ona_graphics_setting_title),
+                        summary = stringResource(R.string.ona_graphics_setting_summary),
+                        getItemText = { id ->
+                            when (id) {
+                                "OFF" -> stringResource(R.string.ona_graphics_off)
+                                "AUTO" -> stringResource(R.string.ona_graphics_auto)
+                                else -> stringResource(com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.valueOf(id).titleRes)
+                            }
+                        },
+                        getItemId = { it }
                     )
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
+                        unit = AllSettings.onaResource,
+                        items = com.movtery.zalithlauncher.game.graphics.OnaResource.CHOICES,
+                        title = stringResource(R.string.ona_resource_setting_title),
+                        summary = stringResource(R.string.ona_resource_setting_summary),
+                        getItemText = { id ->
+                            when (id) {
+                                "OFF" -> stringResource(R.string.ona_resource_off)
+                                "PERFORMANCE" -> stringResource(R.string.ona_resource_performance)
+                                else -> id
+                            }
+                        },
+                        getItemId = { it }
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.shaderBoost,
+                        title = stringResource(R.string.ona_shader_boost_title),
+                        summary = stringResource(R.string.ona_shader_boost_summary)
+                    )
+                }
+            }
+
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    SettingsSectionTitle(stringResource(R.string.ona_section_upscaler))
+
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top,
                         unit = AllSettings.upscalerMode,
                         items = UpscalerMode.entries,
                         title = stringResource(R.string.ona_upscaler_title),
@@ -157,17 +281,27 @@ fun RendererSettingsScreen(
 
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
+                        position = CardPosition.Bottom,
                         unit = AllSettings.frameGenClarity,
                         title = stringResource(R.string.ona_frame_gen_clarity_title),
                         summary = stringResource(R.string.ona_frame_gen_clarity_summary),
                         valueRange = AllSettings.frameGenClarity.floatRange,
                         suffix = "%"
                     )
+                }
+            }
+
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    SettingsSectionTitle(stringResource(R.string.ona_section_auto))
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
+                        position = CardPosition.Top,
                         unit = AllSettings.autoSettings,
                         title = stringResource(R.string.ona_auto_settings_title),
                         summary = stringResource(R.string.ona_auto_settings_summary)
@@ -187,31 +321,6 @@ fun RendererSettingsScreen(
                         unit = AllSettings.boostGameThreads,
                         title = stringResource(R.string.ona_boost_threads_title),
                         summary = stringResource(R.string.ona_boost_threads_summary)
-                    )
-
-                    ListSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.onaGraphics,
-                        items = listOf("OFF", "AUTO") + com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.entries.map { it.name },
-                        title = stringResource(R.string.ona_graphics_setting_title),
-                        summary = stringResource(R.string.ona_graphics_setting_summary),
-                        getItemText = { id ->
-                            when (id) {
-                                "OFF" -> stringResource(R.string.ona_graphics_off)
-                                "AUTO" -> stringResource(R.string.ona_graphics_auto)
-                                else -> stringResource(com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.valueOf(id).titleRes)
-                            }
-                        },
-                        getItemId = { it }
-                    )
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.shaderBoost,
-                        title = stringResource(R.string.ona_shader_boost_title),
-                        summary = stringResource(R.string.ona_shader_boost_summary)
                     )
 
                     SwitchSettingsCard(
@@ -246,6 +355,88 @@ fun RendererSettingsScreen(
                         .fillMaxWidth()
                         .animated(ctx)
                 ) {
+                    SettingsSectionTitle(stringResource(R.string.ona_section_resolution))
+
+                    val context = LocalContext.current
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // 分辨率规则
+                        val resolutionRule = AllSettings.resolutionRule.state
+                        ListSettingsCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = CardPosition.Top,
+                            unit = AllSettings.resolutionRule,
+                            items = ResolutionRule.entries,
+                            title = stringResource(R.string.settings_renderer_resolution_rule_title),
+                            summary = stringResource(R.string.settings_renderer_resolution_rule_summary),
+                            getItemText = { stringResource(it.nameRes) },
+                            onValueChange = { rule ->
+                                // 自定义分辨率尚未初始化时，以屏幕真实宽高填充
+                                if (rule == ResolutionRule.CUSTOM) {
+                                    ensureCustomResolutionInitialized(context)
+                                }
+                            }
+                        )
+
+                        // 百分比分辨率
+                        AnimatedVisibility(
+                            visible = resolutionRule == ResolutionRule.PERCENTAGE,
+                            enter = fadeIn(animationSpec = getAnimateTween()) +
+                                    expandVertically(animationSpec = getAnimateTween()),
+                            exit = fadeOut(animationSpec = getAnimateTween()) +
+                                    shrinkVertically(animationSpec = getAnimateTween())
+                        ) {
+                            IntSliderSettingsCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 2.dp),
+                                position = CardPosition.Middle,
+                                unit = AllSettings.resolutionRatio,
+                                title = stringResource(R.string.settings_renderer_resolution_scale_title),
+                                summary = stringResource(R.string.settings_renderer_resolution_scale_summary),
+                                valueRange = AllSettings.resolutionRatio.floatRange,
+                                suffix = "%",
+                                fineTuningControl = true
+                            )
+                        }
+
+                        // 自定义分辨率
+                        AnimatedVisibility(
+                            visible = resolutionRule == ResolutionRule.CUSTOM,
+                            enter = fadeIn(animationSpec = getAnimateTween()) +
+                                    expandVertically(animationSpec = getAnimateTween()),
+                            exit = fadeOut(animationSpec = getAnimateTween()) +
+                                    shrinkVertically(animationSpec = getAnimateTween())
+                        ) {
+                            CustomResolutionSettingsCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 2.dp),
+                                position = CardPosition.Middle
+                            )
+                        }
+                    }
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.gameFullScreen,
+                        title = stringResource(R.string.settings_renderer_full_screen_title),
+                        summary = stringResource(R.string.settings_renderer_full_screen_summary)
+                    )
+                }
+            }
+
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    SettingsSectionTitle(stringResource(R.string.ona_section_renderer))
+
                     val currentRendererId = AllSettings.renderer.state
                     val currentRenderer = remember(currentRendererId) {
                         Renderers.getRenderers()
@@ -387,141 +578,14 @@ fun RendererSettingsScreen(
                         .fillMaxWidth()
                         .animated(ctx)
                 ) {
-                    val context = LocalContext.current
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // 分辨率规则
-                        val resolutionRule = AllSettings.resolutionRule.state
-                        ListSettingsCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Top,
-                            unit = AllSettings.resolutionRule,
-                            items = ResolutionRule.entries,
-                            title = stringResource(R.string.settings_renderer_resolution_rule_title),
-                            summary = stringResource(R.string.settings_renderer_resolution_rule_summary),
-                            getItemText = { stringResource(it.nameRes) },
-                            onValueChange = { rule ->
-                                // 自定义分辨率尚未初始化时，以屏幕真实宽高填充
-                                if (rule == ResolutionRule.CUSTOM) {
-                                    ensureCustomResolutionInitialized(context)
-                                }
-                            }
-                        )
-
-                        // 百分比分辨率
-                        AnimatedVisibility(
-                            visible = resolutionRule == ResolutionRule.PERCENTAGE,
-                            enter = fadeIn(animationSpec = getAnimateTween()) +
-                                    expandVertically(animationSpec = getAnimateTween()),
-                            exit = fadeOut(animationSpec = getAnimateTween()) +
-                                    shrinkVertically(animationSpec = getAnimateTween())
-                        ) {
-                            IntSliderSettingsCard(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 2.dp),
-                                position = CardPosition.Middle,
-                                unit = AllSettings.resolutionRatio,
-                                title = stringResource(R.string.settings_renderer_resolution_scale_title),
-                                summary = stringResource(R.string.settings_renderer_resolution_scale_summary),
-                                valueRange = AllSettings.resolutionRatio.floatRange,
-                                suffix = "%",
-                                fineTuningControl = true
-                            )
-                        }
-
-                        // 自定义分辨率
-                        AnimatedVisibility(
-                            visible = resolutionRule == ResolutionRule.CUSTOM,
-                            enter = fadeIn(animationSpec = getAnimateTween()) +
-                                    expandVertically(animationSpec = getAnimateTween()),
-                            exit = fadeOut(animationSpec = getAnimateTween()) +
-                                    shrinkVertically(animationSpec = getAnimateTween())
-                        ) {
-                            CustomResolutionSettingsCard(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 2.dp),
-                                position = CardPosition.Middle
-                            )
-                        }
-                    }
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
-                        unit = AllSettings.gameFullScreen,
-                        title = stringResource(R.string.settings_renderer_full_screen_title),
-                        summary = stringResource(R.string.settings_renderer_full_screen_summary)
-                    )
-                }
-            }
-
-            AnimatedItem { ctx ->
-                SettingsCardColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animated(ctx)
-                ) {
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Top,
-                        unit = AllSettings.sustainedPerformance,
-                        title = stringResource(R.string.settings_renderer_sustained_performance_title),
-                        summary = stringResource(R.string.settings_renderer_sustained_performance_summary)
-                    )
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.requestMaxRefreshRate,
-                        title = stringResource(R.string.settings_renderer_max_refresh_rate_title),
-                        summary = stringResource(R.string.settings_renderer_max_refresh_rate_summary)
-                    )
-
-                    val fpsOff = stringResource(R.string.settings_ona_fps_cap_off)
-                    val fpsUnlimited = stringResource(R.string.settings_ona_fps_cap_unlimited)
-                    IntSliderSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.gameFpsCap,
-                        title = stringResource(R.string.settings_ona_fps_cap_title),
-                        summary = stringResource(R.string.settings_ona_fps_cap_summary),
-                        valueRange = AllSettings.gameFpsCap.floatRange,
-                        steps = 25,
-                        valueText = { value ->
-                            when (value.toInt()) {
-                                0 -> fpsOff
-                                260 -> fpsUnlimited
-                                else -> "${value.toInt()} FPS"
-                            }
-                        }
-                    )
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.gameDisableVsync,
-                        title = stringResource(R.string.settings_ona_disable_vsync_title),
-                        summary = stringResource(R.string.settings_ona_disable_vsync_summary)
-                    )
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.autoTuneMemory,
-                        title = stringResource(R.string.settings_ona_auto_memory_title),
-                        summary = stringResource(R.string.settings_ona_auto_memory_summary)
-                    )
+                    SettingsSectionTitle(stringResource(R.string.ona_section_advanced))
 
                     if (checkVulkanSupport(LocalContext.current.packageManager)) {
                         var adrenoGPUAlert by remember { mutableStateOf(false) }
 
                         SwitchSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Middle,
+                            position = CardPosition.Top,
                             unit = AllSettings.zinkPreferSystemDriver,
                             title = stringResource(R.string.settings_renderer_vulkan_driver_system_title),
                             summary = stringResource(R.string.settings_renderer_vulkan_driver_system_summary),
@@ -565,6 +629,17 @@ fun RendererSettingsScreen(
             }
         }
     }
+}
+
+/** ONA: a title above each group of settings, so things are easy to find */
+@Composable
+private fun SettingsSectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 8.dp, top = 12.dp, bottom = 6.dp)
+    )
 }
 
 @Composable

@@ -14,6 +14,10 @@ uniform float rainStrength;
 varying vec2 texcoord;
 varying vec4 glcolor;
 
+#ifdef SHADOW_ENTITIES
+// mobs and players cast shadows (shadowEntities in shaders.properties)
+#endif
+
 void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     glcolor = gl_Color;

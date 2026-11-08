@@ -96,6 +96,39 @@ object OnaTexturePacks {
         return JsonParser.parseString(get(url)).asJsonArray
     }
 
+    /** options.txt: takes [id] out of resourcePacks (the file stays) */
+    internal fun removePack(gameDir: File, id: String) {
+        val options = File(gameDir, "options.txt")
+        if (!options.isFile) return
+        val lines = options.readLines().toMutableList()
+        val index = lines.indexOfFirst { it.startsWith("resourcePacks:") }
+        if (index < 0) return
+        val list = runCatching { JsonParser.parseString(lines[index].substringAfter(':')).asJsonArray }.getOrNull() ?: return
+        val kept = JsonArray()
+        list.forEach { if (it.asString != id) kept.add(it) }
+        if (kept.size() == list.size()) return
+        lines[index] = "resourcePacks:$kept"
+        options.writeText(lines.joinToString("\n", postfix = "\n"))
+    }
+
+    /** options.txt: [id] just above the game's own textures, so every other pack still wins */
+    internal fun enableAboveVanilla(gameDir: File, id: String) {
+        val options = File(gameDir, "options.txt")
+        val lines = if (options.isFile) options.readLines().toMutableList() else mutableListOf()
+        val index = lines.indexOfFirst { it.startsWith("resourcePacks:") }
+        val list = runCatching { JsonParser.parseString(lines[index].substringAfter(':')).asJsonArray }.getOrNull()
+            ?: JsonArray().apply { add("vanilla") }
+        val ids = list.mapNotNull { runCatching { it.asString }.getOrNull() }.filter { it != id }.toMutableList()
+        if ("vanilla" !in ids) ids.add(0, "vanilla")
+        // after the built-in packs (vanilla, fabric, mod resources), before the first file pack
+        val firstFile = ids.indexOfFirst { it.startsWith("file/") }.let { if (it < 0) ids.size else it }
+        ids.add(maxOf(firstFile, ids.indexOf("vanilla") + 1), id)
+        val out = JsonArray().apply { ids.forEach { add(it) } }
+        val line = "resourcePacks:$out"
+        if (index >= 0) lines[index] = line else lines.add(line)
+        options.writeText(lines.joinToString("\n", postfix = "\n"))
+    }
+
     /** options.txt: the pack last in resourcePacks (highest priority), out of the incompatible list */
     private fun enableOnTop(gameDir: File, id: String) {
         val options = File(gameDir, "options.txt")

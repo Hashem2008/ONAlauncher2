@@ -6,12 +6,31 @@ vec2 onaDistort(vec2 p) {
 }
 
 // Narkowicz ACES fit: bright light rolls off softly instead of clipping to white
-vec3 onaTonemap(vec3 x) {
-    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
-}
-
 float onaLuma(vec3 c) {
     return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
+
+// Tone curve on the brightness only (extended Reinhard, white at 2.83), so colours keep their hue:
+// sand stays sand-coloured in the noon sun instead of turning white like snow (a per-channel curve
+// pushed every bright colour towards white). Sunlit surfaces land on their vanilla colour.
+vec3 onaTonemap(vec3 x) {
+    x *= 1.2;
+    float l = onaLuma(x);
+    vec3 c = x * ((1.0 + l * 0.125) / (1.0 + l));
+    float m = max(c.r, max(c.g, c.b));
+    if (m > 1.0) {
+        // too bright for the screen: towards white, without a hue shift
+        float over = m - 1.0;
+        c = mix(c / m, vec3(1.0), over / (over + 1.0) * 0.6);
+    }
+    return clamp(c, 0.0, 1.0);
+}
+
+// The way back, for colours that are already on screen terms (the sky) mixed before the tone curve
+vec3 onaUntonemap(vec3 c) {
+    float l = clamp(onaLuma(c), 1e-4, 0.97);
+    float y = (sqrt((1.0 - l) * (1.0 - l) + l * 0.5) - (1.0 - l)) * 4.0;
+    return c * (y / l) / 1.2;
 }
 
 // interleaved gradient noise: a different offset per pixel, no texture needed

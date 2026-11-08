@@ -327,4 +327,21 @@
     <string name="ona_graphics_textures_downloading">بنزل %1$s…</string>
     <string name="ona_graphics_textures_added">%1$s اشتغل (فوق باقي الباكات)</string>
     <string name="ona_graphics_textures_failed">ما قدرت أنزل %1$s</string>
+    <string name="ona_section_device">جهازك</string>
+    <string name="ona_section_fps">الفريمات</string>
+    <string name="ona_section_graphics">الشيدر والنقوش</string>
+    <string name="ona_section_upscaler">رفع الدقة وتوليد الفريمات</string>
+    <string name="ona_section_auto">تسريع تلقائي</string>
+    <string name="ona_section_resolution">الدقة والشاشة</string>
+    <string name="ona_section_renderer">المحرك والدرايفر</string>
+    <string name="ona_section_advanced">متقدم</string>
+    <string name="ona_resource_setting_title">ريسورس ONA (النقوش لكل النسخ)</string>
+    <string name="ona_resource_setting_summary">أداء: نقوش خفيفة بتنعمل على الجوال عشان فريمات أكثر. من 16x لـ 512x+: ريسورس باك واقعي بهالحجم من Modrinth، بيشتغل مع شيدر ONA. بينزل أول ما تشغل النسخة.</string>
+    <string name="ona_resource_off">مطفأ</string>
+    <string name="ona_resource_performance">أداء (فريمات أكثر)</string>
+    <string name="ona_resource_turned_off">ريسورس ONA انطفى</string>
+    <string name="ona_resource_performance_on">ريسورس ONA: باك الأداء اشتغل (نقوش خفيفة)</string>
+    <string name="ona_resource_pack_on">ريسورس ONA: %1$s (%2$s) اشتغل</string>
+    <string name="ona_resource_failed">ريسورس ONA %1$s ما زبط، رح يجرب مرة ثانية بالتشغيل الجاي</string>
+    <string name="ona_graphics_optifine_capped">أوبتيفاين: الظلال صارت 2048 و 96 بلوك عشان الفريمات (أوبتيفاين أثقل من Iris على الجوال)</string>
 </resources>

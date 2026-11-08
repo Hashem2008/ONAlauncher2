@@ -86,12 +86,12 @@ void main() {
 #ifdef WATER_REFLECTIONS
         vec3 V = normalize(-viewPos);
         float fresnel = 0.02 + 0.98 * pow(1.0 - max(dot(n, V), 0.0), 5.0);
-        vec3 sky = onaSky(reflect(-V, n), normalize(sunPosition), up, skyColor, fogColor, rainStrength);
+        vec3 sky = onaUntonemap(onaSky(reflect(-V, n), normalize(sunPosition), up, skyColor, fogColor, rainStrength)) / exposure;
         float outside = lmcoord.y * lmcoord.y;
         color = mix(color, sky, clamp(fresnel * 1.2, 0.0, 0.85) * outside);
         alpha = mix(alpha, 1.0, fresnel * outside * 0.6);
         vec3 H = normalize(lightDir + V);
-        color += sunLight * pow(max(dot(n, H), 0.0), 220.0) * 6.0 * vis * outside;
+        color += sunLight * pow(max(dot(n, H), 0.0), 220.0) * 10.0 * vis * outside;
 #endif
     } else {
         color = onaShade(albedo.rgb, n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0);

@@ -520,6 +520,14 @@ INSTALLERS + MOD BREAKS (2026-11-08 i)
   "breaks" and swaps to a build that fits (sodium beta.3). ONA_CHANGES/2026-11-08i_installers-java-and-mod-breaks.txt.
   CI run 42504033996 (f859170) SUCCESS, 4 APKs. Next: user confirms Forge 1.20.1, OptiFine 26.2, BMC4 modpack, Iris.
 
+SHADER LIGHT + OPTIFINE + ONA RESOURCE + SETTINGS SECTIONS (2026-11-08 j)
+- Desert looked like snow (per-channel ACES + blue sky light + low bloom threshold): new hue-keeping
+  tone curve and balanced sun/sky, bloom from 0.80. OptiFine levels capped (shadows 2048/96...).
+  New launcher setting ONA Resource (Performance pack made on the phone, or Modrinth 16x..512x+).
+  Renderer settings grouped in titled sections. ONA_CHANGES/2026-11-08j_shader-light-optifine-resource-settings.txt.
+  CI: see the next handoff commit. Not device-tested: ask for desert/forest screenshots + F3 FPS
+  (Iris and OptiFine), and whether ONA Resource Performance gives more FPS.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -586,3 +594,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (و+ز): الشيدر v3 (دمج مع Patrix، سماء مصلحة) و v4 (توهج الخامات، لمعان السيارات والمخلوقات، أجزاء من مطفأ لأقصى لكل جزء). بيلد v3 و v4 نجحوا.
 - 2026-11-08 (ح): لغينا v4 ورجعنا v3 لأنه أسرع (طلب المستخدم). البيلد نجح.
 - 2026-11-08 (ط): تنزيل فورج وأوبتيفاين والمودباكات صار ينزّل الجافا أول (كان فاشل بنسخة Performance)، وتصليح تعارض Sodium مع Iris لحاله. البيلد نجح.
+- 2026-11-08 (ي): الشيدر ما عاد يبيّض الصحراء (ألوان طبيعية)، أوبتيفاين أخف، ريسورس ONA جديد بالإعدادات (أداء / 16x لـ 512x)، والإعدادات صارت مقسمة بعناوين.
