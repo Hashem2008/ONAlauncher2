@@ -295,9 +295,9 @@
     <string name="ona_graphics_summary">شيدر ONA الخاص بالجوالات، وريسورس باك بينعمل من نقوش لعبتك (بروز ولمعان وتوهج)، بيتركبوا مع بعض. اختار المستوى:</string>
     <string name="ona_graphics_potato">بطاطا (أضعف الجوالات، تقريباً بدون ما ينقص فريمات)</string>
     <string name="ona_graphics_low">منخفض (نباتات بتتحرك، مي أحلى)</string>
-    <string name="ona_graphics_medium">متوسط (+ ظلال خفيفة، أسطح بارزة)</string>
-    <string name="ona_graphics_high">عالي (+ ظلال ناعمة، لمعان، توهج)</string>
-    <string name="ona_graphics_ultra">ألترا (+ أوضح ظلال، أشعة الشمس)</string>
+    <string name="ona_graphics_medium">متوسط (+ ظلال خفيفة، أسطح بارزة، تكيّف العين)</string>
+    <string name="ona_graphics_high">عالي (+ ظلال ناعمة، لمعان، توهج، ماي عميقة، ضو من ورا الأوراق)</string>
+    <string name="ona_graphics_ultra">ألترا (+ ظلال أوضح، أشعة الشمس)</string>
     <string name="ona_graphics_off">إطفاء</string>
     <string name="ona_graphics_recommended">(المناسب لجهازك)</string>
     <string name="ona_graphics_apply">تطبيق</string>
@@ -313,4 +313,17 @@
     <string name="ona_graphics_pbr_failed">ما قدرت أعمل ONA Mobile PBR: العب النسخة مرة وبعدين جرب</string>
     <string name="ona_graphics_making_pbr">بعمل ONA Mobile PBR من نقوش لعبتك…</string>
     <string name="ona_graphics_making_pbr_progress">بعمل ONA Mobile PBR: %1$d / %2$d</string>
+    <string name="ona_graphics_realistic">واقعي (+ سما واقعية، أشعة ضو بالهوا، الأرض بتتبلل بالمطر)</string>
+    <string name="ona_graphics_ultra_realistic">واقعي جداً (+ ظل الزوايا، الماي بيعكس العالم)</string>
+    <string name="ona_graphics_impossible">مستحيل (كلشي بأعلى إشي: بس لأقوى الجوالات)</string>
+    <string name="ona_graphics_auto">تلقائي (المناسب لجهازك)</string>
+    <string name="ona_graphics_setting_title">جرافيك ONA لكل النسخ</string>
+    <string name="ona_graphics_setting_summary">بيشغّل ONA Mobile Shaders (ومن متوسط وطالع ONA Mobile PBR) أول ما تفتح أي نسخة فيها Iris أو Oculus أو OptiFine أو لودر مودات (بيضيف Iris لحاله). إطفاء: الشيدر بيضل موجود بقائمة الشيدرات باللعبة بس.</string>
+    <string name="ona_graphics_textures">النقوش (من Modrinth)</string>
+    <string name="ona_graphics_textures_keep">خليها</string>
+    <string name="ona_graphics_textures_searching">بدور على باكات واقعية…</string>
+    <string name="ona_graphics_textures_none">ما لقيت باك بهاد الحجم</string>
+    <string name="ona_graphics_textures_downloading">بنزل %1$s…</string>
+    <string name="ona_graphics_textures_added">%1$s اشتغل (فوق باقي الباكات)</string>
+    <string name="ona_graphics_textures_failed">ما قدرت أنزل %1$s</string>
 </resources>

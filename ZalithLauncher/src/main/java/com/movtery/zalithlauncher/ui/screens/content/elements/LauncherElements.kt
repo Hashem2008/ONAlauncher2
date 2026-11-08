@@ -679,14 +679,23 @@ fun LaunchGameOperation(
                         Toast.LENGTH_LONG
                     )
                 }
-                // ONA Graphics: ONA Mobile Shaders ready in every version that can load shaders
-                withContext(Dispatchers.IO) {
+                // ONA Graphics: ONA Mobile Shaders ready in every version that can load shaders, and
+                // switched on at the chosen level when the launcher setting says so
+                val graphics = withContext(Dispatchers.IO) {
                     runCatching {
-                        com.movtery.zalithlauncher.game.graphics.OnaGraphics.offerPack(
-                            com.movtery.zalithlauncher.context.GlobalContext, version
-                        )
-                    }
+                        val ona = com.movtery.zalithlauncher.game.graphics.OnaGraphics
+                        val context = com.movtery.zalithlauncher.context.GlobalContext
+                        when (val mode = AllSettings.onaGraphics.getValue()) {
+                            "OFF" -> { ona.offerPack(context, version); null }
+                            else -> {
+                                val level = if (mode == "AUTO") ona.autoLevel(DeviceProfiler.current()?.tier ?: DeviceTier.MID)
+                                else com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.valueOf(mode)
+                                ona.applyOnLaunch(context, version, level)
+                            }
+                        }
+                    }.getOrNull()
                 }
+                graphics?.let { eventViewModel.sendToast(androidText(it.lines.joinToString("\n")), Toast.LENGTH_LONG) }
                 // ONA: modded versions without Sodium / Embeddium get the one that fits (much more FPS)
                 val speedMods = withContext(Dispatchers.IO) {
                     runCatching { com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.ensure(version) }.getOrDefault(emptyList())

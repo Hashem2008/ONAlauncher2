@@ -20,8 +20,8 @@ void main() {
     vec4 view = gl_ModelViewMatrix * gl_Vertex;
     viewPos = view.xyz;
     gl_Position = gl_ProjectionMatrix * view;
-#ifdef SHADOWS
-    onaShadowPos((gbufferModelViewInverse * view).xyz, mat3(gbufferModelViewInverse) * normal);
-#endif
     onaLightColors();
+#ifdef SHADOWS
+    onaShadowPos((gbufferModelViewInverse * view).xyz, mat3(gbufferModelViewInverse) * normal, dot(normal, lightDir));
+#endif
 }

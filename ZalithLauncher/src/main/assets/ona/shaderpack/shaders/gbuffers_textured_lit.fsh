@@ -29,7 +29,7 @@ void main() {
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
 #endif
-    vec3 color = onaTonemap(onaShade(albedo.rgb, n, lmcoord, vis, 1.0));
+    vec3 color = onaTonemap(onaShade(albedo.rgb, n, lmcoord, vis, 1.0) * exposure);
     float d = length(viewPos) / far;
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);

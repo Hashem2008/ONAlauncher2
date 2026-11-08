@@ -29,8 +29,8 @@ void main() {
     worldPos = playerPos.xyz + cameraPosition;
     viewPos = view.xyz;
     gl_Position = gl_ProjectionMatrix * view;
-#ifdef SHADOWS
-    onaShadowPos(playerPos.xyz, mat3(gbufferModelViewInverse) * normal);
-#endif
     onaLightColors();
+#ifdef SHADOWS
+    onaShadowPos(playerPos.xyz, mat3(gbufferModelViewInverse) * normal, dot(normal, lightDir));
+#endif
 }

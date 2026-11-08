@@ -42,33 +42,20 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-/** ONA Graphics levels, the profiles of "ONA Mobile Shaders" */
-enum class OnaGraphicsLevel(@StringRes val titleRes: Int, val options: Map<String, String>) {
-    POTATO(R.string.ona_graphics_potato, levelOptions(false, 0, false, false, false, 0, false, false, 512, "32.0")),
-    LOW(R.string.ona_graphics_low, levelOptions(false, 0, true, true, true, 0, false, false, 512, "32.0")),
-    MEDIUM(R.string.ona_graphics_medium, levelOptions(true, 0, true, true, true, 1, false, false, 512, "48.0")),
-    HIGH(R.string.ona_graphics_high, levelOptions(true, 1, true, true, true, 2, true, false, 1024, "64.0")),
-    ULTRA(R.string.ona_graphics_ultra, levelOptions(true, 2, true, true, true, 2, true, true, 2048, "96.0"));
+/** ONA Graphics levels = the profiles of "ONA Mobile Shaders" (shaders.properties), weakest first */
+enum class OnaGraphicsLevel(@StringRes val titleRes: Int) {
+    POTATO(R.string.ona_graphics_potato),
+    LOW(R.string.ona_graphics_low),
+    MEDIUM(R.string.ona_graphics_medium),
+    HIGH(R.string.ona_graphics_high),
+    ULTRA(R.string.ona_graphics_ultra),
+    REALISTIC(R.string.ona_graphics_realistic),
+    ULTRA_REALISTIC(R.string.ona_graphics_ultra_realistic),
+    IMPOSSIBLE(R.string.ona_graphics_impossible);
 
     /** From MEDIUM up the shader reads the PBR maps (bumps, shine, glow) */
     val usesPbr: Boolean get() = ordinal >= MEDIUM.ordinal
 }
-
-private fun levelOptions(
-    shadows: Boolean, filter: Int, waving: Boolean, waves: Boolean, reflections: Boolean,
-    pbr: Int, bloom: Boolean, godrays: Boolean, shadowRes: Int, shadowDistance: String
-) = linkedMapOf(
-    "SHADOWS" to shadows.toString(),
-    "SHADOW_FILTER" to filter.toString(),
-    "WAVING_PLANTS" to waving.toString(),
-    "WATER_WAVES" to waves.toString(),
-    "WATER_REFLECTIONS" to reflections.toString(),
-    "PBR" to pbr.toString(),
-    "BLOOM" to bloom.toString(),
-    "GODRAYS" to godrays.toString(),
-    "shadowMapResolution" to shadowRes.toString(),
-    "shadowDistance" to shadowDistance,
-)
 
 /**
  * ONA Graphics: "ONA Mobile Shaders" (ONA's own shader pack, made for phone GPUs, in the APK
@@ -138,7 +125,7 @@ object OnaGraphics {
         val packsDir = File(gameDir, "shaderpacks").apply { mkdirs() }
         installPack(context, packsDir)
         File(packsDir, "$SHADER_NAME.txt").writeText(
-            level.options.entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
+            profileOptions(context, level).entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
         )
         selectShader(gameDir, loader)
         lines.add(context.getString(R.string.ona_graphics_level_set, context.getString(level.titleRes)))
@@ -176,12 +163,30 @@ object OnaGraphics {
         val options = File(packsDir, "$SHADER_NAME.txt")
         if (!options.isFile) {
             val tier = com.movtery.zalithlauncher.utils.device.DeviceProfiler.current()?.tier ?: DeviceTier.MID
-            options.writeText(autoLevel(tier).options.entries.joinToString("\n", postfix = "\n") { (k, v) -> "$k=$v" })
+            options.writeText(profileOptions(context, autoLevel(tier)).entries.joinToString("\n", postfix = "\n") { (k, v) -> "$k=$v" })
         }
         Logger.info(TAG, "${version.getVersionName()}: $SHADER_NAME ready in the shader list")
     }
 
     private const val REVISION_FILE = "ona_revision.txt"
+
+    /**
+     * The option values of a level, read from the pack's own shaders.properties
+     * ("profile.HIGH=SHADOWS !GODRAYS PBR=2 ..."), so the launcher and the in-game profile agree.
+     */
+    fun profileOptions(context: Context, level: OnaGraphicsLevel): Map<String, String> {
+        val properties = context.assets.open("$ASSET_DIR/shaders/shaders.properties").use { it.readBytes().decodeToString() }
+        val line = properties.lines().firstOrNull { it.startsWith("profile.${level.name}=") } ?: return emptyMap()
+        val options = linkedMapOf<String, String>()
+        line.substringAfter('=').trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.forEach { token ->
+            when {
+                token.contains('=') -> options[token.substringBefore('=')] = token.substringAfter('=')
+                token.startsWith("!") -> options[token.substring(1)] = "false"
+                else -> options[token] = "true"
+            }
+        }
+        return options
+    }
 
     /** Checksum of the pack in the APK: changes whenever the shader code changes */
     private fun packRevision(context: Context): String {
@@ -202,6 +207,28 @@ object OnaGraphics {
         packDir.deleteRecursively()
         copyAssets(context, ASSET_DIR, packDir)
         File(packDir, REVISION_FILE).writeText(packRevision(context))
+    }
+
+    /**
+     * The launcher setting "ONA Graphics" (not OFF): every launch of a version that can load
+     * shaders runs with ONA Mobile Shaders at that level. The full setup (loader, pack, options,
+     * PBR) runs when the level or the pack changed; otherwise only "shaders on, our pack" is kept.
+     * Versions without a mod loader are left alone.
+     * @return what was done (for a toast), or null when nothing needed doing
+     */
+    suspend fun applyOnLaunch(context: Context, version: Version, level: OnaGraphicsLevel): Result? = withContext(Dispatchers.IO) {
+        if (version.modEnvironment()?.loader == null && detectLoader(version) == Loader.NONE) return@withContext null
+        val stamp = File(version.getVersionPath(), "ona_graphics.txt")
+        val wanted = "${level.name}|${packRevision(context)}"
+        val loader = detectLoader(version)
+        if (loader != Loader.NONE && runCatching { stamp.readText().trim() }.getOrNull() == wanted) {
+            selectShader(version.getGameDir(), loader)
+            setPbrPack(version.getGameDir(), enabled = level.usesPbr && File(version.getGameDir(), "resourcepacks/$PBR_FILE").isFile)
+            return@withContext null
+        }
+        val result = apply(context, version, level) { }
+        if (result.ok) stamp.writeText(wanted)
+        result
     }
 
     private fun detectLoader(version: Version): Loader {

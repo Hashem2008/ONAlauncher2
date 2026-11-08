@@ -189,6 +189,23 @@ fun RendererSettingsScreen(
                         summary = stringResource(R.string.ona_boost_threads_summary)
                     )
 
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.onaGraphics,
+                        items = listOf("OFF", "AUTO") + com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.entries.map { it.name },
+                        title = stringResource(R.string.ona_graphics_setting_title),
+                        summary = stringResource(R.string.ona_graphics_setting_summary),
+                        getItemText = { id ->
+                            when (id) {
+                                "OFF" -> stringResource(R.string.ona_graphics_off)
+                                "AUTO" -> stringResource(R.string.ona_graphics_auto)
+                                else -> stringResource(com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.valueOf(id).titleRes)
+                            }
+                        },
+                        getItemId = { it }
+                    )
+
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,

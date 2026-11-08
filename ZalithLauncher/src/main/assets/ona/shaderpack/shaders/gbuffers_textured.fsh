@@ -22,7 +22,7 @@ void main() {
     // particles and clouds face the camera: light them half by the sun, half by the sky
     vec3 light = skyLight * lmcoord.y * lmcoord.y + sunLight * 0.45 * smoothstep(0.3, 0.9, lmcoord.y)
                + vec3(1.0, 0.6, 0.3) * pow(lmcoord.x, 2.4) * 2.0 + 0.04 + nightVision * 0.45;
-    vec3 color = onaTonemap(albedo.rgb * light);
+    vec3 color = onaTonemap(albedo.rgb * light * exposure);
     float d = length(viewPos) / far;
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     vec3 fogTint = onaSky(normalize(viewPos), normalize(sunPosition), normalize(upPosition), skyColor, fogColor, rainStrength);

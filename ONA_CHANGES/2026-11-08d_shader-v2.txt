@@ -1,0 +1,38 @@
+2026-11-08 (d) - ONA Mobile Shaders v2: fixes, 8 levels, launcher setting, HD textures
+
+User test (S26 Ultra, Performance APK, Fabulously Optimized 26.3, ONA Renderer active: "MobileGlues
+2.0.1·Dev1 (ONA Renderer)"): pack loaded at HIGH and ULTRA, 120 FPS, but black faces and black
+speckles on leaves; the PBR pack was never made (only the dialog made it).
+
+FIXES
+- Black faces: normal mapping now only when the vertex has a tangent (a zero at_tangent gave NaN)
+  and the normals texture holds a real map (R+G > 0.02); AO from it only then. binormal sign no longer
+  uses sign() (0 -> NaN).
+- Leaf speckles: terrain.vsh waved plants by amount * skylight, shadow.vsh without: different leaf
+  positions in the shadow map = self shadowing. Both use the same motion now.
+- Shadow bias: normal offset 0.25 * clamp(0.12 + 0.01 * dist) * (2 - NdotL) blocks (the technique
+  good packs use, learned from Photon's notes, written ONA's own way), tiny constant depth bias.
+- Slightly brighter ambient.
+
+NEW LEVELS (shaders.properties profiles = OnaGraphicsLevel, values read from that file at runtime)
+POTATO, LOW, MEDIUM (+AUTO_EXPOSURE), HIGH (+WATER_DEPTH, FOLIAGE_SSS), ULTRA (+GODRAYS),
+REALISTIC (ATMOSPHERE, WET_SURFACES, VOLUMETRIC_LIGHT 8, SHADOW_FILTER 3, 2048/128),
+ULTRA_REALISTIC (+SSAO 8, SSR 16, VL 12, 3072/160), IMPOSSIBLE (SSAO 16, SSR 32, VL 16, 4096/192).
+- ATMOSPHERE: analytic sky (zenith/horizon/dusk band/Mie halo/night), tuned on a CPU render
+  (tools/ona_sky_preview.py out.png).
+- deferred.fsh: SSAO from depth (normals from derivatives), program.deferred.enabled=SSAO.
+- composite.fsh: SSR on water (water writes view normal + mask to colortex1, RENDERTARGETS 0,1) and
+  raymarched light shafts through the shadow map; program.composite.enabled=SSR || VOLUMETRIC_LIGHT.
+- WATER_DEPTH (depthtex1 thickness -> absorption), GGX specular, FOLIAGE_SSS (light through leaves),
+  WET_SURFACES (wetness uniform), AUTO_EXPOSURE (eyeBrightnessSmooth).
+- tools/ona_shader_check.py: 224/224 programs compile (28 programs x 8 levels).
+
+LAUNCHER
+- Settings > Renderer: "ONA Graphics for every version" (AllSettings.onaGraphics: OFF / AUTO /
+  level). Not OFF: OnaGraphics.applyOnLaunch at every launch of a version with Iris/Oculus/OptiFine or
+  a mod loader (full setup when level or pack checksum changed, stamp ona_graphics.txt; else only
+  "shaders on, our pack, PBR in the list"). Toast with what was done.
+- ONA Graphics dialog: textures from Modrinth by resolution (16x ... 512x+): OnaTexturePacks.search
+  (realistic/pbr, only packs with <= 2 resolution tags, add-on names filtered, PBR first), install =
+  file for the game version (else newest) -> resourcepacks, on top of resourcePacks.
+Not device-tested.

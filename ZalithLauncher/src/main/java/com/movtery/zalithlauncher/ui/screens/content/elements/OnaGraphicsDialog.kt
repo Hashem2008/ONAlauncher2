@@ -31,7 +31,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.graphics.OnaGraphics
 import com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel
+import com.movtery.zalithlauncher.game.graphics.OnaTexturePacks
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.utils.device.DeviceProfiler
 import com.movtery.zalithlauncher.utils.device.DeviceTier
@@ -67,6 +71,18 @@ fun OnaGraphicsDialog(
     var working by remember { mutableStateOf(false) }
     var progress by remember { mutableStateOf("") }
     var result by remember { mutableStateOf<OnaGraphics.Result?>(null) }
+    // textures from Modrinth: null = keep the current ones
+    var resolution by remember { mutableStateOf<String?>(null) }
+    var packs by remember { mutableStateOf<List<OnaTexturePacks.Pack>?>(null) }
+    var pack by remember { mutableStateOf<OnaTexturePacks.Pack?>(null) }
+    LaunchedEffect(resolution) {
+        packs = null
+        pack = null
+        val res = resolution ?: return@LaunchedEffect
+        val found = OnaTexturePacks.search(res)
+        packs = found
+        pack = found.firstOrNull()
+    }
 
     AlertDialog(
         onDismissRequest = { if (!working) onDismiss() },
@@ -105,6 +121,49 @@ fun OnaGraphicsDialog(
                                 Text(text = title + mark)
                             }
                         }
+                        Text(
+                            text = stringResource(R.string.ona_graphics_textures),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 12.dp)
+                        )
+                        Row(
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            FilterChip(
+                                selected = resolution == null,
+                                onClick = { resolution = null },
+                                label = { Text(stringResource(R.string.ona_graphics_textures_keep)) }
+                            )
+                            OnaTexturePacks.RESOLUTIONS.forEach { res ->
+                                FilterChip(
+                                    selected = resolution == res,
+                                    onClick = { resolution = res },
+                                    label = { Text(res) }
+                                )
+                            }
+                        }
+                        if (resolution != null) {
+                            val list = packs
+                            when {
+                                list == null -> Row(verticalAlignment = Alignment.CenterVertically) {
+                                    CircularProgressIndicator(modifier = Modifier.padding(end = 12.dp))
+                                    Text(stringResource(R.string.ona_graphics_textures_searching))
+                                }
+                                list.isEmpty() -> Text(stringResource(R.string.ona_graphics_textures_none))
+                                else -> list.forEach { item ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { pack = item },
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        RadioButton(selected = pack == item, onClick = { pack = item })
+                                        Text(text = item.title + (if (item.pbr) "  (PBR)" else "") + "  ·  " + item.downloads / 1000 + "k")
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -116,7 +175,15 @@ fun OnaGraphicsDialog(
                     onClick = {
                         working = true
                         scope.launch {
-                            result = OnaGraphics.apply(context, version, choice) { text -> progress = text }
+                            val applied = OnaGraphics.apply(context, version, choice) { text -> progress = text }
+                            val chosen = pack
+                            result = if (chosen != null && choice != null) {
+                                progress = context.getString(R.string.ona_graphics_textures_downloading, chosen.title)
+                                val name = OnaTexturePacks.install(version, chosen)
+                                val line = if (name != null) context.getString(R.string.ona_graphics_textures_added, chosen.title)
+                                else context.getString(R.string.ona_graphics_textures_failed, chosen.title)
+                                OnaGraphics.Result(applied.ok, applied.lines + line)
+                            } else applied
                             working = false
                         }
                     }

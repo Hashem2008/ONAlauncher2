@@ -295,9 +295,9 @@
     <string name="ona_graphics_summary">ONA\'s own shader made for phones, and a resource pack made from your game\'s textures (bumps, shine, glow), set up together. Pick a level:</string>
     <string name="ona_graphics_potato">Potato (weakest phones, almost free)</string>
     <string name="ona_graphics_low">Low (waving plants, nicer water)</string>
-    <string name="ona_graphics_medium">Medium (+ light shadows, bumpy surfaces)</string>
-    <string name="ona_graphics_high">High (+ soft shadows, shine, glow, bloom)</string>
-    <string name="ona_graphics_ultra">Ultra (+ sharpest shadows, sun rays)</string>
+    <string name="ona_graphics_medium">Medium (+ light shadows, bumpy surfaces, eye adaptation)</string>
+    <string name="ona_graphics_high">High (+ soft shadows, shine, glow, deep water, light through leaves)</string>
+    <string name="ona_graphics_ultra">Ultra (+ sharper shadows, sun rays)</string>
     <string name="ona_graphics_off">Off</string>
     <string name="ona_graphics_recommended">(for this device)</string>
     <string name="ona_graphics_apply">Apply</string>
@@ -313,4 +313,17 @@
     <string name="ona_graphics_pbr_failed">ONA Mobile PBR could not be made: play this version once, then try again</string>
     <string name="ona_graphics_making_pbr">Making ONA Mobile PBR from your game\'s textures…</string>
     <string name="ona_graphics_making_pbr_progress">Making ONA Mobile PBR: %1$d / %2$d</string>
+    <string name="ona_graphics_realistic">Realistic (+ realistic sky, light shafts, wet rain)</string>
+    <string name="ona_graphics_ultra_realistic">Ultra realistic (+ ambient occlusion, water mirrors the world)</string>
+    <string name="ona_graphics_impossible">Impossible (everything at most: only the strongest phones)</string>
+    <string name="ona_graphics_auto">Auto (for this device)</string>
+    <string name="ona_graphics_setting_title">ONA Graphics for every version</string>
+    <string name="ona_graphics_setting_summary">Turns ONA Mobile Shaders (and ONA Mobile PBR from Medium up) on at launch in every version that has Iris, Oculus or OptiFine, or a mod loader (Iris is added). Off: the shader is only offered in the game\'s shader list.</string>
+    <string name="ona_graphics_textures">Textures (from Modrinth)</string>
+    <string name="ona_graphics_textures_keep">Keep</string>
+    <string name="ona_graphics_textures_searching">Looking for realistic packs…</string>
+    <string name="ona_graphics_textures_none">No pack found for this size</string>
+    <string name="ona_graphics_textures_downloading">Downloading %1$s…</string>
+    <string name="ona_graphics_textures_added">%1$s on (on top of the other packs)</string>
+    <string name="ona_graphics_textures_failed">%1$s could not be downloaded</string>
 </resources>
