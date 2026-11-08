@@ -39,7 +39,7 @@ vec3 onaAtmosphere(vec3 dir, vec3 sunDir, vec3 upDir, float rain) {
     float g = 0.76;
     float mie = (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * mu, 1.5);
     vec3 sunCol = mix(vec3(1.00, 0.95, 0.85), vec3(1.00, 0.55, 0.25), dusk);
-    col += sunCol * mie * 0.012 * (0.4 + 0.6 * day) * (1.0 - night);
+    col += sunCol * min(mie, 18.0) * 0.006 * SUN_HALO * (0.4 + 0.6 * day) * (1.0 - night);
     col = mix(col, vec3(onaLuma(col)) * vec3(0.95, 0.97, 1.0), rain * 0.75);
     return col * 1.15;
 }
@@ -59,6 +59,18 @@ vec3 onaSky(vec3 dir, vec3 sunDir, vec3 upDir, vec3 skyC, vec3 fogC, float rain)
 #endif
     if (up < 0.0) col = mix(col, fogC * 0.8, clamp(-up * 3.0, 0.0, 1.0));
     return col;
+}
+
+// cheap value noise for the clouds
+float onaHash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+float onaValueNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(onaHash(i), onaHash(i + vec2(1.0, 0.0)), f.x),
+               mix(onaHash(i + vec2(0.0, 1.0)), onaHash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
 
 // labPBR normal map (R, G = normal x, y; B = ambient occlusion)

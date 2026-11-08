@@ -7,6 +7,20 @@ varying vec3 skyLight;
 varying vec3 lightDir;
 varying float exposure;
 
+#ifdef HANDHELD_LIGHT
+uniform int heldBlockLightValue;
+uniform int heldBlockLightValue2;
+#endif
+
+// block light with the light of a torch (or any light block) in the hand added around the player
+vec2 onaLightmap(vec2 lm, float dist) {
+#ifdef HANDHELD_LIGHT
+    float held = float(max(heldBlockLightValue, heldBlockLightValue2));
+    if (held > 0.0) lm.x = max(lm.x, clamp((held - dist) / 15.0, 0.0, 1.0));
+#endif
+    return lm;
+}
+
 // albedo: texture x vertex colour; lm: block light, sky light (0-1); vis: shadow (0-1)
 vec3 onaShade(vec3 albedo, vec3 normal, vec2 lm, float vis, float ao) {
     float NdotL = max(dot(normal, lightDir), 0.0);

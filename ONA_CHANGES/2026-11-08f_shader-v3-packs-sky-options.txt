@@ -1,0 +1,36 @@
+2026-11-08 (f) - ONA Mobile Shaders v3: real resource pack merge, sky fixed, many options, FPS
+
+User test (S26 Ultra): IMPOSSIBLE ~50 FPS; sky showed a big octagon with a white blob around the sun;
+Patrix_26.3_32x_basic.zip enabled above ONA Mobile PBR, but "basic" Patrix has no PBR maps, so the
+shader used maps made from VANILLA 16x textures on Patrix's 32x textures (shapes do not match).
+
+PACK MERGE
+- ensurePbrPack builds ONA Mobile PBR from the textures the game really shows: each block texture
+  from the highest enabled resource pack that has it (options.txt order), else the client jar.
+  Textures whose pack has its own _n/_s are skipped (the pack's maps win). Stamp includes every
+  enabled pack (name:size) -> remade when packs change; applyOnLaunch checks it every launch.
+  PBR_GENERATION 2.
+- OnaPbr: bump scaled by sqrt(width/16) for HD textures; from 32x the height goes into the normal
+  map alpha (parallax). 16x stays flat (alpha 255).
+- setPbrPack: our pack is inserted just above the built-in packs, below every player pack, and left
+  where it is when already enabled (it no longer jumps on top of Patrix).
+- Shader: POM_SAMPLES (0/8/16/24, REALISTIC 8, ULTRA_REALISTIC 16, IMPOSSIBLE 24) + POM_DEPTH,
+  tile bounds from mc_midTexCoord; NORMAL_STRENGTH, SPECULAR_STRENGTH.
+
+SKY
+- The octagon was the edge of the game's sky disc (our colour inside, clear colour outside).
+  Now gbuffers_skybasic sends only stars and gbuffers_skytextured the sun / moon to colortex2; the
+  always-on deferred pass (program/deferred.glsl) paints the sky for every depth == 1 pixel and adds
+  colortex2. world-1 / world1 use NO_SKY (Nether / End keep their own background + End sky texture).
+- Sun halo: Mie clamped and halved, SUN_HALO slider.
+- ONA_CLOUDS: noise cloud layer painted in that pass (shaders.properties #ifdef -> clouds=off).
+
+FPS
+- Fog colour per vertex (lib/fog_vsh.glsl): the sky lookup ran per pixel in every gbuffers program.
+- shadowEntities / shadowBlockEntities only with SHADOW_ENTITIES (ULTRA and up).
+
+OPTIONS (menus Light, Water, World, Sky, Motion, Look)
+HANDHELD_LIGHT, WIND_STRENGTH (rain blows harder, same in shadow.vsh), WATER_WAVE_SPEED / SIZE,
+EXPOSURE, CONTRAST, WARMTH, VIGNETTE_FX, FILM_GRAIN, CHROMATIC, SUN_HALO, ONA_CLOUDS, SHADOW_ENTITIES,
+POM_*, NORMAL/SPECULAR_STRENGTH. Labels EN/AR. 224/224 programs + world folders compile.
+Not device-tested.

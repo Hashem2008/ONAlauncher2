@@ -28,21 +28,50 @@ varying vec3 tangent;
 varying vec3 binormal;
 varying float tangentOk;
 varying float blockId;
+varying vec3 fogTint;
+#if POM_SAMPLES > 0
+varying vec4 tileBounds;
+varying vec2 tileCoord;
+#endif
 
 void main() {
-    vec4 albedo = texture2D(texture, texcoord) * glcolor;
-    if (albedo.a < 0.1) discard;
+    vec2 uv = texcoord;
     vec3 geoN = normalize(normal);
+#if POM_SAMPLES > 0 && PBR > 0
+    // parallax: walk into the surface along the view ray until the height map is reached
+    // (only HD packs with height in the normal map alpha move; flat maps stay as they are)
+    if (tangentOk > 0.5 && length(viewPos) < 24.0) {
+        vec3 rayTS = vec3(dot(viewPos, tangent), dot(viewPos, binormal), dot(viewPos, geoN));
+        if (rayTS.z < -0.001) {
+            float layer = 1.0 / float(POM_SAMPLES);
+            vec2 delta = rayTS.xy / -rayTS.z * POM_DEPTH * layer * vec2(1.0, -1.0);
+            vec2 coord = tileCoord;
+            float level = 1.0;
+            float height = texture2D(normals, fract(coord) * tileBounds.zw + tileBounds.xy).a;
+            for (int i = 0; i < POM_SAMPLES; i++) {
+                if (height >= level) break;
+                level -= layer;
+                coord += delta;
+                height = texture2D(normals, fract(coord) * tileBounds.zw + tileBounds.xy).a;
+            }
+            uv = fract(coord) * tileBounds.zw + tileBounds.xy;
+        }
+    }
+#endif
+    vec4 albedo = texture2D(texture, uv) * glcolor;
+    if (albedo.a < 0.1) discard;
     vec3 n = geoN;
     float ao = 1.0;
     vec3 up = normalize(upPosition);
 #if PBR > 0
     if (tangentOk > 0.5) {
-        vec4 nmap = texture2D(normals, texcoord);
+        vec4 nmap = texture2D(normals, uv);
         // only a real normal map: an empty texture (resource pack without maps) would bend
         // every face to black
         if (nmap.r + nmap.g > 0.02) {
-            vec3 bent = mat3(tangent, binormal, geoN) * onaDecodeNormal(nmap);
+            vec3 tn = onaDecodeNormal(nmap);
+            tn.xy *= NORMAL_STRENGTH;
+            vec3 bent = mat3(tangent, binormal, geoN) * tn;
             float len = length(bent);
             if (len > 0.1) {
                 n = bent / len;
@@ -57,7 +86,7 @@ void main() {
     float emission = 0.0;
     float sss = 0.0;
 #if PBR > 1
-    vec4 spec = texture2D(specular, texcoord);
+    vec4 spec = texture2D(specular, uv);
     smoothness = spec.r;
     metal = spec.g > 0.898;
     reflectance = max(spec.g, 0.04);
@@ -77,13 +106,14 @@ void main() {
         albedo.rgb *= 1.0 - wet * 0.28;
     }
 #endif
+    vec2 lm = onaLightmap(lmcoord, length(viewPos));
     float geoNdotL = dot(geoN, lightDir);
 #ifdef SHADOWS
     float vis = sss > 0.0 ? onaShadowAny() : onaShadow(geoNdotL);
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
 #endif
-    vec3 color = onaShade(albedo.rgb, n, lmcoord, vis * (sss > 0.0 && geoNdotL < 0.0 ? 0.0 : 1.0), ao);
+    vec3 color = onaShade(albedo.rgb, n, lm, vis * (sss > 0.0 && geoNdotL < 0.0 ? 0.0 : 1.0), ao);
     vec3 V = normalize(-viewPos);
     float outside = smoothstep(0.05, 0.45, lmcoord.y);
     if (sss > 0.0) {
@@ -91,15 +121,15 @@ void main() {
         float through = pow(max(dot(-V, lightDir), 0.0), 3.0) * 0.9 + max(-geoNdotL, 0.0) * 0.3;
         color += albedo.rgb * sunLight * through * vis * sss * outside;
     }
-    if (smoothness > 0.02 || metal) {
+    if ((smoothness > 0.02 || metal) && SPECULAR_STRENGTH > 0.0) {
         vec3 f0 = metal ? albedo.rgb : vec3(reflectance);
-        color += sunLight * onaSpecular(n, V, lightDir, smoothness, f0) * vis * outside;
+        color += sunLight * onaSpecular(n, V, lightDir, smoothness, f0) * vis * outside * SPECULAR_STRENGTH;
         if (smoothness > 0.4) {
             vec3 r = reflect(-V, n);
             vec3 sky = onaSky(r, normalize(sunPosition), up, skyColor, fogColor, rainStrength);
             float fresnel = reflectance + (1.0 - reflectance) * pow(1.0 - max(dot(n, V), 0.0), 5.0);
             float amount = (smoothness - 0.4) / 0.6;
-            color = mix(color, sky * (metal ? albedo.rgb * 1.4 : vec3(1.0)), clamp(fresnel * amount * lmcoord.y, 0.0, 0.8));
+            color = mix(color, sky * (metal ? albedo.rgb * 1.4 : vec3(1.0)), clamp(fresnel * amount * lmcoord.y * SPECULAR_STRENGTH, 0.0, 0.8));
         }
         if (metal) color *= mix(vec3(1.0), albedo.rgb * 1.2 + 0.2, 0.5);
     }
@@ -108,7 +138,6 @@ void main() {
     float d = length(viewPos) / far;
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);
-    vec3 fogTint = isEyeInWater == 1 ? fogColor * 0.9 : onaSky(normalize(viewPos), normalize(sunPosition), up, skyColor, fogColor, rainStrength);
     color = mix(color, fogTint, fog * fog);
     gl_FragData[0] = vec4(color, albedo.a);
 }

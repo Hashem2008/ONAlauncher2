@@ -18,6 +18,7 @@ varying vec2 lmcoord;
 varying vec4 glcolor;
 varying vec3 viewPos;
 varying vec3 normal;
+varying vec3 fogTint;
 
 void main() {
     vec4 albedo = texture2D(texture, texcoord) * glcolor;
@@ -29,11 +30,10 @@ void main() {
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
 #endif
-    vec3 color = onaTonemap(onaShade(albedo.rgb, n, lmcoord, vis, 1.0) * exposure);
+    vec3 color = onaTonemap(onaShade(albedo.rgb, n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0) * exposure);
     float d = length(viewPos) / far;
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);
-    vec3 fogTint = isEyeInWater == 1 ? fogColor * 0.9 : onaSky(normalize(viewPos), normalize(sunPosition), normalize(upPosition), skyColor, fogColor, rainStrength);
     color = mix(color, fogTint, fog * fog);
     gl_FragData[0] = vec4(color, albedo.a);
 }

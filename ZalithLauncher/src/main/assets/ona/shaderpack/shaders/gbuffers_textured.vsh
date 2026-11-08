@@ -2,6 +2,7 @@
 #include "/lib/settings.glsl"
 #include "/lib/common.glsl"
 #include "/lib/light_vsh.glsl"
+#include "/lib/fog_vsh.glsl"
 
 varying vec2 texcoord;
 varying vec2 lmcoord;
@@ -16,4 +17,5 @@ void main() {
     viewPos = view.xyz;
     gl_Position = gl_ProjectionMatrix * view;
     onaLightColors();
+    onaFogTint(viewPos);
 }

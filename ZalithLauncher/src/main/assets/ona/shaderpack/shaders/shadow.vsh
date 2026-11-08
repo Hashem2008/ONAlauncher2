@@ -9,6 +9,7 @@ uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 uniform vec3 cameraPosition;
 uniform float frameTimeCounter;
+uniform float rainStrength;
 
 varying vec2 texcoord;
 varying vec4 glcolor;
@@ -23,8 +24,8 @@ void main() {
     if (id == 10001.0 || id == 10003.0 || (id == 10002.0 && topVertex)) {
         vec4 playerPos = shadowModelViewInverse * pos;
         vec3 w = playerPos.xyz + cameraPosition;
-        float t = frameTimeCounter * 1.7;
-        float amount = id == 10001.0 ? 0.04 : 0.08;
+        float t = frameTimeCounter * (1.7 + rainStrength * 1.3);
+        float amount = (id == 10001.0 ? 0.04 : 0.08) * WIND_STRENGTH * (1.0 + rainStrength);
         playerPos.x += sin(t + w.x * 0.63 + w.z * 0.41 + w.y * 0.31) * amount;
         playerPos.z += cos(t * 0.83 + w.z * 0.71 + w.x * 0.23) * amount * 0.7;
         pos = shadowModelView * playerPos;

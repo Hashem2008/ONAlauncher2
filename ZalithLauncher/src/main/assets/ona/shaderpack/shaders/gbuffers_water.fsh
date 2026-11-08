@@ -34,6 +34,7 @@ varying vec3 viewPos;
 varying vec3 worldPos;
 varying vec3 normal;
 varying float isWater;
+varying vec3 fogTint;
 
 float onaWaveHeight(vec2 p, float t) {
     return sin(p.x * 1.10 + t * 1.30) * 0.50
@@ -56,11 +57,11 @@ void main() {
     bool water = isWater > 0.5;
 #ifdef WATER_WAVES
     if (water && dot(n, up) > 0.5) {
-        float t = frameTimeCounter;
+        float t = frameTimeCounter * WATER_WAVE_SPEED;
         float h = onaWaveHeight(worldPos.xz, t);
         float hx = onaWaveHeight(worldPos.xz + vec2(0.08, 0.0), t);
         float hz = onaWaveHeight(worldPos.xz + vec2(0.0, 0.08), t);
-        n = normalize(mat3(gbufferModelView) * normalize(vec3((h - hx) * 0.6, 1.0, (h - hz) * 0.6)));
+        n = normalize(mat3(gbufferModelView) * normalize(vec3((h - hx) * 0.6 * WATER_WAVE_SIZE, 1.0, (h - hz) * 0.6 * WATER_WAVE_SIZE)));
     }
 #endif
 #ifdef SHADOWS
@@ -72,7 +73,7 @@ void main() {
     float alpha = albedo.a;
     if (water) {
         vec3 tint = glcolor.rgb * vec3(0.55, 0.75, 0.85);
-        color = onaShade(mix(albedo.rgb, tint, 0.5), n, lmcoord, vis, 1.0);
+        color = onaShade(mix(albedo.rgb, tint, 0.5), n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0);
         alpha = 0.62;
 #ifdef WATER_DEPTH
         // how much water lies between the surface and the ground behind it
@@ -93,13 +94,12 @@ void main() {
         color += sunLight * pow(max(dot(n, H), 0.0), 220.0) * 6.0 * vis * outside;
 #endif
     } else {
-        color = onaShade(albedo.rgb, n, lmcoord, vis, 1.0);
+        color = onaShade(albedo.rgb, n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0);
     }
     color = onaTonemap(color * exposure);
     float d = length(viewPos) / far;
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);
-    vec3 fogTint = isEyeInWater == 1 ? fogColor * 0.9 : onaSky(normalize(viewPos), normalize(sunPosition), up, skyColor, fogColor, rainStrength);
     color = mix(color, fogTint, fog * fog);
     gl_FragData[0] = vec4(color, alpha);
     // for the reflection pass: water normal (view space) and a water mask

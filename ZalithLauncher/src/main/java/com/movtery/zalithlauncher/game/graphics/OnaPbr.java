@@ -142,6 +142,10 @@ public final class OnaPbr {
     public static Maps generate(String name, int[] argb, int width, int height) {
         Material m = material(name);
         int frame = (height > width && height % width == 0) ? width : height; // animated strips
+        // HD packs: one pixel is a smaller step, so the same relief needs a stronger slope, and
+        // the height goes into the normal map alpha for parallax (16x pixel art stays flat)
+        float resolutionScale = (float) Math.sqrt(Math.max(1f, width / 16f));
+        boolean withHeight = width >= 32;
         int[] normal = new int[argb.length];
         int[] specular = new int[argb.length];
         float[] h = new float[argb.length];
@@ -173,14 +177,15 @@ public final class OnaPbr {
                     float bl = at(h, width, frame, top, x - 1, y + 1), b = at(h, width, frame, top, x, y + 1), br = at(h, width, frame, top, x + 1, y + 1);
                     float dx = (tr + 2 * r + br) - (tl + 2 * l + bl);
                     float dy = (bl + 2 * b + br) - (tl + 2 * t + tr);
-                    float s = m.bump * 0.25f;
+                    float s = m.bump * 0.25f * resolutionScale;
                     float nx = -dx * s, ny = dy * s, nz = 1f;
                     float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
                     nx /= len; ny /= len;
                     // cavity: pixels darker than their neighbours sit deeper, they get less sky
                     float around = (tl + t + tr + l + r + bl + b + br) / 8f;
                     float ao = clamp(1f - (around - h[i]) * 1.6f, 0.55f, 1f);
-                    normal[i] = argbOf(255, enc(nx), enc(ny), Math.round(ao * 255f));
+                    int heightA = withHeight ? Math.round(clamp(0.35f + 0.65f * (h[i] * 0.6f + around * 0.4f), 0f, 1f) * 255f) : 255;
+                    normal[i] = argbOf(heightA, enc(nx), enc(ny), Math.round(ao * 255f));
 
                     // ---- specular ----
                     float smooth = m.smooth + (lum[i] - 0.5f) * m.smoothFromLight;

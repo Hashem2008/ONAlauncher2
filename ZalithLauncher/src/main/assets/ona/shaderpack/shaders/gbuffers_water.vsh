@@ -2,6 +2,7 @@
 #include "/lib/settings.glsl"
 #include "/lib/common.glsl"
 #include "/lib/light_vsh.glsl"
+#include "/lib/fog_vsh.glsl"
 #include "/lib/shadow_vsh.glsl"
 
 attribute vec4 mc_Entity;
@@ -30,6 +31,7 @@ void main() {
     viewPos = view.xyz;
     gl_Position = gl_ProjectionMatrix * view;
     onaLightColors();
+    onaFogTint(viewPos);
 #ifdef SHADOWS
     onaShadowPos(playerPos.xyz, mat3(gbufferModelViewInverse) * normal, dot(normal, lightDir));
 #endif

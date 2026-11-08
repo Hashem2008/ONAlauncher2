@@ -21,6 +21,23 @@
 #define SSAO_SAMPLES 8         // [6 8 12 16]
 //#define SSR                  // real reflections of the world on water
 #define SSR_STEPS 16           // [12 16 24 32]
+#define POM_SAMPLES 0          // [0 8 16 24] parallax depth from the resource pack's height maps (HD packs)
+#define POM_DEPTH 0.20         // [0.10 0.15 0.20 0.30 0.40]
+#define NORMAL_STRENGTH 1.00   // [0.25 0.50 0.75 1.00 1.25 1.50 2.00]
+#define SPECULAR_STRENGTH 1.00 // [0.00 0.50 0.75 1.00 1.50 2.00]
+#define HANDHELD_LIGHT         // a torch in the hand lights the area around you
+#define WIND_STRENGTH 1.00     // [0.00 0.50 1.00 1.50 2.00 3.00]
+#define WATER_WAVE_SPEED 1.00  // [0.25 0.50 1.00 1.50 2.00]
+#define WATER_WAVE_SIZE 1.00   // [0.25 0.50 1.00 1.50 2.00]
+//#define ONA_CLOUDS           // soft moving clouds painted in the sky (instead of the block clouds)
+//#define SHADOW_ENTITIES      // mobs and players cast shadows (costs FPS)
+#define SUN_HALO 1.00          // [0.00 0.50 1.00 1.50]
+#define EXPOSURE 1.00          // [0.70 0.85 1.00 1.15 1.30]
+#define CONTRAST 1.00          // [0.80 0.90 1.00 1.10 1.20]
+#define WARMTH 0.00            // [-0.20 -0.10 0.00 0.10 0.20]
+//#define VIGNETTE_FX          // darker corners like a camera
+//#define FILM_GRAIN           // light film grain
+//#define CHROMATIC            // colour fringes at the edges like a lens
 #define SUN_STRENGTH 1.00      // [0.60 0.80 1.00 1.20 1.40]
 #define SATURATION 1.10        // [0.80 0.90 1.00 1.10 1.20 1.30]
 #define FOG_START 0.55         // [0.30 0.40 0.55 0.70 0.85]

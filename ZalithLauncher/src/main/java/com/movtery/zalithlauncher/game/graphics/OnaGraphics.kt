@@ -67,7 +67,7 @@ object OnaGraphics {
     const val SHADER_NAME = "ONA Mobile Shaders"
     const val PBR_FILE = "ONA Mobile PBR.zip"
     /** Bump when OnaPbr changes: packs made by an older launcher are made again */
-    private const val PBR_GENERATION = 1
+    private const val PBR_GENERATION = 2
     private const val ASSET_DIR = "ona/shaderpack"
 
     fun autoLevel(tier: DeviceTier): OnaGraphicsLevel = when (tier) {
@@ -223,7 +223,9 @@ object OnaGraphics {
         val loader = detectLoader(version)
         if (loader != Loader.NONE && runCatching { stamp.readText().trim() }.getOrNull() == wanted) {
             selectShader(version.getGameDir(), loader)
-            setPbrPack(version.getGameDir(), enabled = level.usesPbr && File(version.getGameDir(), "resourcepacks/$PBR_FILE").isFile)
+            // packs added or removed since: the maps follow the textures that are on now
+            val pbr = level.usesPbr && runCatching { ensurePbrPack(context, version) { } }.getOrDefault(false)
+            setPbrPack(version.getGameDir(), enabled = pbr)
             return@withContext null
         }
         val result = apply(context, version, level) { }
@@ -295,10 +297,20 @@ object OnaGraphics {
         val list = runCatching {
             JsonParser.parseString(lines[index].substringAfter(':')).asJsonArray
         }.getOrNull() ?: JsonArray().apply { add("vanilla") }
+        val already = list.any { it.asString == id }
+        if (enabled && already) return // keep where the player put it
         val kept = JsonArray()
         list.forEach { if (it.asString != id) kept.add(it) }
         if (kept.size() == 0) kept.add("vanilla")
-        if (enabled) kept.add(id)
+        if (enabled) {
+            // just above the built-in packs, below every resource pack the player added: a pack
+            // with its own textures and maps (Patrix...) always wins over ours
+            val items = kept.map { it.asString }.toMutableList()
+            val lastBuiltIn = items.indexOfLast { !it.startsWith("file/") }
+            items.add(lastBuiltIn + 1, id)
+            kept.apply { while (size() > 0) remove(0) }
+            items.forEach { kept.add(it) }
+        }
         val line = "resourcePacks:" + kept.toString()
         if (index >= 0) lines[index] = line else lines.add(line)
         // a pack Minecraft once called incompatible would stay off: forget that
@@ -330,37 +342,72 @@ object OnaGraphics {
         ZipFile(jar).use { it.getEntry("assets/minecraft/textures/block/stone.png") != null }
     }.getOrDefault(false)
 
-    /** @return true when the pack is there and current */
+    /** A resource pack zip / folder or the client jar, read the same way */
+    private class PackSource(val file: File) : java.io.Closeable {
+        private val zip: ZipFile? = if (file.isFile) runCatching { ZipFile(file) }.getOrNull() else null
+        fun has(path: String): Boolean = if (zip != null) zip.getEntry(path) != null else File(file, path).isFile
+        fun bytes(path: String): ByteArray? = if (zip != null) {
+            zip.getEntry(path)?.let { entry -> zip.getInputStream(entry).use { it.readBytes() } }
+        } else File(file, path).takeIf { it.isFile }?.readBytes()
+        fun blockTextures(prefix: String): List<String> = if (zip != null) {
+            zip.entries().toList().map { it.name }
+                .filter { it.startsWith(prefix) && it.endsWith(".png") && !it.substring(prefix.length).contains('/') }
+                .map { it.substring(prefix.length).removeSuffix(".png") }
+        } else File(file, prefix).listFiles { f -> f.name.endsWith(".png") }.orEmpty().map { it.name.removeSuffix(".png") }
+        override fun close() { runCatching { zip?.close() } }
+    }
+
+    /** The resource packs options.txt enables, highest priority first, without ours */
+    private fun activePacks(version: Version): List<File> {
+        val gameDir = version.getGameDir()
+        val line = runCatching { File(gameDir, "options.txt").readLines().firstOrNull { it.startsWith("resourcePacks:") } }.getOrNull() ?: return emptyList()
+        val ids = runCatching { JsonParser.parseString(line.substringAfter(':')).asJsonArray.map { it.asString } }.getOrDefault(emptyList())
+        return ids.filter { it.startsWith("file/") && it != "file/$PBR_FILE" }
+            .map { File(File(gameDir, "resourcepacks"), it.removePrefix("file/")) }
+            .filter { it.exists() }
+            .reversed()
+    }
+
+    /**
+     * Makes ONA Mobile PBR from the textures the game really shows: every block texture comes
+     * from the highest resource pack that has it (Patrix 32x, an HD pack...), else from the game.
+     * Textures whose pack brings its own normal / specular maps are left to that pack.
+     * Made again when the enabled packs change.
+     * @return true when the pack is there and current
+     */
     private fun ensurePbrPack(context: Context, version: Version, onProgress: (String) -> Unit): Boolean {
         val jar = clientJar(version) ?: return false
         val packsDir = File(version.getGameDir(), "resourcepacks").apply { mkdirs() }
         val pack = File(packsDir, PBR_FILE)
-        val stamp = "$PBR_GENERATION|${jar.name}|${jar.length()}"
+        val packs = activePacks(version)
+        val stamp = "$PBR_GENERATION|${jar.name}|${jar.length()}|" + packs.joinToString(",") { "${it.name}:${it.length()}" }
         val marker = File(packsDir, ".ona_mobile_pbr")
         if (pack.isFile && runCatching { marker.readText() }.getOrNull() == stamp) return true
 
         onProgress(context.getString(R.string.ona_graphics_making_pbr))
         val temp = File(packsDir, "$PBR_FILE.tmp")
         var count = 0
-        ZipFile(jar).use { zip ->
+        val prefix = "assets/minecraft/textures/block/"
+        val sources = packs.map { PackSource(it) } + PackSource(jar)
+        try {
+            val names = sources.flatMap { it.blockTextures(prefix) }.toSortedSet()
+                .filter { OnaPbr.shouldProcess(it) && !it.endsWith("_n") && !it.endsWith("_s") }
             ZipOutputStream(BufferedOutputStream(FileOutputStream(temp))).use { out ->
                 out.putNextEntry(ZipEntry("pack.mcmeta"))
-                out.write(packMeta(zip, version).toByteArray())
+                out.write(ZipFile(jar).use { packMeta(it, version) }.toByteArray())
                 out.closeEntry()
-                val prefix = "assets/minecraft/textures/block/"
-                val entries = zip.entries().toList().filter {
-                    it.name.startsWith(prefix) && it.name.endsWith(".png") && !it.name.substring(prefix.length).contains('/')
-                }
                 val options = BitmapFactory.Options().apply {
                     inPremultiplied = false
                     inScaled = false
                     inPreferredConfig = Bitmap.Config.ARGB_8888
                 }
-                entries.forEachIndexed { i, entry ->
-                    val name = entry.name.substring(prefix.length).removeSuffix(".png")
-                    if (!OnaPbr.shouldProcess(name)) return@forEachIndexed
-                    if (i % 100 == 0) onProgress(context.getString(R.string.ona_graphics_making_pbr_progress, i, entries.size))
-                    val bytes = zip.getInputStream(entry).use { it.readBytes() }
+                names.forEachIndexed { i, name ->
+                    val path = "$prefix$name.png"
+                    val source = sources.firstOrNull { it.has(path) } ?: return@forEachIndexed
+                    // the pack's own PBR maps win, nothing to make
+                    if (source.file != jar && (source.has("$prefix${name}_n.png") || source.has("$prefix${name}_s.png"))) return@forEachIndexed
+                    if (i % 100 == 0) onProgress(context.getString(R.string.ona_graphics_making_pbr_progress, i, names.size))
+                    val bytes = source.bytes(path) ?: return@forEachIndexed
                     val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options) ?: return@forEachIndexed
                     val w = bitmap.width
                     val h = bitmap.height
@@ -371,17 +418,18 @@ object OnaGraphics {
                     writePng(out, "$prefix${name}_n.png", maps.normal, w, h)
                     writePng(out, "$prefix${name}_s.png", maps.specular, w, h)
                     // animated textures: the maps animate with them
-                    zip.getEntry("${entry.name}.mcmeta")?.let { meta ->
-                        val metaBytes = zip.getInputStream(meta).use { it.readBytes() }
+                    source.bytes("$path.mcmeta")?.let { meta ->
                         listOf("_n", "_s").forEach { suffix ->
                             out.putNextEntry(ZipEntry("$prefix$name$suffix.png.mcmeta"))
-                            out.write(metaBytes)
+                            out.write(meta)
                             out.closeEntry()
                         }
                     }
                     count++
                 }
             }
+        } finally {
+            sources.forEach { it.close() }
         }
         if (count == 0) {
             temp.delete()
@@ -390,7 +438,7 @@ object OnaGraphics {
         pack.delete()
         if (!temp.renameTo(pack)) return false
         marker.writeText(stamp)
-        Logger.info(TAG, "ONA Mobile PBR: maps for $count textures from ${jar.name}")
+        Logger.info(TAG, "ONA Mobile PBR: maps for $count textures from ${packs.size} pack(s) + ${jar.name}")
         return true
     }
 
