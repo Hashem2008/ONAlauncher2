@@ -492,6 +492,17 @@ ONA GRAPHICS + ONA RENDERER (2026-11-08 b+c)
 - Not device-tested. Next: user's logs with ONA Renderer (F3 / log "MobileGlues 2.0.1 ... (ONA Renderer)"),
   ONA Mobile Shaders on the phone, then engine-level fixes in patch_renderer.py from those logs.
 
+SHADER V2 + UNLIMITED FPS (2026-11-08 d+e)
+- ONA Mobile Shaders v2 (black faces + leaf speckles fixed, 8 levels up to IMPOSSIBLE: realistic sky,
+  light shafts, SSAO, SSR, wet rain...), launcher setting "ONA Graphics for every version"
+  (AllSettings.onaGraphics), Modrinth HD texture packs 16x..512x in the ONA Graphics dialog.
+  ONA_CHANGES/2026-11-08d_shader-v2.txt.
+- FPS stuck at 120 = Minecraft 26 default maxFps 120 with the launcher cap "game decides" (0). Now
+  unlimited (260) by default + one-time migration, recommendations 260, ADPF budget follows the cap.
+  ONA_CHANGES/2026-11-08e_unlimited-fps.txt.
+- CI: full build run 42488996119 (7af88bf) SUCCESS, 4 APKs (ONA Renderer inside, unchanged release).
+  Not device-tested. Next: user's F3 FPS with and without shaders, screenshots of shader v2 levels.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -554,3 +565,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-07 (ب): نسخة رابعة ONA Performance (74 ميغا بدل 246): الجافا بتنزل أول مرة، بدون Rust، كود مضغوط. البيلد نجح.
 - 2026-11-08 (أ): Performance صارت 42 ميغا (LWJGL بتنزل أول مرة). للكل: تبليغ أندرويد كل فريم، تسريع جافا، وإعدادات ماينكرافت 26 التلقائية. البيلد نجح.
 - 2026-11-08 (ب+ج): جرافيك ONA (شيدر خاص بالجوالات + ريسورس باك بينعمل على الجوال) و ONA Renderer (محركنا المبني من كود MobileGlues، محرك واحد لكل النسخ 1.17+). كل البيلدات نجحت.
+- 2026-11-08 (د+هـ): الشيدر v2 (8 مستويات لحد مستحيل)، تشغيل الشيدر من إعدادات اللانشر، نقوش HD من Modrinth، والفريمات صارت بلا حد (كانت 120). البيلد نجح.
