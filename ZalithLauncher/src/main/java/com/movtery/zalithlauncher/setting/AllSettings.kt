@@ -173,7 +173,10 @@ object AllSettings : SettingsRegistry() {
     /**
      * ONA: frame rate cap written to options.txt on launch, 0 leaves it alone, 260 is unlimited
      */
-    val gameFpsCap = intSetting("gameFpsCap", 0, 0..260)
+    val gameFpsCap = intSetting("gameFpsCap", 260, 0..260)
+
+    /** ONA: "game decides" (Minecraft 26 = 120 FPS) moved once to unlimited */
+    val fpsUnlockMigrated = boolSetting("onaFpsUnlockV1", false)
 
     /**
      * ONA: force VSync off in options.txt on launch

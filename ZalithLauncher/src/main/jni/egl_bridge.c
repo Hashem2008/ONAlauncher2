@@ -323,7 +323,7 @@ static time_t lastTime = 0;
 // rise inside the frame that falls behind (chunk loading, a GC, a busy server tick) instead of
 // after a second of slow frames. This is what native games do; it only adds boost when needed
 // and never lowers the governor's own choice. Loaded with dlsym: minSdk is 26.
-//   ONA_FRAME_TARGET_NS: frame budget (from the screen's refresh rate), ONA_ADPF=0: off
+//   ONA_FRAME_TARGET_NS: frame budget (FPS cap, or the refresh rate), ONA_ADPF=0: off
 // ---------------------------------------------------------------------------------------------
 typedef void* (*PFN_APerformanceHint_getManager)(void);
 typedef void* (*PFN_APerformanceHint_createSession)(void*, const int32_t*, size_t, int64_t);
@@ -360,7 +360,7 @@ static void ona_adpf_start(int64_t now) {
     const char* wanted = getenv("ONA_FRAME_TARGET_NS");
     if (wanted != NULL) {
         long long value = atoll(wanted);
-        if (value >= 4000000LL && value <= 50000000LL) target = (int64_t) value;
+        if (value >= 1000000LL && value <= 50000000LL) target = (int64_t) value; // 1 ms (unlimited FPS) .. 50 ms
     }
     int32_t tid = (int32_t) gettid();
     adpf_session = create_session(manager, &tid, 1, target);

@@ -295,6 +295,11 @@ class GameLauncher(
         val gameDirPath = version.getGameDir()
 
         OnaTweaks.applyGameDefaults(GlobalContext, gameDirPath)
+        // ONA: "game decides" meant 120 FPS on Minecraft 26: move it once to unlimited
+        if (!AllSettings.fpsUnlockMigrated.getValue()) {
+            if (AllSettings.gameFpsCap.getValue() == 0) AllSettings.gameFpsCap.save(260)
+            AllSettings.fpsUnlockMigrated.save(true)
+        }
         OnaTweaks.applyFpsOptions(
             gameDirPath,
             AllSettings.gameFpsCap.getValue(),
@@ -564,7 +569,14 @@ private fun setRendererEnv(
             .getSystemService(android.hardware.display.DisplayManager::class.java)
             ?.getDisplay(android.view.Display.DEFAULT_DISPLAY)
         val hz = display?.supportedModes?.maxOfOrNull { it.refreshRate } ?: 60f
-        envMap["ONA_FRAME_TARGET_NS"] = (1_000_000_000.0 / hz.coerceIn(30f, 165f)).toLong().toString()
+        // the frame budget follows the FPS cap: unlimited aims at ~480 FPS so the clocks stay up
+        val cap = AllSettings.gameFpsCap.getValue()
+        val targetFps = when {
+            cap >= 260 -> 480f
+            cap > 0 -> cap.toFloat()
+            else -> hz.coerceIn(30f, 165f)
+        }
+        envMap["ONA_FRAME_TARGET_NS"] = (1_000_000_000.0 / targetFps).toLong().toString()
     }
     if (!AllSettings.boostGameThreads.getValue()) envMap["ONA_ADPF"] = "0"
 

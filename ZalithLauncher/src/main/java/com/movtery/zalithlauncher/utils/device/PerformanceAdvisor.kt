@@ -67,10 +67,12 @@ object PerformanceAdvisor {
     fun recommended(profile: DeviceProfile): RecommendedSettings {
         val upscaler = if (profile.isAdreno) UpscalerMode.GSR else UpscalerMode.ASR
         return when (profile.tier) {
-            DeviceTier.FLAGSHIP -> RecommendedSettings(85, upscaler, 16, 10, 0, 300, 4)
-            DeviceTier.HIGH -> RecommendedSettings(75, upscaler, 12, 8, 0, 180, 3)
-            DeviceTier.MID -> RecommendedSettings(67, upscaler, 8, 6, 60, 90, 2)
-            DeviceTier.LOW -> RecommendedSettings(50, upscaler, 6, 5, 45, 40, 1)
+            // FPS unlimited everywhere (260 = Minecraft's "Unlimited"): the game's own default caps
+            // 26.x at 120, and a cap only ever lowers what the phone could show
+            DeviceTier.FLAGSHIP -> RecommendedSettings(85, upscaler, 16, 10, 260, 300, 4)
+            DeviceTier.HIGH -> RecommendedSettings(75, upscaler, 12, 8, 260, 180, 3)
+            DeviceTier.MID -> RecommendedSettings(67, upscaler, 8, 6, 260, 90, 2)
+            DeviceTier.LOW -> RecommendedSettings(50, upscaler, 6, 5, 260, 40, 1)
         }
     }
 

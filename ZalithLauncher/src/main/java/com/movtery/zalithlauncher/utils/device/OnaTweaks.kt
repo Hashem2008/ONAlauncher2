@@ -201,6 +201,8 @@ object OnaTweaks {
                 if (index >= 0) lines[index] = "$key:$value" else lines.add("$key:$value")
             }
             if (cap > 0) put("maxFps", cap.toString())
+            // unlimited: no drop to a low FPS after a while without input (Minecraft 1.21.2+ "afk")
+            if (cap >= 260 && lines.any { it.startsWith("inactivityFpsLimit:") }) put("inactivityFpsLimit", "\"minimized\"")
             if (maxRenderDistance > 0) {
                 fun lower(key: String, max: Int) {
                     val index = lines.indexOfFirst { it.startsWith("$key:") }

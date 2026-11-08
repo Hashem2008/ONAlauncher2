@@ -1,0 +1,17 @@
+2026-11-08 (e) - FPS no longer stuck at 120
+
+User log (S26 Ultra, ONA Renderer build, Fabulously Optimized 26.3, ONA Mobile Shaders): stutter gone,
+but FPS sat at exactly 120 (screenshots "120 FPS").
+Cause: the launcher's "FPS limit" default was 0 = "game decides", and Minecraft 26's own default is
+maxFps 120. The FLAGSHIP / HIGH recommendation also wrote 0. Nothing in the engine caps it:
+MobileGlues forwards eglSwapInterval to the system EGL, vsync off is written every launch, and the
+upscaler (SurfaceTexture consumer, eglSwapInterval 0) follows the game frame by frame.
+
+- AllSettings.gameFpsCap default 260 (Minecraft "Unlimited"); one-time migration 0 -> 260
+  (onaFpsUnlockV1) in GameLauncher before applyFpsOptions.
+- PerformanceAdvisor recommendations: fpsCap 260 for every tier.
+- applyFpsOptions: with unlimited, inactivityFpsLimit "minimized" when the key exists (1.21.2+ drops
+  to a low FPS after a while without input otherwise).
+- ADPF frame budget follows the cap (unlimited -> 1e9/480 ns); egl_bridge.c accepts 1..50 ms (was
+  4..50, 2 ms fell back to 16.6 ms).
+Note: unlimited FPS heats the phone more; the slider still allows a cap.
