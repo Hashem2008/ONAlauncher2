@@ -6,8 +6,9 @@ name: ONA Renderer
 
 on:
   workflow_dispatch:
+  # also on development branches: a workflow can only be started by hand once it is on main
   push:
-    branches: [main]
+    branches: [main, 'claude/**']
     paths:
       - tools/ona-renderer/**
       - .github/workflows/ona_renderer.yml
