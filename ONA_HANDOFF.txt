@@ -518,7 +518,7 @@ INSTALLERS + MOD BREAKS (2026-11-08 i)
 - Performance APK: Forge/OptiFine/modpack installs failed (exit code 1, no Java). Installers now
   download their runtime first. Sodium 0.9.3-beta.4 breaks Iris 1.11.7: ModCompat reads Fabric
   "breaks" and swaps to a build that fits (sodium beta.3). ONA_CHANGES/2026-11-08i_installers-java-and-mod-breaks.txt.
-  CI: see the next handoff commit. Next: user confirms Forge 1.20.1, OptiFine 26.2, BMC4 modpack, Iris.
+  CI run 42504033996 (f859170) SUCCESS, 4 APKs. Next: user confirms Forge 1.20.1, OptiFine 26.2, BMC4 modpack, Iris.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -585,4 +585,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (د+هـ): الشيدر v2 (8 مستويات لحد مستحيل)، تشغيل الشيدر من إعدادات اللانشر، نقوش HD من Modrinth، والفريمات صارت بلا حد (كانت 120). البيلد نجح.
 - 2026-11-08 (و+ز): الشيدر v3 (دمج مع Patrix، سماء مصلحة) و v4 (توهج الخامات، لمعان السيارات والمخلوقات، أجزاء من مطفأ لأقصى لكل جزء). بيلد v3 و v4 نجحوا.
 - 2026-11-08 (ح): لغينا v4 ورجعنا v3 لأنه أسرع (طلب المستخدم). البيلد نجح.
-- 2026-11-08 (ط): تنزيل فورج وأوبتيفاين والمودباكات صار ينزّل الجافا أول (كان فاشل بنسخة Performance)، وتصليح تعارض Sodium مع Iris لحاله.
+- 2026-11-08 (ط): تنزيل فورج وأوبتيفاين والمودباكات صار ينزّل الجافا أول (كان فاشل بنسخة Performance)، وتصليح تعارض Sodium مع Iris لحاله. البيلد نجح.
