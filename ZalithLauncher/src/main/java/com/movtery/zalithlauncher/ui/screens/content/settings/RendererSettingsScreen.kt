@@ -219,6 +219,20 @@ fun RendererSettingsScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
+                        unit = AllSettings.communityShader,
+                        items = com.movtery.zalithlauncher.game.graphics.CommunityShaders.CHOICES,
+                        title = stringResource(R.string.ona_community_setting_title),
+                        summary = stringResource(R.string.ona_community_setting_summary),
+                        getItemText = { id ->
+                            if (id == "OFF") stringResource(R.string.ona_resource_off)
+                            else com.movtery.zalithlauncher.game.graphics.CommunityShaders.SHADERS[id] ?: id
+                        },
+                        getItemId = { it }
+                    )
+
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
                         unit = AllSettings.onaResource,
                         items = com.movtery.zalithlauncher.game.graphics.OnaResource.CHOICES,
                         title = stringResource(R.string.ona_resource_setting_title),

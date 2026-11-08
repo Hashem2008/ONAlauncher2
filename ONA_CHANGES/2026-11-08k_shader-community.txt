@@ -1,0 +1,23 @@
+Shader Community (2026-11-08 k)
+
+User asked: a "Shader Community" setting with the popular shaders forked and made for phones.
+Licenses (Modrinth): Complementary Reimagined/Unbound custom, BSL / Bliss / Solas / Nostalgia /
+Sildur's All Rights Reserved, Photon unlisted, only MakeUp Ultra Fast LGPL-3.0. So ONA does not
+ship edited copies: game/graphics/CommunityShaders.kt downloads the authors' original file from
+Modrinth (loader iris, or optifine on OptiFine) and sets it up for phones through the pack's own
+options file (what a player would do in the shader menu):
+- the pack's quality profile for the device class, matched by name case-insensitively
+  (LOW: POTATO/VERYLOW/MINIMUM/LITE/LOW..., MID: LOW..., HIGH: MEDIUM..., FLAGSHIP: HIGH...),
+  profiles inside profiles resolved; packs whose profiles are not quality levels (Bliss) keep
+  their defaults. Checked on the real files: Complementary POTATO..ULTRA, BSL MINIMUM..ULTRA,
+  Photon low..ultra, Solas/Nostalgia Low..Ultra, MakeUp no_effects..extremeplus, Sildur's none.
+- shadowMapResolution <= 2048 (flagship) / 1024, shadowDistance <= 128 / 96 (also when the pack
+  only declares them in code).
+Setting AllSettings.communityShader (OFF or slug), card in "Shaders and textures". On launch it runs
+before ONA Graphics; while one is chosen ONA Graphics is skipped. Stamp ona_community.txt
+(slug|file|tier): set up again only when the choice or the device class changes. OFF switches the
+shader off once, then ONA Graphics does its part. OnaGraphics.ensureShaderLoader extracted (Iris /
+Oculus installed when missing), selectShader takes the pack name.
+
+Checks this round: shader options script (every menu / profile option declared in settings.glsl,
+used in code, labelled): 41 options, 0 problems. CI of e48b5fa: arm64, arm, x86_64 OK.

@@ -525,8 +525,13 @@ SHADER LIGHT + OPTIFINE + ONA RESOURCE + SETTINGS SECTIONS (2026-11-08 j)
   tone curve and balanced sun/sky, bloom from 0.80. OptiFine levels capped (shadows 2048/96...).
   New launcher setting ONA Resource (Performance pack made on the phone, or Modrinth 16x..512x+).
   Renderer settings grouped in titled sections. ONA_CHANGES/2026-11-08j_shader-light-optifine-resource-settings.txt.
-  CI: see the next handoff commit. Not device-tested: ask for desert/forest screenshots + F3 FPS
+  CI run 42507545936 (e48b5fa): arm64/arm/x86_64 OK. Not device-tested: ask for desert/forest screenshots + F3 FPS
   (Iris and OptiFine), and whether ONA Resource Performance gives more FPS.
+
+SHADER COMMUNITY (2026-11-08 k)
+- New setting: popular shaders downloaded unchanged from Modrinth (licenses forbid shipping edited
+  copies, only MakeUp is LGPL) and set up for phones via their own profile + shadow caps.
+  ONA_CHANGES/2026-11-08k_shader-community.txt. CI: see the next handoff commit.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -595,3 +600,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ح): لغينا v4 ورجعنا v3 لأنه أسرع (طلب المستخدم). البيلد نجح.
 - 2026-11-08 (ط): تنزيل فورج وأوبتيفاين والمودباكات صار ينزّل الجافا أول (كان فاشل بنسخة Performance)، وتصليح تعارض Sodium مع Iris لحاله. البيلد نجح.
 - 2026-11-08 (ي): الشيدر ما عاد يبيّض الصحراء (ألوان طبيعية)، أوبتيفاين أخف، ريسورس ONA جديد بالإعدادات (أداء / 16x لـ 512x)، والإعدادات صارت مقسمة بعناوين.
+- 2026-11-08 (ك): "شيدرات المجتمع" بالإعدادات: Complementary و BSL و Photon وغيرهم بينزلوا من أصحابهم وبينضبطوا للجوال لحالهم.

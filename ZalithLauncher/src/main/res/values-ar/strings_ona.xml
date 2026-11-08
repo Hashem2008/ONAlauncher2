@@ -344,4 +344,9 @@
     <string name="ona_resource_pack_on">ريسورس ONA: %1$s (%2$s) اشتغل</string>
     <string name="ona_resource_failed">ريسورس ONA %1$s ما زبط، رح يجرب مرة ثانية بالتشغيل الجاي</string>
     <string name="ona_graphics_optifine_capped">أوبتيفاين: الظلال صارت 2048 و 96 بلوك عشان الفريمات (أوبتيفاين أثقل من Iris على الجوال)</string>
+    <string name="ona_community_setting_title">شيدرات المجتمع</string>
+    <string name="ona_community_setting_summary">الشيدرات المشهورة (Complementary و BSL و Photon و Bliss و Solas...) بتنزل زي ما هي من Modrinth من أصحابها، واللانشر بيضبطها للجوال: بيختار مستوى الجودة اللي بيناسب جهازك وبيخفف الظلال. بيشتغل بدل شيدر ONA طول ما واحد منهم مختار.</string>
+    <string name="ona_community_on">شيدرات المجتمع: %1$s اشتغل (المستوى %2$s، مضبوط لجوالك)</string>
+    <string name="ona_community_failed">شيدرات المجتمع: %1$s ما زبط، رح يجرب مرة ثانية بالتشغيل الجاي</string>
+    <string name="ona_community_turned_off">شيدرات المجتمع انطفت</string>
 </resources>

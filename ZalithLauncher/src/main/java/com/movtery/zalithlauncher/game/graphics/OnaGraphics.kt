@@ -79,7 +79,37 @@ object OnaGraphics {
 
     class Result(val ok: Boolean, val lines: List<String>)
 
-    private enum class Loader { IRIS, OCULUS, OPTIFINE, NONE }
+    internal enum class Loader { IRIS, OCULUS, OPTIFINE, NONE }
+
+    /**
+     * The version's shader loader, Iris / Oculus installed when there is none.
+     * @return null (with the reason in [lines]) when the version cannot load shaders
+     */
+    internal fun ensureShaderLoader(context: Context, version: Version, lines: MutableList<String>, onProgress: (String) -> Unit): Loader? {
+        val loader = detectLoader(version)
+        if (loader != Loader.NONE) return loader
+        val env = version.modEnvironment()
+        val project = when (env?.loader) {
+            "fabric", "quilt", "neoforge" -> "iris"
+            "forge" -> "oculus"
+            else -> null
+        }
+        if (project == null || env == null) {
+            lines.add(context.getString(R.string.ona_graphics_needs_loader))
+            return null
+        }
+        onProgress(context.getString(R.string.ona_graphics_installing_loader, project))
+        val installed = runCatching {
+            version.modsDir().mkdirs()
+            ModCompat.installCompatible(project, version.modsDir(), env, project)
+        }.onFailure { Logger.warning(TAG, "Could not install $project", it) }.getOrNull()
+        if (installed == null) {
+            lines.add(context.getString(R.string.ona_graphics_loader_failed, project))
+            return null
+        }
+        lines.add(context.getString(R.string.ona_graphics_loader_added, installed.name))
+        return if (project == "iris") Loader.IRIS else Loader.OCULUS
+    }
 
     /** @param level null turns ONA Graphics off (shaders off, PBR pack out of the list) */
     suspend fun apply(
@@ -97,28 +127,7 @@ object OnaGraphics {
         }
 
         // 1. A shader loader: Iris (Fabric, Quilt, NeoForge), Oculus (Forge), or OptiFine
-        var loader = detectLoader(version)
-        if (loader == Loader.NONE) {
-            val env = version.modEnvironment()
-            val project = when (env?.loader) {
-                "fabric", "quilt", "neoforge" -> "iris"
-                "forge" -> "oculus"
-                else -> null
-            }
-            if (project == null || env == null) {
-                return@withContext Result(false, listOf(context.getString(R.string.ona_graphics_needs_loader)))
-            }
-            onProgress(context.getString(R.string.ona_graphics_installing_loader, project))
-            val installed = runCatching {
-                version.modsDir().mkdirs()
-                ModCompat.installCompatible(project, version.modsDir(), env, project)
-            }.onFailure { Logger.warning(TAG, "Could not install $project", it) }.getOrNull()
-            if (installed == null) {
-                return@withContext Result(false, listOf(context.getString(R.string.ona_graphics_loader_failed, project)))
-            }
-            lines.add(context.getString(R.string.ona_graphics_loader_added, installed.name))
-            loader = if (project == "iris") Loader.IRIS else Loader.OCULUS
-        }
+        val loader = ensureShaderLoader(context, version, lines, onProgress) ?: return@withContext Result(false, lines)
 
         // 2. The shader pack, fresh from the APK, and the options of the level
         onProgress(context.getString(R.string.ona_graphics_copying))
@@ -262,7 +271,7 @@ object OnaGraphics {
         result
     }
 
-    private fun detectLoader(version: Version): Loader {
+    internal fun detectLoader(version: Version): Loader {
         val jars = version.modsDir().listFiles { file -> file.name.endsWith(".jar") }.orEmpty()
             .map { it.name.lowercase() }
         return when {
@@ -275,15 +284,15 @@ object OnaGraphics {
     }
 
     /** Iris / Oculus config, or OptiFine's optionsshaders.txt: our pack, shaders on */
-    private fun selectShader(gameDir: File, loader: Loader) {
+    internal fun selectShader(gameDir: File, loader: Loader, pack: String = SHADER_NAME) {
         when (loader) {
-            Loader.OPTIFINE -> writeKeyValues(File(gameDir, "optionsshaders.txt"), mapOf("shaderPack" to SHADER_NAME))
-            Loader.OCULUS -> writeKeyValues(File(gameDir, "config/oculus.properties"), mapOf("shaderPack" to SHADER_NAME, "enableShaders" to "true"))
-            else -> writeKeyValues(File(gameDir, "config/iris.properties"), mapOf("shaderPack" to SHADER_NAME, "enableShaders" to "true"))
+            Loader.OPTIFINE -> writeKeyValues(File(gameDir, "optionsshaders.txt"), mapOf("shaderPack" to pack))
+            Loader.OCULUS -> writeKeyValues(File(gameDir, "config/oculus.properties"), mapOf("shaderPack" to pack, "enableShaders" to "true"))
+            else -> writeKeyValues(File(gameDir, "config/iris.properties"), mapOf("shaderPack" to pack, "enableShaders" to "true"))
         }
     }
 
-    private fun setShaderEnabled(gameDir: File, enabled: Boolean) {
+    internal fun setShaderEnabled(gameDir: File, enabled: Boolean) {
         listOf("config/iris.properties", "config/oculus.properties").forEach { path ->
             val file = File(gameDir, path)
             if (file.isFile) writeKeyValues(file, mapOf("enableShaders" to enabled.toString()))

@@ -694,8 +694,14 @@ fun LaunchGameOperation(
                     runCatching {
                         val ona = com.movtery.zalithlauncher.game.graphics.OnaGraphics
                         val context = com.movtery.zalithlauncher.context.GlobalContext
-                        when (val mode = AllSettings.onaGraphics.getValue()) {
-                            "OFF" -> { ona.offerPack(context, version); null }
+                        // Shader Community: a popular pack set up for phones, instead of ONA's own
+                        val tier = DeviceProfiler.current()?.tier ?: DeviceTier.MID
+                        val community = AllSettings.communityShader.getValue()
+                        val communityLine = com.movtery.zalithlauncher.game.graphics.CommunityShaders.applyOnLaunch(context, version, community, tier)
+                        if (community != "OFF") {
+                            communityLine?.let { com.movtery.zalithlauncher.game.graphics.OnaGraphics.Result(true, listOf(it)) }
+                        } else when (val mode = AllSettings.onaGraphics.getValue()) {
+                            "OFF" -> { ona.offerPack(context, version); communityLine?.let { com.movtery.zalithlauncher.game.graphics.OnaGraphics.Result(true, listOf(it)) } }
                             else -> {
                                 val level = if (mode == "AUTO") ona.autoLevel(DeviceProfiler.current()?.tier ?: DeviceTier.MID)
                                 else com.movtery.zalithlauncher.game.graphics.OnaGraphicsLevel.valueOf(mode)

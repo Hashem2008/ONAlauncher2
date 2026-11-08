@@ -344,4 +344,9 @@
     <string name="ona_resource_pack_on">ONA Resource: %1$s (%2$s) on</string>
     <string name="ona_resource_failed">ONA Resource %1$s could not be set up, it is tried again on the next start</string>
     <string name="ona_graphics_optifine_capped">OptiFine: shadows at 2048 / 96 blocks for FPS (OptiFine is heavier than Iris on phones)</string>
+    <string name="ona_community_setting_title">Shader Community</string>
+    <string name="ona_community_setting_summary">Popular shaders (Complementary, BSL, Photon, Bliss, Solas...) downloaded unchanged from Modrinth, by their own authors, and set up for phones: the quality profile that fits this device and lighter shadows. Used instead of ONA Mobile Shaders while one is chosen.</string>
+    <string name="ona_community_on">Shader Community: %1$s on (profile %2$s, set up for this phone)</string>
+    <string name="ona_community_failed">Shader Community: %1$s could not be set up, it is tried again on the next start</string>
+    <string name="ona_community_turned_off">Shader Community off</string>
 </resources>

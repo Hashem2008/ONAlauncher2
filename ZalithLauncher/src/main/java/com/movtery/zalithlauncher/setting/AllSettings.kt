@@ -545,6 +545,9 @@ object AllSettings : SettingsRegistry() {
     /** ONA Resource for every version: OFF, PERFORMANCE or a texture size (16x ... 512x+) */
     val onaResource = stringSetting("onaResource", "OFF")
 
+    /** Shader Community for every version: OFF or a Modrinth shader slug (used instead of ONA Graphics) */
+    val communityShader = stringSetting("communityShader", "OFF")
+
     /** ONA: the build + device the "better APK for this device" advice was last shown for */
     val abiAdviceShown = stringSetting("onaAbiAdviceShown", "")
 
