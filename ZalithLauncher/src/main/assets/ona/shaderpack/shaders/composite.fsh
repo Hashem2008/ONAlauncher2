@@ -17,7 +17,7 @@ uniform mat4 gbufferModelViewInverse;
 uniform float rainStrength;
 uniform int isEyeInWater;
 #ifdef VOLUMETRIC_LIGHT
-uniform sampler2DShadow shadowtex0;
+uniform sampler2DShadow shadowtex1;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 #endif
@@ -85,6 +85,9 @@ void main() {
     float dist = min(length(viewPos), 48.0);
     vec3 dirW = mat3(gbufferModelViewInverse) * normalize(viewPos);
     float dither = onaNoise(gl_FragCoord.xy);
+    // the shadow projection is affine: the start and the direction once, then one step is an add
+    vec3 vlStart = (shadowProjection * (shadowModelView * vec4(0.0, 0.0, 0.0, 1.0))).xyz;
+    vec3 vlDir = (shadowProjection * (shadowModelView * vec4(dirW, 0.0))).xyz;
     float lit = 0.0;
     float mu = dot(normalize(viewPos), lightDir);
     // the shafts show towards the sun: a quarter of the steps elsewhere (the air there is even)
@@ -92,12 +95,10 @@ void main() {
     for (int i = 0; i < VL_STEPS; i++) {
         if (i >= steps) break;
         float t = (float(i) + dither) / float(steps);
-        vec3 wp = dirW * (t * t * dist);
-        vec4 sp = shadowProjection * (shadowModelView * vec4(wp, 1.0));
-        vec3 sc = sp.xyz / sp.w;
+        vec3 sc = vlStart + vlDir * (t * t * dist);
         float l = length(sc.xy);
         sc.xy /= l * SHADOW_DISTORT + (1.0 - SHADOW_DISTORT);
-        lit += l < 1.0 ? shadow2D(shadowtex0, sc * 0.5 + 0.5).x : 1.0;
+        lit += l < 1.0 ? shadow2D(shadowtex1, sc * 0.5 + 0.5).x : 1.0;
     }
     lit /= float(steps);
     float g = 0.65;

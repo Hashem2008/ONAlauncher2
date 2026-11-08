@@ -72,3 +72,7 @@ value.COLOR_GRADE.0=طبيعي
 value.COLOR_GRADE.1=سينمائي
 value.COLOR_GRADE.2=بارد
 value.COLOR_GRADE.3=زاهي
+option.VOLUMETRIC_CLOUDS=غيوم ثلاثية الأبعاد
+option.CLOUD_STEPS=جودة الغيوم الثلاثية
+option.WATER_REFRACTION=انكسار الرؤية بالماء
+value.SHADOW_FILTER.4=واقعي (حاد عند التلامس)

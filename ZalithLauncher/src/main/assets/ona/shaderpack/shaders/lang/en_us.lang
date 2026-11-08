@@ -72,3 +72,7 @@ value.COLOR_GRADE.0=Natural
 value.COLOR_GRADE.1=Film
 value.COLOR_GRADE.2=Cool
 value.COLOR_GRADE.3=Vivid
+option.VOLUMETRIC_CLOUDS=3D clouds
+option.CLOUD_STEPS=3D cloud quality
+option.WATER_REFRACTION=Bent view through water
+value.SHADOW_FILTER.4=Realistic (sharp at contact)

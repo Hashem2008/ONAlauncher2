@@ -1,0 +1,36 @@
+Shader: realistic levels made realistic, FPS first, colours untouched (2026-11-08 n)
+
+User: colours must stay as they are, IMPOSSIBLE does not look high-end, make the realistic levels
+really realistic, learn from other shaders, FPS is the most important. Log: "Invalid pack option:
+CLOUD_SHADOWS" (Iris).
+
+Read in the other packs (techniques only, own code written): Complementary Reimagined clouds
+(2D noise + height threshold marched in a thin layer, few dithered steps), Photon pcss.glsl
+(blocker search on raw shadowtex0 depth, hardware-compared shadowtex1, early exits when no
+blocker / when the first taps agree), Photon's /* RENDERTARGETS */ inside #ifdef.
+
+- Fix: CLOUD_SHADOWS was only referenced through `#if defined X && ...`; Iris / OptiFine only count
+  #ifdef / #ifndef as an option reference -> nested #ifdef. New tools/ona_shader_options_check.py
+  checks this strictly (plus declaration and en/ar labels) for every menu / profile option.
+- Shadows (lib/shadow_fsh.glsl): shadowHardwareFiltering1 (Photon's set-up): shadow2D on shadowtex1,
+  raw depth on shadowtex0. FPS: filters 2 and 3 take 4 spread taps first and stop when they agree
+  (fully lit / fully shadowed = most pixels), 8 or 12 taps only in the penumbra.
+  New SHADOW_FILTER 4 "Realistic": 6-tap blocker search, no blocker -> lit at once; blocker gap in
+  blocks from shadowProjection, penumbra of a 0.5 degree sun in shadow texels (distortion aware),
+  then the 4+8 tap disc with the same early exit. ULTRA_REALISTIC and IMPOSSIBLE.
+- VOLUMETRIC_CLOUDS + CLOUD_STEPS (SKY, needs ONA clouds): clouds with a body between 260 and 340
+  blocks, density from the same 2D cover noise as the flat clouds / cloud shadows plus a height
+  profile (flat bottoms, round tops) and a little puff noise; light from one sample 22 blocks towards
+  the sun (moon at night), brighter tops, forward-scattered rims; Beer-Lambert, exits at 3%
+  transmittance, fades into the horizon. Sky pixels only. UR 8 steps, IMPOSSIBLE 12.
+- WATER_REFRACTION (WATER): deferred also writes the opaque world to colortex3 (RENDERTARGETS 0,3
+  only when on); water samples it bent by (wave normal - surface normal) x water depth, falls back
+  to the straight view when the bent spot is in front of the water, and draws itself over it with
+  the alpha it had (same water colours). REALISTIC and up.
+- Light shafts: shadow-space start and direction once (the projection is affine), one add per step
+  instead of two matrix products; shadowtex1.
+- IMPOSSIBLE: shadow distance 192 -> 160 (map stays 4096, so sharper than UR), SSAO 16 -> 12,
+  light shaft steps 16 -> 12, parallax 24 -> 16: the time goes to the new shadows and clouds.
+- No colour or tone curve change.
+Checks: ona_shader_check 224/224; every new option on, with each of the 5 shadow filters, at POTATO
+and IMPOSSIBLE 280/280; ona_shader_options_check 55 options, 0 problems.

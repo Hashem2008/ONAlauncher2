@@ -140,12 +140,14 @@ void main() {
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
 #endif
-#if defined CLOUD_SHADOWS && defined ONA_CLOUDS
+#ifdef CLOUD_SHADOWS
+#ifdef ONA_CLOUDS
     {
         // where the sun ray from here crosses the cloud layer, 300 blocks up
         vec3 sunW = mat3(gbufferModelViewInverse) * lightDir;
         if (sunW.y > 0.05) vis *= 1.0 - onaCloudCover(worldPos.xz + sunW.xz * ((300.0 - worldPos.y) / sunW.y), frameTimeCounter, rainStrength) * 0.8;
     }
+#endif
 #endif
     vec3 color = onaShade(albedo.rgb, n, lm, vis * (sss > 0.0 && geoNdotL < 0.0 ? 0.0 : 1.0), ao);
 #ifdef SPARKLE

@@ -3,7 +3,7 @@
 // device (POTATO ... IMPOSSIBLE) and writes the matching values.
 
 //#define SHADOWS              // sun / moon shadows (renders the world once more from the sun)
-#define SHADOW_FILTER 1        // [0 1 2 3] 0 = hard, 1 = soft, 2 = softer, 3 = soft and smooth (rotated disc)
+#define SHADOW_FILTER 1        // [0 1 2 3 4] 0 = hard, 1 = soft, 2 = softer, 3 = soft and smooth (rotated disc), 4 = realistic (sharp where it touches, softer further away)
 #define WAVING_PLANTS          // leaves, grass, flowers and crops move with the wind
 #define WATER_WAVES            // moving water surface
 #define WATER_REFLECTIONS      // sky reflection and sun glint on water
@@ -50,6 +50,9 @@
 //#define DISTANCE_HAZE        // far land fades into the air colour, like real distance
 //#define SPARKLE              // sand and snow glitter in the sun
 #define COLOR_GRADE 0          // [0 1 2 3] colours: 0 natural, 1 film, 2 cool, 3 vivid
+//#define VOLUMETRIC_CLOUDS    // clouds with a real body: flat bottoms, round sunlit tops, dark bellies (with ONA clouds)
+#define CLOUD_STEPS 8          // [6 8 12 16] steps through the cloud layer: more = smoother clouds, fewer FPS
+//#define WATER_REFRACTION     // the ground under the water is seen bent by the waves
 #define SATURATION 1.10        // [0.80 0.90 1.00 1.10 1.20 1.30]
 #define FOG_START 0.55         // [0.30 0.40 0.55 0.70 0.85]
 
@@ -58,6 +61,7 @@ const float shadowDistance = 64.0;    // [32.0 48.0 64.0 96.0 128.0 160.0 192.0]
 const float shadowDistanceRenderMul = 1.0;
 const float sunPathRotation = -25.0;
 const float ambientOcclusionLevel = 0.85;
-const bool shadowHardwareFiltering = true;
+// shadowtex1 compared in hardware, shadowtex0 raw depth for the realistic filter (as Photon does)
+const bool shadowHardwareFiltering1 = true;
 
 const float SHADOW_DISTORT = 0.85;
