@@ -151,7 +151,9 @@ object SmartRenderer : RendererInterface {
         val modCount: Int,
         val physicsMod: Boolean = false,
         /** the active shader pack is ONA Mobile Shaders */
-        val onaShaders: Boolean = false
+        val onaShaders: Boolean = false,
+        /** the active pack has compute programs (.csh), or it could not be looked into */
+        val computeShaders: Boolean = true
     )
 
     fun situation(version: Version): Situation {
@@ -160,18 +162,26 @@ object SmartRenderer : RendererInterface {
         val sodiumLike = modNames.any { name -> SODIUM_LIKE.any { name.contains(it) } }
         val shaderMod = modNames.any { name -> SHADER_MODS.any { name.contains(it) } }
         val shaderPacks = File(gameDir, "shaderpacks").listFiles()?.any { !it.name.endsWith(".txt") } == true
+        val activePack = runCatching { com.movtery.zalithlauncher.utils.device.ShaderBoost.activeShaderPack(gameDir) }.getOrNull()
         return Situation(
             mc = version.getVersionInfo()?.minecraftVersion,
             shaders = shaderMod || shaderPacks && sodiumLike,
             sodiumLike = sodiumLike,
             modCount = modNames.size,
             physicsMod = modNames.any { it.contains("physics-mod") || it.contains("physicsmod") },
-            onaShaders = runCatching {
-                com.movtery.zalithlauncher.utils.device.ShaderBoost.activeShaderPack(gameDir) ==
-                    com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME
-            }.getOrDefault(false)
+            onaShaders = activePack == com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME,
+            computeShaders = activePack?.let { hasComputePrograms(File(File(gameDir, "shaderpacks"), it)) } ?: true
         )
     }
+
+    /** True when the pack (zip or folder) has compute programs; unknown packs count as having them */
+    private fun hasComputePrograms(pack: File): Boolean = runCatching {
+        when {
+            pack.isFile -> java.util.zip.ZipFile(pack).use { zip -> zip.entries().asSequence().any { it.name.endsWith(".csh") } }
+            pack.isDirectory -> pack.walkTopDown().any { it.name.endsWith(".csh") }
+            else -> true
+        }
+    }.getOrDefault(true)
 
     /**
      * Hybrid: MobileGlues settings for the engine ONA Hybrid picked. Only what the user did not
@@ -187,9 +197,10 @@ object SmartRenderer : RendererInterface {
         }
         put("maxGlslCacheSize", ConfigScalar.IntValue(cacheMb))
         // ONA Mobile Shaders uses no compute shaders: no need to report 4.3 for it
-        if (situation.shaders && !situation.onaShaders) {
-            // Newer shader packs (Complementary, Photon, Bliss...) use compute shaders, which Iris /
-            // Oculus only run on OpenGL 4.3+: expose MobileGlues' compute support and report 4.3
+        if (situation.shaders && !situation.onaShaders && situation.computeShaders) {
+            // Newer shader packs (Complementary, BSL, Photon, Bliss, Solas) use compute shaders, which
+            // Iris / Oculus only run on OpenGL 4.3+: expose MobileGlues' compute support and report 4.3.
+            // Packs without them (MakeUp, Nostalgia, Sildur's) keep the lighter 4.0 path
             put("enableExtComputeShader", ConfigScalar.IntValue(1))
             put("customGLVersion", ConfigScalar.IntValue(43))
         }

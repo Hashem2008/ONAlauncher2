@@ -44,6 +44,8 @@ object CommunityShaders {
     private const val API = "https://api.modrinth.com/v2"
     private const val USER_AGENT = "ONALauncher2 (github.com/Hashem2008/ONAlauncher2)"
     private const val STAMP = "ona_community.txt"
+    /** Next to a pack this launcher set up, so the heavy-mod tuner leaves its profile alone */
+    const val MARKER = ".ona_community"
 
     /** Modrinth slug to the name shown in the settings */
     val SHADERS: Map<String, String> = linkedMapOf(
@@ -62,9 +64,9 @@ object CommunityShaders {
     /** Profile names that fit each device class, best guess first (packs name them differently) */
     private val PROFILE_NAMES = mapOf(
         DeviceTier.LOW to listOf("POTATO", "VERY_LOW", "VERYLOW", "LOWEST", "MINIMUM", "MIN", "LITE", "LOW", "FAST"),
-        DeviceTier.MID to listOf("LOW", "LITE", "FAST", "MEDIUM", "MED"),
-        DeviceTier.HIGH to listOf("MEDIUM", "MED", "MID", "DEFAULT", "HIGH"),
-        DeviceTier.FLAGSHIP to listOf("HIGH", "MEDIUM", "MED", "DEFAULT")
+        DeviceTier.MID to listOf("VERYLOW", "VERY_LOW", "MINIMUM", "LOW", "LITE", "FAST"),
+        DeviceTier.HIGH to listOf("LOW", "LITE", "MEDIUM", "MED"),
+        DeviceTier.FLAGSHIP to listOf("MEDIUM", "MED", "MID", "DEFAULT", "HIGH")
     )
 
     /**
@@ -102,6 +104,7 @@ object CommunityShaders {
             File(pack.parentFile, "${pack.name}.txt").writeText(
                 options.entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
             )
+            File(pack.parentFile, "${pack.name}$MARKER").writeText(tier.name)
             OnaGraphics.selectShader(gameDir, loader, pack.name)
             stampFile.writeText("$choice|${pack.name}|${tier.name}")
             Logger.info(TAG, "${version.getVersionName()}: $title (${pack.name}), profile ${profile ?: "default"}, ${options.size} options")

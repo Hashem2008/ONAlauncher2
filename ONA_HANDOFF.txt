@@ -531,7 +531,8 @@ SHADER LIGHT + OPTIFINE + ONA RESOURCE + SETTINGS SECTIONS (2026-11-08 j)
 SHADER COMMUNITY (2026-11-08 k)
 - New setting: popular shaders downloaded unchanged from Modrinth (licenses forbid shipping edited
   copies, only MakeUp is LGPL) and set up for phones via their own profile + shadow caps.
-  ONA_CHANGES/2026-11-08k_shader-community.txt. CI: see the next handoff commit.
+  ONA_CHANGES/2026-11-08k_shader-community.txt (+ renderer follow-up: GL 4.3/compute only for packs
+  with .csh, heavy-mod tuner leaves community packs alone). CI: see the next handoff commit.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new

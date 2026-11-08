@@ -21,3 +21,13 @@ Oculus installed when missing), selectShader takes the pack name.
 
 Checks this round: shader options script (every menu / profile option declared in settings.glsl,
 used in code, labelled): 41 options, 0 problems. CI of e48b5fa: arm64, arm, x86_64 OK.
+
+Follow-up (same day): shaders tuned for the ONA Renderer
+- Scanned the 9 packs: compute programs (.csh) in Bliss 8, Photon 10, BSL / Complementary x2 /
+  Solas 3; none in MakeUp, Nostalgia, Sildur's; no MC_GL_VERSION checks in any.
+- SmartRenderer.situation: computeShaders = the active pack has .csh (unknown pack = true).
+  mobileGluesTuning exposes compute + GL 4.3 only then; packs without compute keep the lighter
+  GL 4.0 path. ONA Mobile Shaders unchanged (4.0, cache 128 MB), other packs cache 256 MB.
+- ShaderProfileTuner (heavy-mod tuner) skipped a pack Shader Community set up (marker
+  "<pack>.ona_community"): before, it overwrote the community profile with its own.
+- Community profiles one step lighter for FPS: FLAGSHIP MEDIUM, HIGH LOW, MID VERYLOW, LOW POTATO.

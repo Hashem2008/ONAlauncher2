@@ -51,6 +51,8 @@ object ShaderProfileTuner {
         if (packName == com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME) return null
         val packDir = File(gameDir, "shaderpacks")
         val pack = File(packDir, packName).takeIf { it.exists() } ?: return null
+        // Shader Community already set this pack up for the phone (its profile wins)
+        if (File(packDir, "$packName${com.movtery.zalithlauncher.game.graphics.CommunityShaders.MARKER}").exists()) return null
         val optionsFile = File(packDir, "$packName.txt")
         val backup = File(optionsFile.path + BACKUP_SUFFIX)
         // Once per pack: the player's own changes win afterwards
