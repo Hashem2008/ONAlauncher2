@@ -1,0 +1,8 @@
+Shader v4 removed, back to v3 (2026-11-08 h)
+
+The user tested v4 (S26 Ultra, night forest: 55 / 34 FPS) and asked to cancel it: v3 performs
+better. git revert of 81ffb8d for the code only: shader pack, OnaGraphics.kt, OnaGraphicsDialog.kt
+and strings are byte-identical to v3 (b8e1ea7). The v4 notes stay in
+ONA_CHANGES/2026-11-08g_shader-v4-glow-parts.txt in case parts of it are wanted later (they must
+not cost FPS). Old v4 keys (*_QUALITY, GLOWING_*) left in "ONA Mobile Shaders.txt" are ignored by
+Iris. The pack revision changes back, so the launcher reinstalls the v3 pack on the next launch.

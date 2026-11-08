@@ -5,10 +5,10 @@
 #include "/lib/shadow_fsh.glsl"
 
 uniform sampler2D texture;
-#if ONA_PBR > 0
+#if PBR > 0
 uniform sampler2D normals;
 #endif
-#if ONA_PBR > 1
+#if PBR > 1
 uniform sampler2D specular;
 #endif
 uniform vec3 sunPosition;
@@ -29,7 +29,7 @@ varying vec3 binormal;
 varying float tangentOk;
 varying float blockId;
 varying vec3 fogTint;
-#if ONA_POM_SAMPLES > 0
+#if POM_SAMPLES > 0
 varying vec4 tileBounds;
 varying vec2 tileCoord;
 #endif
@@ -37,18 +37,18 @@ varying vec2 tileCoord;
 void main() {
     vec2 uv = texcoord;
     vec3 geoN = normalize(normal);
-#if ONA_POM_SAMPLES > 0 && ONA_PBR > 0
+#if POM_SAMPLES > 0 && PBR > 0
     // parallax: walk into the surface along the view ray until the height map is reached
     // (only HD packs with height in the normal map alpha move; flat maps stay as they are)
     if (tangentOk > 0.5 && length(viewPos) < 24.0) {
         vec3 rayTS = vec3(dot(viewPos, tangent), dot(viewPos, binormal), dot(viewPos, geoN));
         if (rayTS.z < -0.001) {
-            float layer = 1.0 / float(ONA_POM_SAMPLES);
+            float layer = 1.0 / float(POM_SAMPLES);
             vec2 delta = rayTS.xy / -rayTS.z * POM_DEPTH * layer * vec2(1.0, -1.0);
             vec2 coord = tileCoord;
             float level = 1.0;
             float height = texture2D(normals, fract(coord) * tileBounds.zw + tileBounds.xy).a;
-            for (int i = 0; i < ONA_POM_SAMPLES; i++) {
+            for (int i = 0; i < POM_SAMPLES; i++) {
                 if (height >= level) break;
                 level -= layer;
                 coord += delta;
@@ -63,7 +63,7 @@ void main() {
     vec3 n = geoN;
     float ao = 1.0;
     vec3 up = normalize(upPosition);
-#if ONA_PBR > 0
+#if PBR > 0
     if (tangentOk > 0.5) {
         vec4 nmap = texture2D(normals, uv);
         // only a real normal map: an empty texture (resource pack without maps) would bend
@@ -85,7 +85,7 @@ void main() {
     bool metal = false;
     float emission = 0.0;
     float sss = 0.0;
-#if ONA_PBR > 1
+#if PBR > 1
     vec4 spec = texture2D(specular, uv);
     smoothness = spec.r;
     metal = spec.g > 0.898;
@@ -134,14 +134,6 @@ void main() {
         if (metal) color *= mix(vec3(1.0), albedo.rgb * 1.2 + 0.2, 0.5);
     }
     color += albedo.rgb * emission * 3.0;
-    if (blockId > 10019.5 && blockId < 10020.5 && ORE_GLOW > 0.0) {
-        // ore specks glow in their own colour: coloured or very bright pixels of the ore texture
-        vec3 raw = texture2D(texture, uv).rgb;
-        float hi = max(raw.r, max(raw.g, raw.b));
-        float lo = min(raw.r, min(raw.g, raw.b));
-        float speck = smoothstep(0.25, 0.55, hi > 0.0 ? (hi - lo) / hi : 0.0) + smoothstep(0.80, 0.95, hi) * 0.5;
-        color += raw * clamp(speck, 0.0, 1.0) * ORE_GLOW * 2.2;
-    }
     color = onaTonemap(color * exposure);
     float d = length(viewPos) / far;
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);

@@ -23,7 +23,7 @@ varying vec3 tangent;
 varying vec3 binormal;
 varying float tangentOk;
 varying float blockId;
-#if ONA_POM_SAMPLES > 0
+#if POM_SAMPLES > 0
 varying vec4 tileBounds;   // atlas tile: xy = start, zw = size
 varying vec2 tileCoord;    // 0..1 inside the tile
 #endif
@@ -38,7 +38,7 @@ void main() {
     tangentOk = length(at_tangent.xyz) > 0.01 ? 1.0 : 0.0;
     tangent = tangentOk > 0.5 ? normalize(gl_NormalMatrix * at_tangent.xyz) : vec3(1.0, 0.0, 0.0);
     binormal = tangentOk > 0.5 ? normalize(cross(tangent, normal)) * (at_tangent.w < 0.0 ? -1.0 : 1.0) : vec3(0.0, 1.0, 0.0);
-#if ONA_POM_SAMPLES > 0
+#if POM_SAMPLES > 0
     vec2 mid = (gl_TextureMatrix[0] * vec4(mc_midTexCoord, 0.0, 1.0)).xy;
     vec2 half_ = texcoord - mid;
     tileBounds = vec4(min(texcoord, mid - half_), abs(half_) * 2.0);

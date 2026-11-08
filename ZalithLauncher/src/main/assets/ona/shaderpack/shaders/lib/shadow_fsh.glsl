@@ -12,15 +12,15 @@ float onaShadowAny() {
     p = p * 0.5 + 0.5;
     p.z -= 0.00004;
     float texel = 1.0 / float(shadowMapResolution);
-#if ONA_SHADOW_FILTER == 0
+#if SHADOW_FILTER == 0
     float vis = shadow2D(shadowtex0, p).x;
-#elif ONA_SHADOW_FILTER == 1
+#elif SHADOW_FILTER == 1
     float vis = shadow2D(shadowtex0, p + vec3(-0.5, -0.5, 0.0) * texel).x;
     vis += shadow2D(shadowtex0, p + vec3( 0.5, -0.5, 0.0) * texel).x;
     vis += shadow2D(shadowtex0, p + vec3(-0.5,  0.5, 0.0) * texel).x;
     vis += shadow2D(shadowtex0, p + vec3( 0.5,  0.5, 0.0) * texel).x;
     vis *= 0.25;
-#elif ONA_SHADOW_FILTER == 2
+#elif SHADOW_FILTER == 2
     float vis = 0.0;
     vis += shadow2D(shadowtex0, p + vec3(-1.0, -0.4, 0.0) * texel).x;
     vis += shadow2D(shadowtex0, p + vec3( 1.0,  0.4, 0.0) * texel).x;

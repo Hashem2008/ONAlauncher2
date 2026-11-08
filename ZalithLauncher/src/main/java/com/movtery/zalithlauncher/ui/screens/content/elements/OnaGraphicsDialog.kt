@@ -36,7 +36,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -76,12 +75,6 @@ fun OnaGraphicsDialog(
     var resolution by remember { mutableStateOf<String?>(null) }
     var packs by remember { mutableStateOf<List<OnaTexturePacks.Pack>?>(null) }
     var pack by remember { mutableStateOf<OnaTexturePacks.Pack?>(null) }
-    // part levels (water, ground, sky, light, glow, look): 0 = off ... 4 = max
-    val parts = remember { mutableStateMapOf<String, Int>().apply { putAll(OnaGraphics.partsOf(version)) } }
-    val levelNames = listOf(
-        R.string.ona_graphics_part_off, R.string.ona_graphics_part_low, R.string.ona_graphics_part_medium,
-        R.string.ona_graphics_part_high, R.string.ona_graphics_part_max
-    )
     LaunchedEffect(resolution) {
         packs = null
         pack = null
@@ -126,46 +119,6 @@ fun OnaGraphicsDialog(
                                     ?: stringResource(R.string.ona_graphics_off)
                                 val mark = if (level == auto) "  " + stringResource(R.string.ona_graphics_recommended) else ""
                                 Text(text = title + mark)
-                            }
-                        }
-                        if (choice != null) {
-                            Text(
-                                text = stringResource(R.string.ona_graphics_parts),
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(top = 12.dp)
-                            )
-                            Text(
-                                text = stringResource(R.string.ona_graphics_parts_summary),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                            val all = parts.values.distinct().singleOrNull()
-                            Text(text = stringResource(R.string.ona_graphics_part_all), modifier = Modifier.padding(top = 4.dp))
-                            Row(
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                levelNames.forEachIndexed { value, name ->
-                                    FilterChip(
-                                        selected = all == value,
-                                        onClick = { OnaGraphics.PARTS.forEach { (key, _) -> parts[key] = value } },
-                                        label = { Text(stringResource(name)) }
-                                    )
-                                }
-                            }
-                            OnaGraphics.PARTS.forEach { (key, title) ->
-                                Text(text = stringResource(title), modifier = Modifier.padding(top = 4.dp))
-                                Row(
-                                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    levelNames.forEachIndexed { value, name ->
-                                        FilterChip(
-                                            selected = (parts[key] ?: 4) == value,
-                                            onClick = { parts[key] = value },
-                                            label = { Text(stringResource(name)) }
-                                        )
-                                    }
-                                }
                             }
                         }
                         Text(
@@ -222,7 +175,7 @@ fun OnaGraphicsDialog(
                     onClick = {
                         working = true
                         scope.launch {
-                            val applied = OnaGraphics.apply(context, version, choice, parts.toMap()) { text -> progress = text }
+                            val applied = OnaGraphics.apply(context, version, choice) { text -> progress = text }
                             val chosen = pack
                             result = if (chosen != null && choice != null) {
                                 progress = context.getString(R.string.ona_graphics_textures_downloading, chosen.title)
