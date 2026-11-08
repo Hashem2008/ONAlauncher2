@@ -2,6 +2,7 @@ import com.android.build.api.variant.FilterConfiguration.FilterType.ABI
 import com.android.build.api.variant.impl.VariantOutputImpl
 import com.android.build.gradle.tasks.MergeSourceSetFolders
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.security.MessageDigest
 
 plugins {
     alias(libs.plugins.android.application)
@@ -43,7 +44,7 @@ fun lwjglPackName(version: String): String {
     val aar = file("libs/lwjgl-$version-natives-release.aar")
     if (!versionFile.isFile || !aar.isFile) return ""
     val jars = versionFile.readText().trim().take(12)
-    val natives = java.security.MessageDigest.getInstance("SHA-1").digest(aar.readBytes())
+    val natives = MessageDigest.getInstance("SHA-1").digest(aar.readBytes())
         .joinToString("") { "%02x".format(it) }.take(8)
     return "lwjgl-$version-arm64-v8a-$jars-$natives.zip"
 }
