@@ -544,7 +544,8 @@ SHADER REALISM + FPS + HEAVY PACKS (2026-11-08 l)
 SHADER FOCUS FIX + 5 MORE OPTIONS (2026-11-08 m)
 - Depth of field blurred everything in third person (focus on the sky): off in all profiles, focus
   logic fixed. New: cloud shadows, rain ripples, distance haze, glittering sand/snow, colour grade.
-  ONA_CHANGES/2026-11-08m_focus-fix-five-realism-options.txt. CI: see the next handoff commit.
+  ONA_CHANGES/2026-11-08m_focus-fix-five-realism-options.txt. CI run 42512894330 (57bbf6a) SUCCESS, 4 APKs.
+  Not device-tested: ask for rain / cloud screenshots and FPS.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -615,4 +616,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ي): الشيدر ما عاد يبيّض الصحراء (ألوان طبيعية)، أوبتيفاين أخف، ريسورس ONA جديد بالإعدادات (أداء / 16x لـ 512x)، والإعدادات صارت مقسمة بعناوين.
 - 2026-11-08 (ك): "شيدرات المجتمع" بالإعدادات: Complementary و BSL و Photon وغيرهم بينزلوا من أصحابهم وبينضبطوا للجوال لحالهم.
 - 2026-11-08 (ل): خيارات واقعية جديدة بالشيدر (برك مطر، رغوة، ضو تحت الماء، وهج الشمس، تركيز الكاميرا)، فريمات أحسن، وظلال أخف بالمودباكات الثقيلة. البيلد نجح.
-- 2026-11-08 (م): صلحنا الغباش (تركيز الكاميرا صار مطفي ومصلّح)، و5 خيارات جديدة: ظلال الغيوم، دوائر المطر، ضباب المسافة، لمعة الرمل والثلج، الألوان.
+- 2026-11-08 (م): صلحنا الغباش (تركيز الكاميرا صار مطفي ومصلّح)، و5 خيارات جديدة: ظلال الغيوم، دوائر المطر، ضباب المسافة، لمعة الرمل والثلج، الألوان. البيلد نجح.
