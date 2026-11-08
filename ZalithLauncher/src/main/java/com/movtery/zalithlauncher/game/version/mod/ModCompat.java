@@ -71,6 +71,8 @@ public class ModCompat {
         /** Every mod id this jar provides, nested jars included */
         final Set<String> providedIds = new HashSet<>();
         final List<Dependency> dependencies = new ArrayList<>();
+        /** Fabric "breaks": mods (and versions) this one does not load with */
+        final List<Dependency> breaks = new ArrayList<>();
         /** Version of each provided mod id (nested jars included) when the metadata gives one */
         final Map<String, String> versions = new HashMap<>();
         boolean hasForgeToml, hasNeoforgeToml, hasFabricJson;
@@ -82,6 +84,11 @@ public class ModCompat {
     public static final int PROBLEM_WRONG_LOADER = 2;
     /** A required mod is there, but in a version the mod that needs it does not accept */
     public static final int PROBLEM_WRONG_VERSION = 3;
+    /**
+     * Another mod is there in a version this one "breaks" (Sodium 0.9.3-beta.4 breaks Iris
+     * 1.11.7 and older): [file] is the mod that breaks it, [providerFile] the broken one
+     */
+    public static final int PROBLEM_BREAKS = 4;
 
     public static class Problem {
         public int kind;
@@ -287,7 +294,11 @@ public class ModCompat {
                 if (modVersion != null && !modVersion.contains("${")) info.versions.putIfAbsent(element.getAsString(), modVersion);
             }
         }
-        JsonElement depends = json.get("depends");
+        readFabricDependencies(json.get("breaks"), info.breaks);
+        readFabricDependencies(json.get("depends"), info.dependencies);
+    }
+
+    private static void readFabricDependencies(@Nullable JsonElement depends, List<Dependency> into) {
         if (depends == null || !depends.isJsonObject()) return;
         for (Map.Entry<String, JsonElement> entry : depends.getAsJsonObject().entrySet()) {
             Dependency dependency = new Dependency();
@@ -303,7 +314,7 @@ public class ModCompat {
             } else {
                 dependency.range = value.getAsString();
             }
-            info.dependencies.add(dependency);
+            into.add(dependency);
         }
     }
 
@@ -375,6 +386,11 @@ public class ModCompat {
 
     private static boolean matchesFabricPredicate(String version, String predicate) {
         if (predicate.equals("*")) return true;
+        // build metadata does not count in a comparison (Fabric ignores it too): 1.11.7+mc26.3 <= 1.11.7
+        if (predicate.startsWith("<") || predicate.startsWith(">")) {
+            version = version.replaceFirst("\\+.*$", "");
+            predicate = predicate.replaceFirst("\\+.*$", "");
+        }
         if (predicate.startsWith(">=")) return compareVersions(version, predicate.substring(2)) >= 0;
         if (predicate.startsWith("<=")) return compareVersions(version, predicate.substring(2)) <= 0;
         if (predicate.startsWith(">")) return compareVersions(version, predicate.substring(1)) > 0;
@@ -546,6 +562,19 @@ public class ModCompat {
                 if (!reportedMissing.add(id)) continue;
                 problems.add(problem(PROBLEM_MISSING, info, id, dependency.range, null));
             }
+            for (Dependency rule : info.breaks) {
+                if (!appliesTo(rule, info, environment)) continue;
+                List<String> present = versionsOf.get(rule.modId);
+                File broken = providerOf.get(rule.modId);
+                if (present == null || broken == null || broken.equals(info.file)) continue;
+                for (String version : present) {
+                    if (!matches(rule, version)) continue;
+                    Problem problem = problem(PROBLEM_BREAKS, info, rule.modId, rule.range, version);
+                    problem.providerFile = broken;
+                    problems.add(problem);
+                    break;
+                }
+            }
         }
         return problems;
     }
@@ -582,6 +611,7 @@ public class ModCompat {
                 return installed != null ? FIX_DOWNLOADED : FIX_FAILED;
             }
             if (problem.kind == PROBLEM_WRONG_VERSION) return fixWrongVersion(problem, modsDir, environment);
+            if (problem.kind == PROBLEM_BREAKS) return fixBreaks(problem, modsDir, environment);
             // Incompatible or wrong loader: look for the right build of the same project first
             String projectId = findProjectForFile(problem.file);
             if (projectId != null) {
@@ -622,7 +652,9 @@ public class ModCompat {
                 String hint = exactVersionHint(problem.requiredRange);
                 File installed = installWhere(projectId, modsDir, environment, problem.requiredId, hint, info -> {
                     String version = info.versions.get(problem.requiredId);
-                    return version != null && matches(wanted, version);
+                    // and not a build that breaks another mod there (newest Sodium vs Iris)
+                    return version != null && matches(wanted, version)
+                            && fitsOthers(modsDir, info, problem.providerFile, environment, false);
                 });
                 if (installed != null) {
                     if (!installed.equals(problem.providerFile) && !problem.providerFile.delete()) {
@@ -652,6 +684,94 @@ public class ModCompat {
             }
         }
         return FIX_FAILED;
+    }
+
+    /**
+     * Sodium 0.9.3-beta.4 breaks Iris 1.11.7: first a newer Iris that it does not break, else the
+     * newest Sodium that does not break the Iris that is there (beta.3), and still fits what the
+     * other mods ask of it. Only builds of the same projects are swapped, nothing is turned off.
+     */
+    private static int fixBreaks(Problem problem, File modsDir, Environment environment) throws IOException {
+        Dependency rule = new Dependency();
+        rule.modId = problem.requiredId;
+        rule.range = problem.requiredRange;
+        rule.fabricStyle = true;
+        ModInfo breaker = read(problem.file);
+        if (breaker == null) return FIX_FAILED;
+        // 1. A build of the broken mod outside the range
+        if (problem.providerFile != null && problem.providerFile.isFile()) {
+            String projectId = findProjectForFile(problem.providerFile);
+            if (projectId == null) projectId = findProjectForModId(problem.requiredId, environment);
+            if (projectId != null) {
+                File installed = installWhere(projectId, modsDir, environment, problem.requiredId, null, info -> {
+                    String version = info.versions.get(problem.requiredId);
+                    return version != null && !matches(rule, version) && fitsOthers(modsDir, info, problem.providerFile, environment, true);
+                });
+                if (installed != null) {
+                    if (!installed.equals(problem.providerFile) && !problem.providerFile.delete()) {
+                        Log.w(TAG, "Could not remove " + problem.providerFile);
+                    }
+                    return FIX_REPLACED;
+                }
+            }
+        }
+        // 2. A build of the mod that breaks it which accepts the version that is there
+        if (problem.actualVersion != null && problem.file.isFile()) {
+            String projectId = findProjectForFile(problem.file);
+            String ownId = breaker.versions.isEmpty() ? null : breaker.versions.keySet().iterator().next();
+            if (projectId == null && ownId != null) projectId = findProjectForModId(ownId, environment);
+            if (projectId != null) {
+                File installed = installWhere(projectId, modsDir, environment, null, null, info -> {
+                    for (Dependency other : info.breaks) {
+                        if (other.modId.equals(problem.requiredId) && matches(other, problem.actualVersion)) return false;
+                    }
+                    return fitsOthers(modsDir, info, problem.file, environment, true);
+                });
+                if (installed != null) {
+                    if (!installed.equals(problem.file) && !problem.file.delete()) {
+                        Log.w(TAG, "Could not remove " + problem.file);
+                    }
+                    return FIX_REPLACED;
+                }
+            }
+        }
+        return FIX_FAILED;
+    }
+
+    /**
+     * True when [candidate], put in place of [replaced], still has every version the other mods
+     * ask of it, does not break them, and its own requirements on them are met ([versions] false:
+     * only that nothing breaks)
+     */
+    private static boolean fitsOthers(File modsDir, ModInfo candidate, @Nullable File replaced, Environment environment,
+                                      boolean versions) {
+        File[] jars = modsDir.listFiles((dir, name) -> name.endsWith(".jar"));
+        if (jars == null) return true;
+        for (File jar : jars) {
+            if (jar.equals(replaced) || jar.getName().endsWith(".check")) continue;
+            ModInfo other = read(jar);
+            if (other == null) continue;
+            for (Dependency dependency : other.dependencies) {
+                if (!versions || !appliesTo(dependency, other, environment)) continue;
+                String version = candidate.versions.get(dependency.modId);
+                if (version != null && !matches(dependency, version)) return false;
+            }
+            for (Dependency rule : other.breaks) {
+                String version = candidate.versions.get(rule.modId);
+                if (version != null && matches(rule, version)) return false;
+            }
+            for (Dependency rule : candidate.breaks) {
+                String version = other.versions.get(rule.modId);
+                if (version != null && matches(rule, version)) return false;
+            }
+            for (Dependency dependency : candidate.dependencies) {
+                if (!versions || !appliesTo(dependency, candidate, environment)) continue;
+                String version = other.versions.get(dependency.modId);
+                if (version != null && dependency.range != null && !dependency.range.trim().isEmpty()
+                        && !matches(dependency, version)) return false;
+            }
+        }
+        return true;
     }
 
     /** "=0.9.3-beta.1+mc26.3" / "0.9.3" / "[1.2.3]": the version text to look for first, else null */

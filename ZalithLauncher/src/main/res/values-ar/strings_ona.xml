@@ -13,6 +13,7 @@
     <string name="mod_problem_missing">%1$s بده %2$s ومش منزّل</string>
     <string name="mod_problem_wrong_loader">%1$s معمول لـ %2$s بس النسخة %3$s</string>
     <string name="mod_problem_version">%1$s بده %2$s %3$s بس عندك %4$s</string>
+    <string name="mod_problem_breaks">%1$s ما بيشتغل مع %2$s %3$s</string>
     <string name="settings_curseforge_key_title">مفتاح CurseForge</string>
     <string name="settings_curseforge_key_summary">اختياري. الصق مفتاحك من console.curseforge.com إذا تنزيل CurseForge ما زبط. بدونه اللانشر بستخدم سيرفر بديل.</string>
     <string name="download_category_datapacks">داتا باكات</string>

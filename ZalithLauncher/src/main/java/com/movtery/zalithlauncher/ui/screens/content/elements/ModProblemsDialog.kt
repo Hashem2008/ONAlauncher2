@@ -83,6 +83,8 @@ suspend fun Version.findModProblems(): List<ModCompat.Problem> {
 private fun describe(context: Context, problem: ModCompat.Problem): String = when (problem.kind) {
     ModCompat.PROBLEM_MISSING ->
         context.getString(R.string.mod_problem_missing, problem.modName, problem.requiredId)
+    ModCompat.PROBLEM_BREAKS ->
+        context.getString(R.string.mod_problem_breaks, problem.modName, problem.requiredId, problem.actualVersion)
     ModCompat.PROBLEM_WRONG_LOADER ->
         context.getString(R.string.mod_problem_wrong_loader, problem.modName, problem.requiredId, problem.actualVersion)
     else ->

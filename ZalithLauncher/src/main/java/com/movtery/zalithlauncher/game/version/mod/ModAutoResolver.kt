@@ -81,7 +81,7 @@ object ModAutoResolver {
             var fixedThisRound = 0
             for (problem in todo) {
                 if (System.currentTimeMillis() > deadline) break
-                onProgress(if (problem.kind == ModCompat.PROBLEM_MISSING || problem.kind == ModCompat.PROBLEM_WRONG_VERSION) problem.requiredId else problem.modName)
+                onProgress(if (problem.kind == ModCompat.PROBLEM_MISSING || problem.kind == ModCompat.PROBLEM_WRONG_VERSION || problem.kind == ModCompat.PROBLEM_BREAKS) problem.requiredId else problem.modName)
                 var result = ModCompat.fix(problem, modsDir, environment, false)
                 // ONA: requirements that only live on CurseForge (DeceasedCraft and other Forge packs)
                 if (result == ModCompat.FIX_FAILED && problem.kind == ModCompat.PROBLEM_MISSING &&

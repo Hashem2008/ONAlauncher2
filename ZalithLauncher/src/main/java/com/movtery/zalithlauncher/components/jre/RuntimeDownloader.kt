@@ -80,6 +80,10 @@ object RuntimeDownloader {
         return jre
     }
 
+    /** True when the runtime [jre] is installed, or the APK carries it (unpacked at start) */
+    fun isInstalled(context: Context, jre: Jre): Boolean = bundled(context, jre) ||
+        runCatching { RuntimesManager.loadRuntime(jre.jreName, forceLoad = true).javaVersion > 0 }.getOrDefault(false)
+
     /** Downloads and installs [jre]. @return true when it is ready */
     suspend fun install(context: Context, jre: Jre, onProgress: (String) -> Unit = {}): Boolean {
         val arch = Architecture.archAsString(ZLApplication.DEVICE_ARCHITECTURE)

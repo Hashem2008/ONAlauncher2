@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.game.download.jvm_server
 
 import android.content.Intent
 import com.movtery.zalithlauncher.components.jre.Jre
+import com.movtery.zalithlauncher.components.jre.RuntimeDownloader
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.notification.NoticeProgress
@@ -73,6 +74,13 @@ suspend fun runJvmRetryRuntimes(
 ): Unit = withContext(Dispatchers.Default) {
     waitForJvmExclusiveProcessesStopped(logId)
 
+    // ONA Performance carries no Java: the installer's runtime comes down first (else exit code 1)
+    if (!RuntimeDownloader.isInstalled(GlobalContext, jre)) {
+        logOutput?.appendLine("ONA: downloading ${jre.jreName} (~${RuntimeDownloader.sizeMb(jre)} MB) for the installer...")
+        val ready = RuntimeDownloader.install(GlobalContext, jre)
+        logOutput?.appendLine(if (ready) "ONA: ${jre.jreName} ready" else "ONA: ${jre.jreName} could not be downloaded")
+    }
+
     start()
 
     val finalArgs = prefixArgs(jre)?.let {
@@ -92,6 +100,8 @@ suspend fun runJvmRetryRuntimes(
         val nextJava: Jre? = when (jre) {
             Jre.JRE_8 -> Jre.JRE_17
             Jre.JRE_17 -> Jre.JRE_21
+            // installers for Minecraft 26 (OptiFine...) are built for Java 25
+            Jre.JRE_21 -> Jre.JRE_25
             else -> null
         }
 

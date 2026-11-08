@@ -13,6 +13,7 @@
     <string name="mod_problem_missing">%1$s needs %2$s, which is not installed</string>
     <string name="mod_problem_wrong_loader">%1$s is made for %2$s, but this version uses %3$s</string>
     <string name="mod_problem_version">%1$s needs %2$s %3$s, but you have %4$s</string>
+    <string name="mod_problem_breaks">%1$s does not work with %2$s %3$s</string>
     <string name="settings_curseforge_key_title">CurseForge API key</string>
     <string name="settings_curseforge_key_summary">Optional. Paste your own key from console.curseforge.com if CurseForge downloads fail. Without one the launcher uses a mirror.</string>
     <string name="download_category_datapacks">Data packs</string>

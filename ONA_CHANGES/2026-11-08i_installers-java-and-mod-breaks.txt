@@ -1,0 +1,22 @@
+Installers download their Java + Fabric "breaks" conflicts fixed (2026-11-08 i)
+
+User report (ONA Performance, S26 Ultra): shaders/Iris crash, and Forge, OptiFine and modpacks all
+end with "Installation Failed ... exit code: 1".
+
+1. Installers (GameJVMRunner.runJvmRetryRuntimes): ONA Performance carries no Java and only
+   downloaded it when a version was launched, so the Forge / NeoForge / OptiFine / modpack
+   installers found no Internal-8/17/21 and exited with 1. Now the installer's runtime is
+   downloaded first (RuntimeDownloader.isInstalled / install, from ona-runtimes) and the progress
+   is written to the install log. The retry chain also goes 21 -> 25 (Minecraft 26 installers).
+   Normal APKs are unchanged (their runtimes are bundled; isInstalled sees the asset).
+
+2. Iris crash: Sodium 0.9.3-beta.4 (published 2026-11-08) "breaks" Iris <= 1.11.7, and 1.11.7 is the
+   newest Iris for 26.3, so Fabric refused to start. ModCompat now reads Fabric "breaks"
+   (ModInfo.breaks), reports PROBLEM_BREAKS in analyze(), and fixBreaks() swaps builds: first a
+   newer build of the broken mod, else the newest build of the breaking mod that accepts the one
+   present and still fits every other mod (fitsOthers). Nothing is turned off. Fabric ranges now
+   ignore build metadata in < / > comparisons (1.11.7+mc26.3 <= 1.11.7, as Fabric does).
+   fixWrongVersion no longer picks a build that breaks another mod (no swap loop).
+   Host test with the real jars (sodium beta.4 + iris 1.11.7 + fabric-api 0.165.2): one problem,
+   fixed by sodium 0.9.3-beta.3, then 0 problems.
+   UI text mod_problem_breaks (en/ar).
