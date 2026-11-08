@@ -1,0 +1,26 @@
+ONA Mobile Shaders v4: glow, shine and part levels (2026-11-08 g)
+
+What the user asked: glow and shine like the pictures (glowing ores, shiny cars, everything) and
+options "all low / all medium / ..." per part (water only, ground only...), without breaking the
+old options.
+
+Shader (assets/ona/shaderpack/shaders):
+- New options (screen GLOW): GLOWING_ORES (ore specks glow in their colour, block.10020 = ores),
+  ENTITY_SHINE (cars, mobs, armour, items: GGX shine + sky fresnel reflection),
+  GLOWING_PARTS (very bright small parts of entities glow: lamps, headlights, eyes). 0..2, default 1.
+- New screen PARTS: WATER_QUALITY GROUND_QUALITY SKY_QUALITY LIGHT_QUALITY GLOW_QUALITY LOOK_QUALITY,
+  0 = off .. 4 = max (default 4 = exactly the old behaviour). A part level only switches off what
+  is above it (lib/settings.glsl #undef block); the old options keep their own on/off.
+- Options are declared once only (Iris drops options declared twice), so the capped slider values
+  are new macros: ONA_PBR, ONA_POM_SAMPLES, ONA_SHADOW_FILTER (used by terrain / shadow_fsh).
+- shaders.properties: shadow pass off when LIGHT_QUALITY 0, composite follows WATER/LIGHT 4,
+  clouds/shadowEntities follow SKY/LIGHT levels. Profiles set parts=4 and glow strengths
+  (POTATO ores 0.5 only, LOW 0.5 each, rest 1.0).
+- lang en/ar: labels for all new options and values (Off / Low / Medium / High / Max).
+- Checked: tools/ona_shader_check.py 224/224 (all profiles) + 112/112 with every part at 0..3.
+
+Launcher:
+- ONA Graphics dialog: "Parts" section (All parts row + one row per part, Off..Max chips),
+  written into shaderpacks/ONA Mobile Shaders.txt. OnaGraphics.apply(parts=...),
+  OnaGraphics.PARTS / savedParts / partsOf. Re-applies without parts (launch, pack update) keep
+  the part levels already in the file.

@@ -30,7 +30,23 @@ void main() {
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
 #endif
-    vec3 color = onaTonemap(onaShade(albedo.rgb, n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0) * exposure);
+    vec3 lit = onaShade(albedo.rgb, n, onaLightmap(lmcoord, length(viewPos)), vis, 1.0);
+    vec3 V = normalize(-viewPos);
+    if (SHINE_AMOUNT > 0.0) {
+        // glossy paint for cars, mobs, armour and items: a GGX highlight and a little sky
+        float luma = onaLuma(albedo.rgb);
+        float smoothness = 0.45 + 0.35 * luma;
+        lit += sunLight * onaSpecular(n, V, lightDir, smoothness, vec3(0.06)) * vis * SHINE_AMOUNT * smoothstep(0.05, 0.45, lmcoord.y);
+        float fresnel = 0.04 + 0.96 * pow(1.0 - max(dot(n, V), 0.0), 5.0);
+        lit = mix(lit, onaSky(reflect(-V, n), normalize(sunPosition), normalize(upPosition), skyColor, fogColor, rainStrength), clamp(fresnel * 0.35 * SHINE_AMOUNT * lmcoord.y, 0.0, 0.5));
+    }
+    if (PARTS_GLOW > 0.0) {
+        // very bright, coloured little parts (lamps, headlights, eyes) light up
+        float hi = max(albedo.r, max(albedo.g, albedo.b));
+        float glow = smoothstep(0.82, 0.97, hi);
+        lit += albedo.rgb * glow * PARTS_GLOW * 1.6;
+    }
+    vec3 color = onaTonemap(lit * exposure);
     float d = length(viewPos) / far;
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);

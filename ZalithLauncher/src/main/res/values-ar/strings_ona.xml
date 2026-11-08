@@ -326,4 +326,18 @@
     <string name="ona_graphics_textures_downloading">بنزل %1$s…</string>
     <string name="ona_graphics_textures_added">%1$s اشتغل (فوق باقي الباكات)</string>
     <string name="ona_graphics_textures_failed">ما قدرت أنزل %1$s</string>
+    <string name="ona_graphics_parts">الأجزاء</string>
+    <string name="ona_graphics_parts_summary">اضبط كل جزء لحاله: أقصى يخلي كل شي بالمستوى، والأقل ينزّل هالجزء لفريمات أكثر.</string>
+    <string name="ona_graphics_part_all">كل الأجزاء</string>
+    <string name="ona_graphics_part_water">الماء</string>
+    <string name="ona_graphics_part_ground">الأرض والبلوكات</string>
+    <string name="ona_graphics_part_sky">السماء</string>
+    <string name="ona_graphics_part_light">الضوء والظلال</string>
+    <string name="ona_graphics_part_glow">التوهج واللمعان (خامات، سيارات، لمبات)</string>
+    <string name="ona_graphics_part_look">شكل الكاميرا</string>
+    <string name="ona_graphics_part_off">مطفأ</string>
+    <string name="ona_graphics_part_low">منخفض</string>
+    <string name="ona_graphics_part_medium">متوسط</string>
+    <string name="ona_graphics_part_high">عالي</string>
+    <string name="ona_graphics_part_max">أقصى</string>
 </resources>

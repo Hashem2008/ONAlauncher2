@@ -46,6 +46,7 @@ void main() {
         c += rayColor * rays * fall * fall * 0.30 * sunAmount;
     }
 #endif
+#if LOOK_QUALITY >= 1
     c *= EXPOSURE;
     c *= vec3(1.0 + WARMTH, 1.0, 1.0 - WARMTH);
     float l = onaLuma(c);
@@ -53,6 +54,7 @@ void main() {
     c = clamp(c, 0.0, 1.0);
     c = mix(c, c * c * (3.0 - 2.0 * c), 0.25); // a gentle contrast curve
     c = clamp((c - 0.5) * CONTRAST + 0.5, 0.0, 1.0);
+#endif
 #ifdef VIGNETTE_FX
     vec2 v = texcoord - 0.5;
     c *= 1.0 - dot(v, v) * 0.9;

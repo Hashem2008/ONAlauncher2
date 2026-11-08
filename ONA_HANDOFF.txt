@@ -503,6 +503,15 @@ SHADER V2 + UNLIMITED FPS (2026-11-08 d+e)
 - CI: full build run 42488996119 (7af88bf) SUCCESS, 4 APKs (ONA Renderer inside, unchanged release).
   Not device-tested. Next: user's F3 FPS with and without shaders, screenshots of shader v2 levels.
 
+SHADER V3 + V4 (2026-11-08 f+g)
+- v3: PBR from the active resource packs (Patrix...), parallax for HD packs, full-screen sky (no
+  octagon / sun blob), many options. CI run 42492528384 (b8e1ea7) SUCCESS, 4 APKs.
+  ONA_CHANGES/2026-11-08f_shader-v3-packs-sky-options.txt.
+- v4: glowing ores, shine on cars/mobs/items, glowing lamps; per-part levels (water, ground, sky,
+  light, glow, look: Off..Max) in the shader and in the launcher's ONA Graphics dialog.
+  ONA_CHANGES/2026-11-08g_shader-v4-glow-parts.txt. CI: see the next handoff commit.
+  Not device-tested. Next: user's screenshots of glow/shine and F3 FPS per part level.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -566,3 +575,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (أ): Performance صارت 42 ميغا (LWJGL بتنزل أول مرة). للكل: تبليغ أندرويد كل فريم، تسريع جافا، وإعدادات ماينكرافت 26 التلقائية. البيلد نجح.
 - 2026-11-08 (ب+ج): جرافيك ONA (شيدر خاص بالجوالات + ريسورس باك بينعمل على الجوال) و ONA Renderer (محركنا المبني من كود MobileGlues، محرك واحد لكل النسخ 1.17+). كل البيلدات نجحت.
 - 2026-11-08 (د+هـ): الشيدر v2 (8 مستويات لحد مستحيل)، تشغيل الشيدر من إعدادات اللانشر، نقوش HD من Modrinth، والفريمات صارت بلا حد (كانت 120). البيلد نجح.
+- 2026-11-08 (و+ز): الشيدر v3 (دمج مع Patrix، سماء مصلحة) و v4 (توهج الخامات، لمعان السيارات والمخلوقات، أجزاء من مطفأ لأقصى لكل جزء). بيلد v3 نجح.

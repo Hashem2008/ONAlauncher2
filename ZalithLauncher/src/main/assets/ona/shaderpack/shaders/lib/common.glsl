@@ -53,7 +53,9 @@ vec3 onaSky(vec3 dir, vec3 sunDir, vec3 upDir, vec3 skyC, vec3 fogC, float rain)
     float horizon = pow(1.0 - clamp(up, 0.0, 1.0), 3.0);
     vec3 col = mix(skyC * 1.05, fogC, horizon);
     float dusk = 1.0 - smoothstep(0.0, 0.35, abs(sunUp));
+#if SKY_QUALITY >= 1
     col += vec3(1.0, 0.45, 0.18) * dusk * (1.0 - rain) * pow(sunDot, 6.0) * 0.65 * (0.3 + horizon);
+#endif
 #ifdef ATMOSPHERE
     col = mix(col, onaAtmosphere(dir, sunDir, upDir, rain), 0.75);
 #endif

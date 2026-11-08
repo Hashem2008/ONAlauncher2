@@ -326,4 +326,18 @@
     <string name="ona_graphics_textures_downloading">Downloading %1$s…</string>
     <string name="ona_graphics_textures_added">%1$s on (on top of the other packs)</string>
     <string name="ona_graphics_textures_failed">%1$s could not be downloaded</string>
+    <string name="ona_graphics_parts">Parts</string>
+    <string name="ona_graphics_parts_summary">Set each part on its own: Max keeps everything the level gives, lower turns that part down for more FPS.</string>
+    <string name="ona_graphics_part_all">All parts</string>
+    <string name="ona_graphics_part_water">Water</string>
+    <string name="ona_graphics_part_ground">Ground and blocks</string>
+    <string name="ona_graphics_part_sky">Sky</string>
+    <string name="ona_graphics_part_light">Light and shadows</string>
+    <string name="ona_graphics_part_glow">Glow and shine (ores, cars, lamps)</string>
+    <string name="ona_graphics_part_look">Camera look</string>
+    <string name="ona_graphics_part_off">Off</string>
+    <string name="ona_graphics_part_low">Low</string>
+    <string name="ona_graphics_part_medium">Medium</string>
+    <string name="ona_graphics_part_high">High</string>
+    <string name="ona_graphics_part_max">Max</string>
 </resources>

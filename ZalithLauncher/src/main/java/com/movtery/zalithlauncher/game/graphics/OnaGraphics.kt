@@ -79,6 +79,16 @@ object OnaGraphics {
 
     class Result(val ok: Boolean, val lines: List<String>)
 
+    /** The shader's part levels (0 = off ... 4 = max), each one caps its part's effects */
+    val PARTS = listOf(
+        "WATER_QUALITY" to R.string.ona_graphics_part_water,
+        "GROUND_QUALITY" to R.string.ona_graphics_part_ground,
+        "SKY_QUALITY" to R.string.ona_graphics_part_sky,
+        "LIGHT_QUALITY" to R.string.ona_graphics_part_light,
+        "GLOW_QUALITY" to R.string.ona_graphics_part_glow,
+        "LOOK_QUALITY" to R.string.ona_graphics_part_look
+    )
+
     private enum class Loader { IRIS, OCULUS, OPTIFINE, NONE }
 
     /** @param level null turns ONA Graphics off (shaders off, PBR pack out of the list) */
@@ -86,6 +96,7 @@ object OnaGraphics {
         context: Context,
         version: Version,
         level: OnaGraphicsLevel?,
+        parts: Map<String, Int> = emptyMap(),
         onProgress: (String) -> Unit
     ): Result = withContext(Dispatchers.IO) {
         val lines = mutableListOf<String>()
@@ -124,8 +135,12 @@ object OnaGraphics {
         onProgress(context.getString(R.string.ona_graphics_copying))
         val packsDir = File(gameDir, "shaderpacks").apply { mkdirs() }
         installPack(context, packsDir)
-        File(packsDir, "$SHADER_NAME.txt").writeText(
-            profileOptions(context, level).entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
+        val optionsFile = File(packsDir, "$SHADER_NAME.txt")
+        // the part levels the player chose before stay when none are given (launch, pack update)
+        val partValues = parts.mapValues { it.value.toString() }.ifEmpty { savedParts(optionsFile) }
+        optionsFile.writeText(
+            (profileOptions(context, level) + partValues)
+                .entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
         )
         selectShader(gameDir, loader)
         lines.add(context.getString(R.string.ona_graphics_level_set, context.getString(level.titleRes)))
@@ -231,6 +246,22 @@ object OnaGraphics {
         val result = apply(context, version, level) { }
         if (result.ok) stamp.writeText(wanted)
         result
+    }
+
+    /** The part levels in the pack's options file */
+    fun savedParts(optionsFile: File): Map<String, String> = runCatching {
+        val keys = PARTS.map { it.first }.toSet()
+        optionsFile.readLines().mapNotNull { line ->
+            val key = line.substringBefore('=').trim()
+            val value = line.substringAfter('=', "").trim()
+            if (key in keys && value.toIntOrNull() in 0..4) key to value else null
+        }.toMap()
+    }.getOrDefault(emptyMap())
+
+    /** The part levels set for this version (4 = max when not set) */
+    fun partsOf(version: Version): Map<String, Int> {
+        val saved = savedParts(File(version.getGameDir(), "shaderpacks/$SHADER_NAME.txt"))
+        return PARTS.associate { (key, _) -> key to (saved[key]?.toIntOrNull() ?: 4) }
     }
 
     private fun detectLoader(version: Version): Loader {
