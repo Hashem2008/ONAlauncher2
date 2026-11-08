@@ -1,0 +1,22 @@
+Shader: blur fixed, five more realism options (2026-11-08 m)
+
+User screenshots (S26 Ultra, Fabulously Optimized, third person, 76-85 FPS): the whole picture
+soft. Cause: DEPTH_OF_FIELD (on in ULTRA_REALISTIC / IMPOSSIBLE since l) focused on the single
+centre pixel, which in third person is the sky behind the player -> everything near was blurred,
+and the mip blur looked blocky. Fix: off in every profile (opt-in in LOOK); focus = nearest of 5
+points around the centre, capped at 96 blocks; a sharp zone of 25% around the focus; the blur is
+4 offset taps on the mip level (smooth, not blocky), at most lod 2.5.
+
+New options (ideas from how BSL / Complementary / Photon do it, written for ONA):
+- CLOUD_SHADOWS (SKY): with ONA clouds, the sun ray from each terrain / water pixel to the cloud
+  layer (300 blocks) reads the same cloud noise the sky draws (onaCloudCover in common.glsl), so the
+  shadows move with the visible clouds. ULTRA and up.
+- RAIN_RIPPLES (WATER): raindrop rings (onaRipples: hashed cells, growing fading ring) bend the
+  normal of water under the open sky and of puddles. HIGH and up.
+- DISTANCE_HAZE (SKY): aerial perspective, exp(-distance) towards the sky colour, stronger in
+  rain; terrain, water and entities. HIGH and up.
+- SPARKLE (WORLD): sand (block 10030) and snow (10031) glitter: hashed texels light up in the sun
+  and change with the view. REALISTIC and up.
+- COLOR_GRADE (LOOK): Natural / Film (warm light, teal shadows) / Cool / Vivid. Default Natural.
+Checks: ona_shader_check 224/224; every new option on at POTATO and IMPOSSIBLE with each colour
+grade 224/224; option script 52 options, all declared, used and labelled (en + ar).

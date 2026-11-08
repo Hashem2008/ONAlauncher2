@@ -18,7 +18,10 @@ uniform vec3 fogColor;
 uniform float rainStrength;
 uniform float wetness;
 uniform float far;
-#if defined RAIN_PUDDLES || defined WATER_CAUSTICS
+#if defined RAIN_PUDDLES && defined RAIN_RIPPLES
+uniform mat4 gbufferModelView;
+#endif
+#if (defined RAIN_PUDDLES || defined WATER_CAUSTICS || defined CLOUD_SHADOWS || defined SPARKLE)
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
 uniform float frameTimeCounter;
@@ -111,7 +114,7 @@ void main() {
         albedo.rgb *= 1.0 - wet * 0.28;
     }
 #endif
-#if defined RAIN_PUDDLES || defined WATER_CAUSTICS
+#if (defined RAIN_PUDDLES || defined WATER_CAUSTICS || defined CLOUD_SHADOWS || defined SPARKLE)
     vec3 worldPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
 #endif
 #ifdef RAIN_PUDDLES
@@ -123,6 +126,10 @@ void main() {
         smoothness = mix(smoothness, 0.97, puddle);
         reflectance = max(reflectance, 0.02 * puddle);
         n = normalize(mix(n, geoN, puddle));
+#ifdef RAIN_RIPPLES
+        vec2 drops = onaRipples(worldPos.xz, frameTimeCounter) * rainStrength * puddle;
+        n = normalize(n + mat3(gbufferModelView) * vec3(drops.x, 0.0, drops.y));
+#endif
         albedo.rgb *= 1.0 - puddle * 0.35;
     }
 #endif
@@ -133,7 +140,22 @@ void main() {
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
 #endif
+#if defined CLOUD_SHADOWS && defined ONA_CLOUDS
+    {
+        // where the sun ray from here crosses the cloud layer, 300 blocks up
+        vec3 sunW = mat3(gbufferModelViewInverse) * lightDir;
+        if (sunW.y > 0.05) vis *= 1.0 - onaCloudCover(worldPos.xz + sunW.xz * ((300.0 - worldPos.y) / sunW.y), frameTimeCounter, rainStrength) * 0.8;
+    }
+#endif
     vec3 color = onaShade(albedo.rgb, n, lm, vis * (sss > 0.0 && geoNdotL < 0.0 ? 0.0 : 1.0), ao);
+#ifdef SPARKLE
+    if ((blockId > 10029.5 && blockId < 10031.5) && dot(geoN, up) > 0.7) {
+        // a few texels catch the sun, and change as you move (sand and snow glitter)
+        vec3 Vs = normalize(-viewPos);
+        float spark = onaHash(floor(worldPos.xz * 16.0) + floor((Vs.x + Vs.y) * 9.0));
+        color += sunLight * smoothstep(0.993, 1.0, spark) * 4.0 * vis * max(dot(geoN, lightDir), 0.0);
+    }
+#endif
     vec3 V = normalize(-viewPos);
     float outside = smoothstep(0.05, 0.45, lmcoord.y);
     if (sss > 0.0) {
@@ -169,5 +191,9 @@ void main() {
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);
     color = mix(color, fogTint, fog * fog);
+#ifdef DISTANCE_HAZE
+    // the air between the eye and far land takes over its colour (stronger in rain)
+    color = mix(color, fogTint, (1.0 - exp(-length(viewPos) * (0.0035 + rainStrength * 0.008))) * 0.6);
+#endif
     gl_FragData[0] = vec4(color, albedo.a);
 }

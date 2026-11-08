@@ -114,3 +114,27 @@ vec3 onaSpecular(vec3 n, vec3 V, vec3 L, float smoothness, vec3 f0) {
     vec3 F = f0 + (1.0 - f0) * pow(1.0 - VdotH, 5.0);
     return min(D * G * F / (4.0 * NdotV * max(NdotL, 0.001) + 0.001) * NdotL, vec3(8.0));
 }
+
+// ONA clouds: how much a cloud covers a point of the cloud layer (the same noise the sky draws)
+float onaCloudCover(vec2 worldXZ, float time, float rain) {
+    vec2 p = worldXZ * 0.0025 + vec2(time * 0.004, time * 0.0015);
+    float n = onaValueNoise(p) * 0.65 + onaValueNoise(p * 2.7) * 0.35;
+    return smoothstep(0.55 - rain * 0.25, 0.85, n);
+}
+
+// raindrops: on a grid of cells, each cell drops at its own moment and a ring grows and fades.
+// Returns the slope (world x / z) for the surface normal
+vec2 onaRipples(vec2 pos, float time) {
+    vec2 slope = vec2(0.0);
+    for (int i = 0; i < 2; i++) {
+        vec2 p = pos * (1.3 + float(i) * 0.9) + float(i) * 7.31;
+        vec2 cell = floor(p);
+        vec2 d = fract(p) - 0.5 - (vec2(onaHash(cell + 3.1), onaHash(cell + 7.7)) - 0.5) * 0.5;
+        float t = fract(time * 0.85 + onaHash(cell));
+        float r = length(d);
+        float x = (r - t * 0.42) * 45.0;
+        float wave = sin(clamp(x, -3.1416, 3.1416)) * (1.0 - t) * (1.0 - t);
+        slope += d / max(r, 0.001) * wave * 0.35;
+    }
+    return slope;
+}

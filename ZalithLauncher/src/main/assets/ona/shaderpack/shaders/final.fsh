@@ -44,9 +44,17 @@ void main() {
     // camera focus on the middle of the screen; the hand and the sky stay as they are
     float depthHere = texture2D(depthtex0, texcoord).r;
     if (depthHere > 0.56 && depthHere < 1.0) {
-        float focus = onaLinear(texture2D(depthtex0, vec2(0.5)).r);
-        float blur = clamp(abs(onaLinear(depthHere) - focus) / max(focus, 2.0) * 1.5 * DOF_STRENGTH, 0.0, 1.0);
-        c = mix(c, texture2D(colortex0, texcoord, blur * 3.5).rgb, blur);
+        // focus on the nearest thing around the middle (the player in third person, not the sky)
+        float fd = min(min(texture2D(depthtex0, vec2(0.5)).r, texture2D(depthtex0, vec2(0.5, 0.40)).r),
+                       min(texture2D(depthtex0, vec2(0.5, 0.60)).r, min(texture2D(depthtex0, vec2(0.42, 0.5)).r, texture2D(depthtex0, vec2(0.58, 0.5)).r)));
+        float focus = min(onaLinear(fd), 96.0);
+        // a sharp zone around the focus, then softer and softer
+        float blur = clamp((abs(onaLinear(depthHere) - focus) - focus * 0.25) / max(focus * 2.0, 8.0) * DOF_STRENGTH, 0.0, 1.0);
+        float lod = blur * 2.5;
+        vec2 px = vec2(1.0 / viewWidth, 1.0 / viewHeight) * exp2(lod) * 0.6;
+        vec3 soft = (texture2D(colortex0, texcoord + px, lod).rgb + texture2D(colortex0, texcoord - px, lod).rgb
+                   + texture2D(colortex0, texcoord + vec2(px.x, -px.y), lod).rgb + texture2D(colortex0, texcoord + vec2(-px.x, px.y), lod).rgb) * 0.25;
+        c = mix(c, soft, blur);
     }
 #endif
 #ifdef BLOOM
@@ -83,6 +91,15 @@ void main() {
             c += flare * rayColor * sunAmount * (0.10 + 0.15 * center);
         }
     }
+#endif
+#if COLOR_GRADE == 1
+    // film: warm light, teal shadows
+    float lg = onaLuma(c);
+    c = mix(c * vec3(0.93, 1.0, 1.06), c * vec3(1.07, 1.0, 0.91), smoothstep(0.15, 0.75, lg));
+#elif COLOR_GRADE == 2
+    c *= vec3(0.94, 1.0, 1.08);
+#elif COLOR_GRADE == 3
+    c = max(mix(vec3(onaLuma(c)), c, 1.22), 0.0);
 #endif
     c *= EXPOSURE;
     c *= vec3(1.0 + WARMTH, 1.0, 1.0 - WARMTH);

@@ -19,6 +19,9 @@ uniform float viewWidth;
 uniform float viewHeight;
 #endif
 uniform mat4 gbufferModelView;
+#if defined CLOUD_SHADOWS && defined ONA_CLOUDS
+uniform mat4 gbufferModelViewInverse;
+#endif
 uniform vec3 sunPosition;
 uniform vec3 upPosition;
 uniform vec3 skyColor;
@@ -64,10 +67,22 @@ void main() {
         n = normalize(mat3(gbufferModelView) * normalize(vec3((h - hx) * 0.6 * WATER_WAVE_SIZE, 1.0, (h - hz) * 0.6 * WATER_WAVE_SIZE)));
     }
 #endif
+#ifdef RAIN_RIPPLES
+    if (water && rainStrength > 0.01 && dot(n, up) > 0.5) {
+        vec2 drops = onaRipples(worldPos.xz, frameTimeCounter) * rainStrength * smoothstep(0.85, 0.95, lmcoord.y);
+        n = normalize(n + mat3(gbufferModelView) * vec3(drops.x, 0.0, drops.y));
+    }
+#endif
 #ifdef SHADOWS
     float vis = onaShadow(dot(normalize(normal), lightDir));
 #else
     float vis = smoothstep(0.75, 0.97, lmcoord.y);
+#endif
+#if defined CLOUD_SHADOWS && defined ONA_CLOUDS
+    {
+        vec3 sunW = mat3(gbufferModelViewInverse) * lightDir;
+        if (sunW.y > 0.05) vis *= 1.0 - onaCloudCover(worldPos.xz + sunW.xz * ((300.0 - worldPos.y) / sunW.y), frameTimeCounter, rainStrength) * 0.8;
+    }
 #endif
     vec3 color;
     float alpha = albedo.a;
@@ -110,6 +125,9 @@ void main() {
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);
     color = mix(color, fogTint, fog * fog);
+#ifdef DISTANCE_HAZE
+    color = mix(color, fogTint, (1.0 - exp(-length(viewPos) * (0.0035 + rainStrength * 0.008))) * 0.6);
+#endif
     gl_FragData[0] = vec4(color, alpha);
     // for the reflection pass: water normal (view space) and a water mask
     gl_FragData[1] = vec4(n * 0.5 + 0.5, water ? 1.0 : 0.0);

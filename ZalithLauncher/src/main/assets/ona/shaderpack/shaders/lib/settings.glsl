@@ -45,6 +45,11 @@
 //#define DEPTH_OF_FIELD       // what is far from the thing you look at gets soft, like a camera
 #define DOF_STRENGTH 1.00      // [0.50 1.00 1.50 2.00] how soft the out-of-focus parts get
 //#define LENS_FLARE           // glare rings across the screen when you look near the sun
+//#define CLOUD_SHADOWS        // the clouds cast moving shadows on the ground (with ONA clouds)
+//#define RAIN_RIPPLES         // raindrops make rings on water and puddles
+//#define DISTANCE_HAZE        // far land fades into the air colour, like real distance
+//#define SPARKLE              // sand and snow glitter in the sun
+#define COLOR_GRADE 0          // [0 1 2 3] colours: 0 natural, 1 film, 2 cool, 3 vivid
 #define SATURATION 1.10        // [0.80 0.90 1.00 1.10 1.20 1.30]
 #define FOG_START 0.55         // [0.30 0.40 0.55 0.70 0.85]
 

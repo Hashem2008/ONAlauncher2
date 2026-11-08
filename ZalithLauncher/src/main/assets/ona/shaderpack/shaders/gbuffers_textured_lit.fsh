@@ -35,5 +35,8 @@ void main() {
     float fog = clamp((d - FOG_START) / (1.0 - FOG_START), 0.0, 1.0);
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);
     color = mix(color, fogTint, fog * fog);
+#ifdef DISTANCE_HAZE
+    color = mix(color, fogTint, (1.0 - exp(-length(viewPos) * (0.0035 + rainStrength * 0.008))) * 0.6);
+#endif
     gl_FragData[0] = vec4(color, albedo.a);
 }
