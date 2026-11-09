@@ -577,7 +577,10 @@ ONA BOOST MOD (2026-11-09 a)
   adds it by itself (OnaBoostInstaller, settings switch + target FPS). Build locally: JDK 25 for
   fabric/ (./gradlew build), JDK 21 for forge/ (toolchain 17 via foojay); Maven Central may answer
   429 here, the Google mirror is in the build files. ONA_CHANGES/2026-11-09a_ona-boost-mod.txt.
-  CI: see the next handoff commit.
+  CI: ONA Boost run 42538518791 SUCCESS (release ona-boost: fabric 26.3 + forge 1.20.1 jars, download
+  links checked), APK run 42538541322 (8c13c58) SUCCESS, 4 APKs. FpsGuard simulated here (lower /
+  raise / restore on leaving / restore after crash all correct). Not device-tested: ask for the
+  game log lines "[ONA Boost]" and FPS with it.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -652,4 +655,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ن): ظلال واقعية (حادة عند التلامس)، غيوم ثلاثية الأبعاد، انكسار الماء، وفريمات أحسن بالظلال. الألوان ما تغيرت. البيلد نجح.
 - 2026-11-08 (س): صلحنا خربطة الماء والغيوم، 14 مستوى من أداء لـ "لا يُصدّق"، جزيئات (غبار ويراعات)، ومسافة الشيدر زي التشنكات. البيلد نجح.
 - 2026-11-08 (ع): رجعت الظلال، الشمس أقوى من الظل (واقعية)، صلحنا أغلاط السما، و Complementary صار يشتغل. البيلد نجح.
-- 2026-11-09 (أ): مود ONA Boost تبعنا للجوالات (فابرك 26 وفورج 1.20.1): بيحافظ عالفريمات لحاله، واللانشر بيضيفه لحاله.
+- 2026-11-09 (أ): مود ONA Boost تبعنا للجوالات (فابرك 26 وفورج 1.20.1): بيحافظ عالفريمات لحاله، واللانشر بيضيفه لحاله. البيلد نجح.
