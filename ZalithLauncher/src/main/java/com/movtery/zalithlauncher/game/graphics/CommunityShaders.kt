@@ -134,7 +134,7 @@ object CommunityShaders {
         val chosen = ordered.firstOrNull { v ->
             ModCompat.primaryFile(v)?.get("filename")?.asString?.endsWith(".zip") == true
         } ?: return null
-        val file = ModCompat.primaryFile(chosen)
+        val file = ModCompat.primaryFile(chosen) ?: return null
         val dir = File(gameDir, "shaderpacks").apply { mkdirs() }
         val target = File(dir, File(file.get("filename").asString).name)
         if (!target.isFile) ModCompat.download(file.get("url").asString, target)
