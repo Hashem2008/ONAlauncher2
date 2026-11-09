@@ -608,6 +608,27 @@ COMPLEMENTARY SSBO OPTIONS (2026-11-09 d)
   ONA_CHANGES/2026-11-09d_complementary-ssbo-options.txt. CI run 42667724570 (7a2030d) SUCCESS, 4 APKs,
   engine 8c51e422 inside. Not device-tested: ask whether Complementary loads now.
 
+ONA BOOST 1.2.0 + SAFE DOWNLOADS (2026-11-09 e)
+- Request "better FPS, everything, all devices, no errors" with no new log: a review round.
+  ONA Boost 1.2.0 (017f205): knows the game's FPS limit / VSync (notches come back when the FPS stays
+  at the limit; 1.1.0 kept everything light for the whole session with a limit near the target), no
+  decision while Minecraft 26 throttles itself (AFK 30 FPS), after a dimension change or an app
+  pause; new notches (improved transparency / Fabulous off, fast leaves only without a shader pack);
+  render distance floor by device class (LOW 4, MID 5, else 6; launcher writes deviceClass and
+  displayHz into config/onaboost.json); a setting the player changed while notches were taken is
+  never overwritten (baseline file keeps "_set.<key>" next to the player's value).
+  NEVER call Options.graphicsPreset().set(): it applies the whole preset (listener
+  applyGraphicsPreset), it is not a label.
+  Launcher: ModCompat.download is atomic (".part", then rename), ModCompat.isZip(); OnaBoostInstaller
+  downloads + checks the new jar before removing the old one; Shader Community / ONA Resource fetch
+  a pack again when the file is not a whole zip.
+  Tests: scratchpad guardtest/src2/Sim2.java (14 scenarios, all pass); both jars built locally.
+  ONA_CHANGES/2026-11-09e_ona-boost-1.2-safe-downloads.txt.
+  CI: ONA Boost workflow run 42692734889 and APK run 42692766523 (017f205, 4 APKs) were still RUNNING when
+  this was written: check both first (the 1.2.0 jars must be in the "ona-boost" release).
+  Not device-tested: ask for the log line "ONA Boost active: ... render distance not under N chunks",
+  whether Complementary loads now (still open), and the FPS.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -685,3 +706,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-09 (ب): صلحنا محرك ONA عشان Complementary يشتغل، وضفنا للشيدر ضو منعكس من الأرض وضباب بيلمع باتجاه الشمس (من فكرة Nostalgia). البيلد نجح.
 - 2026-11-09 (ج): صلحنا Complementary (المود بيحكي لـ Iris إنه ما في compute)، و Nostalgia 5.1 معمول لـ 1.21.4 مش 26.3. البيلد نجح (بعد تصليح غلط صغير).
 - 2026-11-09 (د): Complementary: اللانشر بيطفي الانعكاسات والإضاءة الملونة اللي بتحتاج compute قبل ما تبلش اللعبة. البيلد نجح.
+- 2026-11-09 (هـ): ONA Boost 1.2.0: بيفهم حد الفريمات باللعبة (الإعدادات بترجع صح)، ما بيخفف وإنت تارك اللعبة، ورق شجر سريع (بدون شيدر)، مسافة أقل للجوالات الضعيفة، واللي بتغيره إنت بيضل. والتنزيلات ما عاد يضل منها ملف ناقص. البيلد شغال (تأكد من نتيجته).

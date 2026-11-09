@@ -1,0 +1,82 @@
+ONA Boost 1.2.0 + downloads that are never left half done (2026-11-09 e)
+
+User request: "make the app better and better: FPS and everything, for all devices, without errors".
+No new log from the phone, so this round is a review of ONA Boost and of the launcher's downloads.
+Commit 017f205.
+
+ONA BOOST 1.2.0 (ona-boost/, Fabric 26.x + Forge 1.20.1)
+
+Problems found in 1.1.0 by reading the code against the game (javap on the 26.3 client jar):
+1. FPS limit. A notch only came back above 130% of the target. With the game's max FPS at or near
+   the target (launcher setting "FPS cap" 60, or VSync) that can never happen: everything that got
+   lighter once stayed light for the whole session. And with a limit under the target (cap 30,
+   target 60) everything was made lighter for an FPS the game was not allowed to reach.
+   Now GameSettings.fpsCap() (framerateLimit, 260 = none) and vsync() + displayHz (from the
+   launcher): the kept FPS is min(target, limit); when 130% is above the limit, staying at 96% of
+   the limit is the sign, watched 3x as long (30 s, up to 360 s after swings).
+2. Minecraft 26 drops to 30 FPS by itself after a minute without input (inactivityFpsLimit "afk",
+   the default; the launcher only switches it off when the line is already in options.txt). The
+   guard read that as "too slow" and took every notch while the player was away. Now
+   GameSettings.throttled() (FramerateLimitTracker.getThrottleReason() != NONE): no decision, and 3 s
+   to settle after it ends.
+3. No warm-up after a dimension change (the level object changes but "in a world" stays true) or
+   after the app came back from the background (the game's FPS counter reads 0 for a second after
+   a stall). Now worldId() (identity of mc.level) and a stall detector (no tick for 2 s): 8 s to
+   settle.
+4. The player's changes were overwritten. Leaving the world restored the whole baseline, so a
+   setting the player changed while notches were taken went back to the old value; same after a
+   crash. Now a step only undoes when the option is still the way it left it, and the baseline file
+   holds, per setting, the player's value and what ONA Boost set ("_set.<key>"); only settings that
+   are still as ONA Boost left them are put back. A 1.1 file (no "_set." keys) is restored whole,
+   a broken file is removed.
+5. graphicsPreset: Options.graphicsPreset().set(x) APPLIES the preset (listener =
+   Options.applyGraphicsPreset), it is not only a label. Never set it from the mod (the label stays
+   "Custom" after a notch, like after a change by hand).
+
+New notches:
+- "improved transparency: off" (26.x) / "graphics: fancy" from Fabulous (1.20.1): early, hardly
+  seen, costs a phone GPU a lot. On 1.20.1 graphicsMode().set() does not rebuild by itself (the
+  settings screen does it): levelRenderer.allChanged() after the change.
+- "leaves: fast" (26.x cutoutLeaves) / "graphics: fast" (1.20.1): after render distance 10 and the
+  simulation distance notches. Never while a shader pack is on (Shaders.inUse(), Iris / Oculus API
+  by reflection) and taken back at once when one comes on (Step.valid()): ONA Mobile Shaders and
+  many packs cut the leaf texture out themselves, solid leaves without inner faces would show
+  holes through the trees.
+- Render distance: down to 10 first, under 10 only after those; floor by device class
+  (BoostConfig.renderDistanceFloor(): LOW 4, MID 5, else 6; a minRenderDistance other than 6 in
+  the file wins). The launcher writes deviceClass.
+
+Order now: particles decreased, mob shadows off, clouds fast, rain radius (26), improved
+transparency off, entities 75%, render distance to 10, simulation distance (single player), fast
+leaves (no shaders), render distance to the floor, particles minimal, clouds off, entities 50%.
+
+Checked: host simulation of FpsGuard (scratchpad guardtest/src2/Sim2.java, 14 scenarios: low/high,
+device floors, cap 60 = target, cap 30 < target, VSync, AFK throttle, dimension change, app pause,
+player changes mid-session, crash recovery with a player change, 1.1 baseline file, broken file,
+a notch that cannot undo, FPS swings, shaders on/off) all pass; both jars built locally against
+the real game (Fabric 26.3 with JDK 25, Forge 1.20.1 with JDK 21).
+
+LAUNCHER
+
+- ModCompat.download wrote straight into the final file. A lost connection was cleaned up, but an
+  app closed (or killed by Android) in the middle left half a file under the real name, and
+  "file exists" was then taken for "done": half an ONA Boost jar (the game does not start), half a
+  shader pack or texture pack (set up fails every time). Now: written to "<name>.part", moved into
+  place when whole; an existing file stays until then. ModCompat.isZip(file) for callers.
+- OnaBoostInstaller: VERSION 1.2.0. Before: the old jar was deleted first, then the download; no
+  network = no ONA Boost at all. Now: download, check it is a mod jar (fabric.mod.json or
+  META-INF/mods.toml), then remove the older ona-boost-*.jar. A jar that does not open is fetched
+  again. config/onaboost.json also gets deviceClass (DeviceProfiler tier) and displayHz. Still
+  only ONA's own jars are touched.
+- CommunityShaders.download, OnaTexturePacks.install: a pack file that is not a whole zip is
+  downloaded again (before: kept forever).
+- Texts (EN + AR): ONA Boost summary and target summary mention leaves, the FPS limit and that the
+  player's own changes stay.
+
+Not changed on purpose: the shader (no colour or look change), community packs (their licenses),
+no new third party mods.
+
+CI: see ONA_HANDOFF.txt (ONA Boost workflow must publish the 1.2.0 jars; APK build, 4 APKs).
+To test on the phone: log line "ONA Boost active: keeping N FPS ... render distance not under N
+chunks (HIGH phone)"; with the launcher's FPS cap at 60 and target 60, settings must come back
+after ~30 s at 60 FPS.
