@@ -597,7 +597,10 @@ COMPLEMENTARY COMPUTE FIX (2026-11-09 c)
   Nostalgia 5.1 is made for up to 1.21.4 (dark skin / water on 26.3 are the pack's), Shader Community
   now prefers a file made for the game version and warns otherwise.
   ONA_CHANGES/2026-11-09c_complementary-compute-fix-nostalgia-note.txt. Order: ONA Renderer + ONA Boost
-  workflows, then the APK build. CI: next handoff commit.
+  workflows, then the APK build. CI: ONA Renderer 42643399152 SUCCESS (ona-renderer-0c27a3a8b3f5-8c51e422),
+  ONA Boost 42643399207 SUCCESS (1.1.0 jars), APK 42644510958 FAILED (Kotlin UNSAFE_CALL:
+  ModCompat.primaryFile is @Nullable, fixed in d4bef07), APK 42645354565 (d4bef07) SUCCESS, 4 APKs,
+  engine 8c51e422 inside. Not device-tested: ask whether Complementary loads now.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -674,4 +677,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ع): رجعت الظلال، الشمس أقوى من الظل (واقعية)، صلحنا أغلاط السما، و Complementary صار يشتغل. البيلد نجح.
 - 2026-11-09 (أ): مود ONA Boost تبعنا للجوالات (فابرك 26 وفورج 1.20.1): بيحافظ عالفريمات لحاله، واللانشر بيضيفه لحاله. البيلد نجح.
 - 2026-11-09 (ب): صلحنا محرك ONA عشان Complementary يشتغل، وضفنا للشيدر ضو منعكس من الأرض وضباب بيلمع باتجاه الشمس (من فكرة Nostalgia). البيلد نجح.
-- 2026-11-09 (ج): صلحنا Complementary (المود بيحكي لـ Iris إنه ما في compute)، و Nostalgia 5.1 معمول لـ 1.21.4 مش 26.3.
+- 2026-11-09 (ج): صلحنا Complementary (المود بيحكي لـ Iris إنه ما في compute)، و Nostalgia 5.1 معمول لـ 1.21.4 مش 26.3. البيلد نجح (بعد تصليح غلط صغير).
