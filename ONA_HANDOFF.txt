@@ -624,8 +624,8 @@ ONA BOOST 1.2.0 + SAFE DOWNLOADS (2026-11-09 e)
   a pack again when the file is not a whole zip.
   Tests: scratchpad guardtest/src2/Sim2.java (14 scenarios, all pass); both jars built locally.
   ONA_CHANGES/2026-11-09e_ona-boost-1.2-safe-downloads.txt.
-  CI: ONA Boost workflow run 42692734889 and APK run 42692766523 (017f205, 4 APKs) were still RUNNING when
-  this was written: check both first (the 1.2.0 jars must be in the "ona-boost" release).
+  CI: ONA Boost workflow run 42692734889 SUCCESS (1.2.0 jars in the "ona-boost" release, both download
+  with HTTP 200), APK run 42692766523 (017f205) SUCCESS, 4 APKs (arm64, arm, x86_64, performance).
   Not device-tested: ask for the log line "ONA Boost active: ... render distance not under N chunks",
   whether Complementary loads now (still open), and the FPS.
 
@@ -706,4 +706,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-09 (ب): صلحنا محرك ONA عشان Complementary يشتغل، وضفنا للشيدر ضو منعكس من الأرض وضباب بيلمع باتجاه الشمس (من فكرة Nostalgia). البيلد نجح.
 - 2026-11-09 (ج): صلحنا Complementary (المود بيحكي لـ Iris إنه ما في compute)، و Nostalgia 5.1 معمول لـ 1.21.4 مش 26.3. البيلد نجح (بعد تصليح غلط صغير).
 - 2026-11-09 (د): Complementary: اللانشر بيطفي الانعكاسات والإضاءة الملونة اللي بتحتاج compute قبل ما تبلش اللعبة. البيلد نجح.
-- 2026-11-09 (هـ): ONA Boost 1.2.0: بيفهم حد الفريمات باللعبة (الإعدادات بترجع صح)، ما بيخفف وإنت تارك اللعبة، ورق شجر سريع (بدون شيدر)، مسافة أقل للجوالات الضعيفة، واللي بتغيره إنت بيضل. والتنزيلات ما عاد يضل منها ملف ناقص. البيلد شغال (تأكد من نتيجته).
+- 2026-11-09 (هـ): ONA Boost 1.2.0: بيفهم حد الفريمات باللعبة (الإعدادات بترجع صح)، ما بيخفف وإنت تارك اللعبة، ورق شجر سريع (بدون شيدر)، مسافة أقل للجوالات الضعيفة، واللي بتغيره إنت بيضل. والتنزيلات ما عاد يضل منها ملف ناقص. البيلد نجح.
