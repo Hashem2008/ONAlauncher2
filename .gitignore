@@ -33,3 +33,8 @@ LWJGL/*/build/
 .vscode/
 
 ZalithLauncher/src/main/jniLibs/arm64-v8a/libPhysXJniBindings_64.so
+
+# ONA Boost mod builds
+ona-boost/*/build/
+ona-boost/*/.gradle/
+ona-boost/*/run/

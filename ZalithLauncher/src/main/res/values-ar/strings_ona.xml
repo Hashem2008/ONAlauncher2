@@ -359,4 +359,9 @@
     <string name="ona_graphics_lvl_impossible_plus">مستحيل +</string>
     <string name="ona_graphics_lvl_impossible_ultra">مستحيل ألترا</string>
     <string name="ona_graphics_lvl_unbelievable">لا يُصدّق</string>
+    <string name="ona_boost_title">ONA Boost (مود الفريمات تبعنا)</string>
+    <string name="ona_boost_summary">مودنا الخاص للجوالات، بينضاف لحاله لنسخ فابرك 26 وفورج 1.20.1: لما تنزل الفريمات بيخفف الإعدادات اللي ما بتبين واحد واحد (الجزيئات، ظلال المخلوقات، الغيوم، المطر، مسافة المخلوقات، مسافة الرؤية) وبيرجعها لما ترجع الفريمات عالية. إعداداتك دايماً بترجع. بيشتغل مع Sodium و Iris والمودات الثانية.</string>
+    <string name="ona_boost_target_title">ONA Boost: الفريمات المطلوبة</string>
+    <string name="ona_boost_target_summary">تحت 85% منها بتخف الإعدادات، وفوق 130% بترجع</string>
+    <string name="ona_boost_added">ONA Boost انضاف: بيحافظ على %1$d فريم لحاله</string>
 </resources>

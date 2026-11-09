@@ -723,6 +723,13 @@ fun LaunchGameOperation(
                 com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.noRendererFor?.let { forWhat ->
                     eventViewModel.sendToast(androidText(R.string.ona_speed_mod_none, forWhat), Toast.LENGTH_LONG)
                 }
+                // ONA Boost: ONA's own FPS mod for phones, in the versions it is made for
+                val boost = withContext(Dispatchers.IO) {
+                    runCatching { com.movtery.zalithlauncher.game.version.mod.OnaBoostInstaller.ensure(version) }.getOrNull()
+                }
+                if (boost != null) {
+                    eventViewModel.sendToast(androidText(R.string.ona_boost_added, AllSettings.onaBoostTarget.getValue()), Toast.LENGTH_LONG)
+                }
                 // ONA: lighten heavy mods through their configs, or put the configs back
                 val tunedMods = withContext(Dispatchers.IO) {
                     runCatching {

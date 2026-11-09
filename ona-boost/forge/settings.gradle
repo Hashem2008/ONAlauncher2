@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        // Google's copy of Maven Central first: Maven Central answers 429 to busy shared networks
+        maven { url = 'https://maven-central.storage-download.googleapis.com/maven2/' }
+        gradlePluginPortal()
+        maven { url = 'https://maven.minecraftforge.net/' }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'ona-boost-forge'

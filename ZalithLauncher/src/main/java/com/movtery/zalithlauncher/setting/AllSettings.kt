@@ -548,6 +548,12 @@ object AllSettings : SettingsRegistry() {
     /** Shader Community for every version: OFF or a Modrinth shader slug (used instead of ONA Graphics) */
     val communityShader = stringSetting("communityShader", "OFF")
 
+    /** ONA Boost (ONA's FPS mod for phones) in the Fabric 26.x / Forge 1.20.1 versions */
+    val onaBoost = boolSetting("onaBoost", true)
+
+    /** The FPS ONA Boost keeps: lighter settings under 85% of it, back above 130% */
+    val onaBoostTarget = intSetting("onaBoostTarget", 60, 30..120)
+
     /** ONA: the build + device the "better APK for this device" advice was last shown for */
     val abiAdviceShown = stringSetting("onaAbiAdviceShown", "")
 

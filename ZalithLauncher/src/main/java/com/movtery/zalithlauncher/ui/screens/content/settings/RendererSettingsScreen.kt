@@ -184,10 +184,29 @@ fun RendererSettingsScreen(
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
+                        position = CardPosition.Middle,
                         unit = AllSettings.autoTuneMemory,
                         title = stringResource(R.string.settings_ona_auto_memory_title),
                         summary = stringResource(R.string.settings_ona_auto_memory_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.onaBoost,
+                        title = stringResource(R.string.ona_boost_title),
+                        summary = stringResource(R.string.ona_boost_summary)
+                    )
+
+                    IntSliderSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.onaBoostTarget,
+                        title = stringResource(R.string.ona_boost_target_title),
+                        summary = stringResource(R.string.ona_boost_target_summary),
+                        valueRange = AllSettings.onaBoostTarget.floatRange,
+                        steps = 17,
+                        suffix = " FPS"
                     )
                 }
             }

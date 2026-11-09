@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "onaboost",
+  "version": "${version}",
+  "name": "ONA Boost",
+  "description": "Made for phones by ONA Launcher: keeps the game smooth by itself. When the FPS falls under the target it makes the least visible settings lighter one by one (particles, shadows of mobs, clouds, rain, entity distance, render and simulation distance), and gives them back when the FPS is high again. Your own settings always come back. Works with Sodium, Iris and other mods.",
+  "authors": ["ONA Launcher"],
+  "contact": {
+    "homepage": "https://github.com/Hashem2008/ONAlauncher2",
+    "sources": "https://github.com/Hashem2008/ONAlauncher2/tree/main/ona-boost"
+  },
+  "license": "GPL-3.0-or-later",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.onalauncher.boost.fabric.OnaBoostFabric"]
+  },
+  "mixins": [
+    {
+      "config": "onaboost.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=26.1",
+    "java": ">=25"
+  }
+}

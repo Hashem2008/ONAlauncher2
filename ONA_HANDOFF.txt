@@ -569,9 +569,15 @@ SHADOWS BACK + COMPLEMENTARY FIX (2026-11-08 p)
   images all have a format (SmartRenderer.gl43Safe), else 4.0.
   ONA_CHANGES/2026-11-08p_shadows-back-realism-complementary-fix.txt. CI run 42536036632 (3cf6e63) SUCCESS,
   4 APKs. Not device-tested: ask for shadow / sky screenshots, Complementary loading, FPS.
-- Asked next: an ONA FPS mod for phones. User wants a Sodium/OptiFine replacement; explained it is
-  not realistic (Sodium 0.6+ Polyform Shield forbids competing forks, OptiFine closed, Iris on Fabric
-  needs Sodium) and proposed "ONA Boost" on top of Sodium (Fabric 26.3 + Forge 1.20.1). Waiting for OK.
+- ONA Boost mod: see the next entry.
+
+ONA BOOST MOD (2026-11-09 a)
+- ona-boost/: ONA's own FPS mod for phones (Fabric 26.x + Forge 1.20.1), adaptive FPS guard on top of
+  Sodium / Iris. Built by .github/workflows/ona_boost.yml into the "ona-boost" release; the launcher
+  adds it by itself (OnaBoostInstaller, settings switch + target FPS). Build locally: JDK 25 for
+  fabric/ (./gradlew build), JDK 21 for forge/ (toolchain 17 via foojay); Maven Central may answer
+  429 here, the Google mirror is in the build files. ONA_CHANGES/2026-11-09a_ona-boost-mod.txt.
+  CI: see the next handoff commit.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -646,3 +652,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-08 (ن): ظلال واقعية (حادة عند التلامس)، غيوم ثلاثية الأبعاد، انكسار الماء، وفريمات أحسن بالظلال. الألوان ما تغيرت. البيلد نجح.
 - 2026-11-08 (س): صلحنا خربطة الماء والغيوم، 14 مستوى من أداء لـ "لا يُصدّق"، جزيئات (غبار ويراعات)، ومسافة الشيدر زي التشنكات. البيلد نجح.
 - 2026-11-08 (ع): رجعت الظلال، الشمس أقوى من الظل (واقعية)، صلحنا أغلاط السما، و Complementary صار يشتغل. البيلد نجح.
+- 2026-11-09 (أ): مود ONA Boost تبعنا للجوالات (فابرك 26 وفورج 1.20.1): بيحافظ عالفريمات لحاله، واللانشر بيضيفه لحاله.

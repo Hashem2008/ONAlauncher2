@@ -1,0 +1,11 @@
+{
+  "required": false,
+  "package": "com.onalauncher.boost.fabric.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "MinecraftMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

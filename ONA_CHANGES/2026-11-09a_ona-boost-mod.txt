@@ -1,0 +1,31 @@
+ONA Boost: ONA's own FPS mod for phones (2026-11-09 a)
+
+User: a mod of our own that cuts lag on phones, Fabric and Forge, works with shaders and other
+mods. A Sodium / OptiFine replacement was explained as not possible (Sodium 0.6+ is Polyform Shield,
+OptiFine closed, Iris on Fabric needs Sodium); agreed: a mod that works on top of them.
+
+ona-boost/ (GPL-3.0-or-later):
+- common/: OnaBoost (entry, never breaks the game: any error turns it off for the session),
+  FpsGuard (FPS under 85% of the target for 3 s -> next lighter notch, over 130% for 10 s -> last
+  notch back, 15 s warm-up per world, cooldown 4 s / 12 s after a render distance change, hold time
+  doubles when a notch came back too soon), baseline file so the player's settings come back after
+  leaving the world or after a crash, BoostConfig (config/onaboost.json), Phone (Android only).
+- fabric/: Minecraft 26.x, Loom 1.19 (unobfuscated game, no mappings), Java 25, one mixin at the
+  TAIL of Minecraft.tick (required false / defaultRequire 0: a changed game never crashes on it), no
+  Fabric API. Options26: particles, mob shadows, clouds, weatherRadius, entityDistanceScaling, render
+  distance -2 x10 (min 6), simulation distance -2 x6 (min 5, single player), particles minimal,
+  clouds off, entities 50%. Phone defaults once: biome blend <= 2, mipmaps <= 2.
+- forge/: Forge 1.20.1-47.4.29 (current MDK: ForgeGradle 7 + renamer, Java 17), Forge's
+  ClientTickEvent, client classes only behind Dist.CLIENT, displayTest IGNORE_ALL_VERSION.
+  Options120 = Options26 without weatherRadius.
+Both built here: the Fabric jar compiles against the real 26.3 client (every option / method
+checked by javac), the Forge jar's calls are SRG names (m_231984_ ...), checked with javap.
+
+.github/workflows/ona_boost.yml: builds both (Java 25 / 21 + toolchain 17) and uploads
+ona-boost-fabric-26.3-1.0.0.jar and ona-boost-forge-1.20.1-1.0.0.jar to the "ona-boost" release.
+
+Launcher: OnaBoostInstaller (game/version/mod) adds the right jar at launch to Fabric / Quilt 26.x and
+Forge 1.20.1 versions, replaces older ona-boost-*.jar, removes it when switched off (only its own
+jars), writes enabled / targetFps into config/onaboost.json. Settings (FPS section): "ONA Boost"
+switch (AllSettings.onaBoost, on) and "FPS to keep" slider (onaBoostTarget, 30-120, 60). Toast
+ona_boost_added.
