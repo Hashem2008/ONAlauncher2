@@ -364,4 +364,5 @@
     <string name="ona_boost_target_title">ONA Boost: الفريمات المطلوبة</string>
     <string name="ona_boost_target_summary">تحت 85% منها بتخف الإعدادات، وفوق 130% بترجع</string>
     <string name="ona_boost_added">ONA Boost انضاف: بيحافظ على %1$d فريم لحاله</string>
+    <string name="ona_community_not_made_for">%1$s معمول لماينكرافت لحد %2$s، مش لـ %3$s لسا: في أجزاء (سكن اللاعب، الماء...) ممكن تطلع غلط لحد ما صاحبه يحدّثه</string>
 </resources>

@@ -364,4 +364,5 @@
     <string name="ona_boost_target_title">ONA Boost: FPS to keep</string>
     <string name="ona_boost_target_summary">Under 85% of this the settings get lighter, above 130% they come back</string>
     <string name="ona_boost_added">ONA Boost added: it keeps %1$d FPS by itself</string>
+    <string name="ona_community_not_made_for">%1$s is made for Minecraft up to %2$s, not %3$s yet: some parts (player skin, water...) can look wrong until its author updates it</string>
 </resources>

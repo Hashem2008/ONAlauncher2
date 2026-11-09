@@ -3,7 +3,8 @@
   "package": "com.onalauncher.boost.fabric.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "MinecraftMixin"
+    "MinecraftMixin",
+    "IrisRenderSystemMixin"
   ],
   "injectors": {
     "defaultRequire": 0

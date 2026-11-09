@@ -1,0 +1,23 @@
+Complementary: compute / image paths really off on phones; Nostalgia note (2026-11-09 c)
+
+User log: Complementary now failed one step later: "Shader compilation failed for shadowcomp
+compute shadowcomp!" (Iris ShadowCompositeRenderer.createComputes). Read in Iris 1.11.7 (26.3):
+IrisRenderSystem.initRenderer sets supportsCompute = GLCapabilities.glDispatchCompute != 0, and
+supportsImageLoadStore() is true when glBindImageTexture != 0 -- function addresses, which any
+OpenGL ES layer hands out, so hiding the extension names (b) was not enough. Complementary's
+shadowcomp.csh always includes its voxel images.
+
+Two layers, both only when the OpenGL layer has no compute:
+- ONA Boost 1.1.0 (Fabric 26.x): @Pseudo mixin on net.irisshaders.iris.gl.IrisRenderSystem,
+  supportsCompute() and supportsImageLoadStore() return false when OnaCompat.noCompute() (phone and
+  neither OpenGL43 nor GL_ARB_compute_shader in LWJGL's capabilities). require 0, only with Iris.
+  Built here against 26.3 (no warnings). OnaBoostInstaller.VERSION 1.1.0: launchers swap the jar.
+- ONA Renderer (patch_renderer.py): glXGetProcAddress returns nothing for glDispatchCompute(Indirect)
+  and glBindImageTexture(s) while ext_compute_shader is off. Patch tested on MobileGlues 0c27a3a8.
+Bliss (gl43Safe) keeps compute and images.
+
+Nostalgia_v5.1: Modrinth lists it for Minecraft 1.19.4 - 1.21.4, not 26.x; on 26.3 Iris patched many
+unassigned varyings (vCoord, viewVec, vertexDist... in entity and terrain programs), which fits the
+dark player skin and the water the user saw: the pack is not made for 26.x yet. Shader Community now
+downloads the newest file made for the game version, else the newest with a toast
+(ona_community_not_made_for) saying which version the pack is made for.

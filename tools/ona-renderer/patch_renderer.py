@@ -13,6 +13,9 @@ source stays LGPL-2.1, see LICENSE in the checkout):
   packs (Complementary, BSL, Solas...) turn on their image / SSBO paths whenever Iris sees these
   extensions, even on OpenGL 4.0; those paths then fail to convert ("all images have to define
   layout format"). With them hidden Iris keeps the paths off and the packs load
+- for the same reason glXGetProcAddress gives no address for glDispatchCompute(Indirect) and
+  glBindImageTexture(s) while compute is off: Iris decides compute / images by function address
+  ("Shader compilation failed for shadowcomp" with Complementary). ONA Boost also tells Iris
 
 Usage: python3 patch_renderer.py <MobileGlues checkout>
 """
@@ -43,3 +46,16 @@ patch("gles/loader.cpp", '''        AppendExtension("GL_ARB_compute_shader");'''
         // images and SSBOs only with compute (see the note at the top of patch_renderer.py)
         AppendExtension("GL_ARB_shader_storage_buffer_object");
         AppendExtension("GL_ARB_shader_image_load_store");''')
+patch("glx/lookup.cpp", '''void* glXGetProcAddress(const char* name) {
+    LOG()
+''', '''void* glXGetProcAddress(const char* name) {
+    LOG()
+    // ONA: without compute no compute / image entry points either (see patch_renderer.py)
+    if (!global_settings.ext_compute_shader) {
+        static const char* const hidden[] = {"glDispatchCompute", "glDispatchComputeIndirect",
+                                             "glBindImageTexture", "glBindImageTextures"};
+        for (const char* h : hidden) {
+            if (std::strcmp(name, h) == 0) return nullptr;
+        }
+    }
+''')

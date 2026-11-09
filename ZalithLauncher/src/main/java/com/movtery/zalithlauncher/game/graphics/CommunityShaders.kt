@@ -99,7 +99,10 @@ object CommunityShaders {
         val loader = OnaGraphics.ensureShaderLoader(context, version, lines) { }
             ?: return@withContext (lines + context.getString(R.string.ona_community_failed, title)).joinToString("\n")
         val result = runCatching {
-            val pack = download(choice, gameDir, loader) ?: return@runCatching null
+            val mc = version.getVersionInfo()?.minecraftVersion
+            val got = download(choice, gameDir, loader, mc) ?: return@runCatching null
+            val pack = got.file
+            got.madeFor?.let { lines.add(context.getString(R.string.ona_community_not_made_for, title, it, mc)) }
             val (profile, options) = phoneOptions(pack, tier)
             File(pack.parentFile, "${pack.name}.txt").writeText(
                 options.entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
@@ -114,17 +117,29 @@ object CommunityShaders {
     }
 
     /** The newest file of the pack for this loader, into shaderpacks (kept when already there) */
-    private fun download(slug: String, gameDir: File, loader: OnaGraphics.Loader): File? {
+    /** The pack file, and the newest game version it is made for when that is not [mc] (else null) */
+    private class Download(val file: File, val madeFor: String?)
+
+    /**
+     * The newest file of the pack for this loader made for this game version, else its newest file
+     * (Nostalgia 5.1 is made up to 1.21.4: on 26.x parts of it look wrong, the player is told)
+     */
+    private fun download(slug: String, gameDir: File, loader: OnaGraphics.Loader, mc: String?): Download? {
         val loaders = if (loader == OnaGraphics.Loader.OPTIFINE) "[\"optifine\"]" else "[\"iris\"]"
         val url = "$API/project/$slug/version?loaders=${URLEncoder.encode(loaders, "UTF-8")}"
-        val versions = JsonParser.parseString(get(url)).asJsonArray
-        val file = versions.firstNotNullOfOrNull { element ->
-            ModCompat.primaryFile(element.asJsonObject)?.takeIf { it.get("filename").asString.endsWith(".zip") }
+        val versions = JsonParser.parseString(get(url)).asJsonArray.map { it.asJsonObject }
+        fun gameVersions(v: com.google.gson.JsonObject) =
+            runCatching { v.getAsJsonArray("game_versions").map { it.asString } }.getOrDefault(emptyList())
+        val ordered = if (mc == null) versions else versions.filter { mc in gameVersions(it) } + versions.filter { mc !in gameVersions(it) }
+        val chosen = ordered.firstOrNull { v ->
+            ModCompat.primaryFile(v)?.get("filename")?.asString?.endsWith(".zip") == true
         } ?: return null
+        val file = ModCompat.primaryFile(chosen)
         val dir = File(gameDir, "shaderpacks").apply { mkdirs() }
         val target = File(dir, File(file.get("filename").asString).name)
         if (!target.isFile) ModCompat.download(file.get("url").asString, target)
-        return target
+        val made = gameVersions(chosen)
+        return Download(target, if (mc != null && mc !in made) made.lastOrNull() else null)
     }
 
     /**
