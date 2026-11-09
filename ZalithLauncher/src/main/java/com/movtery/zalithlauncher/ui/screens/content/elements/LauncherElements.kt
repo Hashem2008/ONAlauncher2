@@ -713,6 +713,10 @@ fun LaunchGameOperation(
                     }.getOrNull()
                 }
                 graphics?.let { eventViewModel.sendToast(androidText(it.lines.joinToString("\n")), Toast.LENGTH_LONG) }
+                // shader packs: options that need compute / big buffers off when the engine has none
+                withContext(Dispatchers.IO) {
+                    runCatching { com.movtery.zalithlauncher.game.graphics.ShaderPackCompat.apply(version.getGameDir()) }
+                }
                 // ONA: modded versions without Sodium / Embeddium get the one that fits (much more FPS)
                 val speedMods = withContext(Dispatchers.IO) {
                     runCatching { com.movtery.zalithlauncher.game.version.mod.SpeedModInstaller.ensure(version) }.getOrDefault(emptyList())

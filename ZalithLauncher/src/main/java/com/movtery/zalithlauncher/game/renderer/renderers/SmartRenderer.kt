@@ -191,7 +191,7 @@ object SmartRenderer : RendererInterface {
      * on their voxel / colored light paths and the conversion to OpenGL ES fails ("Unsupported or
      * invalid OpenGL ES version"); on 4.0 Iris keeps those paths off and the packs load.
      */
-    private fun gl43Safe(pack: File): Boolean = runCatching {
+    fun gl43Safe(pack: File): Boolean = runCatching {
         val sources: Sequence<Pair<String, () -> String>> = when {
             pack.isFile -> {
                 val zip = java.util.zip.ZipFile(pack)

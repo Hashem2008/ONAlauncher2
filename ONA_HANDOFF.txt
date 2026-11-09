@@ -602,6 +602,11 @@ COMPLEMENTARY COMPUTE FIX (2026-11-09 c)
   ModCompat.primaryFile is @Nullable, fixed in d4bef07), APK 42645354565 (d4bef07) SUCCESS, 4 APKs,
   engine 8c51e422 inside. Not device-tested: ask whether Complementary loads now.
 
+COMPLEMENTARY SSBO OPTIONS (2026-11-09 d)
+- Iris fix confirmed on the phone. Complementary then asked for SSBOs (world space reflections /
+  colored lighting): ShaderPackCompat sets those options off at launch when the engine has no compute.
+  ONA_CHANGES/2026-11-09d_complementary-ssbo-options.txt. CI: next handoff commit.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -678,3 +683,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-09 (أ): مود ONA Boost تبعنا للجوالات (فابرك 26 وفورج 1.20.1): بيحافظ عالفريمات لحاله، واللانشر بيضيفه لحاله. البيلد نجح.
 - 2026-11-09 (ب): صلحنا محرك ONA عشان Complementary يشتغل، وضفنا للشيدر ضو منعكس من الأرض وضباب بيلمع باتجاه الشمس (من فكرة Nostalgia). البيلد نجح.
 - 2026-11-09 (ج): صلحنا Complementary (المود بيحكي لـ Iris إنه ما في compute)، و Nostalgia 5.1 معمول لـ 1.21.4 مش 26.3. البيلد نجح (بعد تصليح غلط صغير).
+- 2026-11-09 (د): Complementary: اللانشر بيطفي الانعكاسات والإضاءة الملونة اللي بتحتاج compute قبل ما تبلش اللعبة.

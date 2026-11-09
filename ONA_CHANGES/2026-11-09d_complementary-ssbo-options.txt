@@ -1,0 +1,12 @@
+Complementary: compute-only options off on phones (2026-11-09 d)
+
+User log: the ONA Boost 1.1.0 Iris fix works ("compute shaders and images off for shader packs").
+Next stop: "Shader storage buffers/immutable buffer storage is not supported on this graphics card,
+however the shaderpack requested them?". Complementary's shaders.properties declares bufferObject.0
+(50 MB .. 810 MB) and bufferObject.3 when WORLD_SPACE_REFLECTIONS > 0 (with COLORED_LIGHTING,
+WORLD_SPACE_PLAYER_REF), without checking the SSBO feature; the profile in use had them on.
+New game/graphics/ShaderPackCompat (called at launch after ONA Graphics / Shader Community): for the
+active pack, when SmartRenderer.gl43Safe(pack) is false (no compute on the engine), the options
+COLORED_LIGHTING=0, WORLD_SPACE_REFLECTIONS=-1, WORLD_SPACE_PLAYER_REF=-1 are written to the pack's
+options file if the pack declares them and they are on. Everything else stays. SSBO stays hidden on
+the engine (an 810 MB buffer would not fit a phone anyway).
