@@ -1010,20 +1010,42 @@ public class ModCompat {
         }
     }
 
+    /**
+     * Downloads a file. It is written next to the output as ".part" and moved into place when it is
+     * complete: a lost connection or an app closed half way never leaves half a file under the
+     * real name (a half jar or pack would be taken for a finished one at the next launch), and a
+     * file that was there before stays until the new one is whole.
+     */
     public static void download(String url, @NonNull File output) throws IOException {
         File parent = output.getParentFile();
         if (parent != null && !parent.isDirectory() && !parent.mkdirs()) throw new IOException("Cannot create " + parent);
+        File part = new File(output.getPath() + ".part");
         HttpURLConnection connection = open(url);
-        try (InputStream in = connection.getInputStream(); OutputStream out = new FileOutputStream(output)) {
-            byte[] buffer = new byte[64 * 1024];
-            int read;
-            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+        try {
+            try (InputStream in = connection.getInputStream(); OutputStream out = new FileOutputStream(part)) {
+                byte[] buffer = new byte[64 * 1024];
+                int read;
+                while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+            }
+            if (part.length() == 0) throw new IOException("Empty download: " + url);
+            if (output.exists() && !output.delete()) throw new IOException("Cannot replace " + output);
+            if (!part.renameTo(output)) throw new IOException("Cannot write " + output);
         } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
-            output.delete();
+            part.delete();
             throw e;
         } finally {
             connection.disconnect();
+        }
+    }
+
+    /** True when the file opens as a zip / jar with at least one entry (a download that is whole) */
+    public static boolean isZip(@NonNull File file) {
+        if (!file.isFile() || file.length() < 22) return false;
+        try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(file)) {
+            return zip.entries().hasMoreElements();
+        } catch (IOException | RuntimeException e) {
+            return false;
         }
     }
 

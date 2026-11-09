@@ -3,7 +3,7 @@
   "id": "onaboost",
   "version": "${version}",
   "name": "ONA Boost",
-  "description": "Made for phones by ONA Launcher: keeps the game smooth by itself. When the FPS falls under the target it makes the least visible settings lighter one by one (particles, shadows of mobs, clouds, rain, entity distance, render and simulation distance), and gives them back when the FPS is high again. Your own settings always come back. Works with Sodium, Iris and other mods, and lets shader packs like Complementary load on phones.",
+  "description": "Made for phones by ONA Launcher: keeps the game smooth by itself. When the FPS falls under the target it makes the least visible settings lighter one by one (particles, shadows of mobs, clouds, rain, improved transparency, entity distance, render and simulation distance, leaves), and gives them back when the FPS is high again. Your own settings always come back. Works with Sodium, Iris and other mods, and lets shader packs like Complementary load on phones.",
   "authors": ["ONA Launcher"],
   "contact": {
     "homepage": "https://github.com/Hashem2008/ONAlauncher2",

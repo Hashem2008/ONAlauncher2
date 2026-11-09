@@ -23,4 +23,24 @@ public interface GameSettings {
 
     /** Writes options.txt */
     void save();
+
+    /** The FPS limit the player set in the game, 0 when there is none */
+    default int fpsCap() {
+        return 0;
+    }
+
+    /** VSync is on in the game: the screen's rate is the limit then */
+    default boolean vsync() {
+        return false;
+    }
+
+    /** The game holds the FPS down by itself right now (nobody touched it for a while): no decision */
+    default boolean throttled() {
+        return false;
+    }
+
+    /** Another number when the player is in another world or dimension (chunks load again) */
+    default int worldId() {
+        return 0;
+    }
 }

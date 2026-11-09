@@ -76,7 +76,12 @@ public final class OnaBoost {
             config.phoneDefaultsApplied = true;
             config.save(configDir.resolve("onaboost.json"));
         }
-        LOG.info("ONA Boost active: keeping {} FPS (lighter under {}, back over {})", config.targetFps,
-            Math.round(config.targetFps * 0.85), Math.round(config.targetFps * 1.3));
+        LOG.info("ONA Boost active: keeping {} FPS (lighter under {}, back over {}), render distance not under {} chunks{}",
+            config.targetFps, Math.round(config.targetFps * 0.85), Math.round(config.targetFps * 1.3),
+            config.renderDistanceFloor(), config.deviceClass == null ? "" : " (" + config.deviceClass + " phone)");
+        int limit = settings.fpsCap();
+        if (limit > 0 && limit * 0.96 < config.targetFps * 1.3) {
+            LOG.info("the game's FPS limit is {}: settings come back when the FPS stays at the limit", limit);
+        }
     }
 }

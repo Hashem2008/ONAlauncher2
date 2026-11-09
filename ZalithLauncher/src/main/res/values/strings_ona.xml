@@ -360,9 +360,9 @@
     <string name="ona_graphics_lvl_impossible_ultra">Impossible Ultra</string>
     <string name="ona_graphics_lvl_unbelievable">Unbelievable</string>
     <string name="ona_boost_title">ONA Boost (ONA\'s FPS mod)</string>
-    <string name="ona_boost_summary">Our own mod for phones, added by itself to Fabric 26.x and Forge 1.20.1 versions: when the FPS falls it makes the least visible settings lighter one by one (particles, shadows of mobs, clouds, rain, entity distance, render distance) and gives them back when the FPS is high again. Your settings always come back. Works with Sodium, Iris and other mods.</string>
+    <string name="ona_boost_summary">Our own mod for phones, added by itself to Fabric 26.x and Forge 1.20.1 versions: when the FPS falls it makes the least visible settings lighter one by one (particles, shadows of mobs, clouds, rain, entity distance, render distance, leaves) and gives them back when the FPS is high again. Your settings always come back, and what you change yourself stays. Works with Sodium, Iris and other mods.</string>
     <string name="ona_boost_target_title">ONA Boost: FPS to keep</string>
-    <string name="ona_boost_target_summary">Under 85% of this the settings get lighter, above 130% they come back</string>
+    <string name="ona_boost_target_summary">Under 85% of this the settings get lighter, above 130% they come back. With an FPS limit in the game they come back when the FPS stays at the limit</string>
     <string name="ona_boost_added">ONA Boost added: it keeps %1$d FPS by itself</string>
     <string name="ona_community_not_made_for">%1$s is made for Minecraft up to %2$s, not %3$s yet: some parts (player skin, water...) can look wrong until its author updates it</string>
 </resources>

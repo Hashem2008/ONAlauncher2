@@ -19,7 +19,7 @@ public final class BoostConfig {
     public boolean enabled = true;
     /** The FPS kept: below 85% of it settings get lighter, above 130% they come back. 0 = off */
     public int targetFps = 60;
-    /** Render distance is never taken below this (chunks) */
+    /** Render distance is never taken below this (chunks). 6 = by the device, see {@link #renderDistanceFloor()} */
     public int minRenderDistance = 6;
     /** Simulation distance is never taken below this (chunks, single player) */
     public int minSimulationDistance = 5;
@@ -28,6 +28,18 @@ public final class BoostConfig {
     public boolean phoneDefaultsApplied = false;
     /** Every change written to the game log */
     public boolean log = true;
+    /** LOW / MID / HIGH / FLAGSHIP: written by ONA Launcher (null: not known) */
+    public String deviceClass;
+    /** The screen's refresh rate, written by ONA Launcher (0: not known): the FPS limit with VSync on */
+    public int displayHz;
+
+    /** A weak phone may go lower than the 6 chunks of a strong one; a value the player wrote wins */
+    public int renderDistanceFloor() {
+        if (minRenderDistance != 6) return Math.max(2, minRenderDistance);
+        if ("LOW".equals(deviceClass)) return 4;
+        if ("MID".equals(deviceClass)) return 5;
+        return 6;
+    }
 
     public static BoostConfig load(Path file) {
         try {

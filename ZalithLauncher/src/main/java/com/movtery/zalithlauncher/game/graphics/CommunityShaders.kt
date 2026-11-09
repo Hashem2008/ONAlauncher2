@@ -116,7 +116,6 @@ object CommunityShaders {
         (lines + (result ?: context.getString(R.string.ona_community_failed, title))).joinToString("\n")
     }
 
-    /** The newest file of the pack for this loader, into shaderpacks (kept when already there) */
     /** The pack file, and the newest game version it is made for when that is not [mc] (else null) */
     private class Download(val file: File, val madeFor: String?)
 
@@ -137,7 +136,8 @@ object CommunityShaders {
         val file = ModCompat.primaryFile(chosen) ?: return null
         val dir = File(gameDir, "shaderpacks").apply { mkdirs() }
         val target = File(dir, File(file.get("filename").asString).name)
-        if (!target.isFile) ModCompat.download(file.get("url").asString, target)
+        // kept when it is there and whole; half a file (a download that was cut off) is fetched again
+        if (!ModCompat.isZip(target)) ModCompat.download(file.get("url").asString, target)
         val made = gameVersions(chosen)
         return Download(target, if (mc != null && mc !in made) made.lastOrNull() else null)
     }

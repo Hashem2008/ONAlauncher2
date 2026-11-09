@@ -84,7 +84,8 @@ object OnaTexturePacks {
             val name = File(file.get("filename").asString).name
             val dir = File(version.getGameDir(), "resourcepacks").apply { mkdirs() }
             val target = File(dir, name)
-            if (!target.isFile) ModCompat.download(file.get("url").asString, target)
+            // kept when it is there and whole; half a file (a download that was cut off) is fetched again
+            if (!ModCompat.isZip(target)) ModCompat.download(file.get("url").asString, target)
             enableOnTop(version.getGameDir(), "file/$name")
             Logger.info(TAG, "${pack.slug}: $name enabled for ${version.getVersionName()}")
             name
