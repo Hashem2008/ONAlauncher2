@@ -43,7 +43,7 @@ import kotlin.math.roundToInt
  */
 object OnaBoostInstaller {
     private const val TAG = "OnaBoostInstaller"
-    const val VERSION = "1.2.0"
+    const val VERSION = "1.2.1"
     private const val BASE = "https://github.com/Hashem2008/ONAlauncher2/releases/download/ona-boost/"
     private const val PREFIX = "ona-boost-"
 

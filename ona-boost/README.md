@@ -26,6 +26,11 @@ It keeps the game at a target FPS (60 by default, set in ONA Launcher):
 - Once: biome blend at most 2 and mipmaps at most 2 (the costly parts of building chunks).
 - Any error switches it off for the session; the game goes on with your settings.
 
+Shader packs (Fabric build): Iris is told when the phone's OpenGL layer has no compute shaders, and
+the pack options that need them (Complementary's colored lighting and world space reflections) are
+kept off every time a pack loads, also after a profile was picked in the game: the pack loads
+instead of "Shader storage buffers ... not supported".
+
 It works on top of Sodium / Embeddium and with Iris / Oculus shaders: it only uses the game's own
 settings, one tiny mixin on the client tick (Fabric) or Forge's tick event, no Fabric API needed.
 
