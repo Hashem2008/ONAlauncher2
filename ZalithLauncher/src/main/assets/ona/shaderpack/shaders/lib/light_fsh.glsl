@@ -5,6 +5,7 @@ uniform int isEyeInWater;
 varying vec3 sunLight;
 varying vec3 skyLight;
 varying vec3 lightDir;
+varying vec3 upDir;
 varying float exposure;
 
 #ifdef HANDHELD_LIGHT
@@ -30,6 +31,9 @@ vec3 onaShade(vec3 albedo, vec3 normal, vec2 lm, float vis, float ao) {
     vec3 ambient = skyLight * skyAmount * (0.60 + 0.40 * wrap) + vec3(0.035, 0.037, 0.045);
     vec3 torch = vec3(1.00, 0.60, 0.30) * (pow(lm.x, 2.4) * 2.0 + pow(lm.x, 8.0) * 1.5);
     vec3 direct = sunLight * NdotL * vis * smoothstep(0.05, 0.45, lm.y);
-    vec3 light = (ambient + direct) * ao + torch + nightVision * 0.45;
+    // sunlight bounced off the ground onto faces that look sideways or down (a cheap stand-in for
+    // the path-traced bounce of Nostalgia / Photon): shade gets a little warm light, never flat grey
+    vec3 bounce = sunLight * vec3(0.95, 0.85, 0.70) * 0.16 * (0.5 - 0.5 * dot(normal, normalize(upDir))) * skyAmount;
+    vec3 light = (ambient + direct + bounce) * ao + torch + nightVision * 0.45;
     return albedo * light;
 }

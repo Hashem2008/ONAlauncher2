@@ -36,7 +36,10 @@ void main() {
     if (isEyeInWater == 1) fog = clamp(length(viewPos) / 48.0, 0.0, 1.0);
     color = mix(color, fogTint, fog * fog);
 #ifdef DISTANCE_HAZE
-    color = mix(color, fogTint, (1.0 - exp(-length(viewPos) * (0.0035 + rainStrength * 0.008))) * 0.6);
+    // the air between the eye and far land takes over, and glows towards the sun like real haze
+    float hazeAmount = (1.0 - exp(-length(viewPos) * (0.0035 + rainStrength * 0.008))) * 0.6;
+    vec3 hazeColor = fogTint + onaTonemap(sunLight) * pow(max(dot(normalize(viewPos), lightDir), 0.0), 6.0) * 0.35 * (1.0 - rainStrength);
+    color = mix(color, min(hazeColor, vec3(1.0)), hazeAmount);
 #endif
     gl_FragData[0] = vec4(color, albedo.a);
 }

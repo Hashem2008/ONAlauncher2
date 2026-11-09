@@ -1,0 +1,24 @@
+Complementary loads (engine fix), Nostalgia-like light in ONA Mobile Shaders (2026-11-09 b)
+
+User log (S26 Ultra, Fabulously Optimized 26.3): ONA Boost active on the phone ("keeping 120 FPS").
+ComplementaryReimagined_r5.9.3 still failed: "shadow_sodium_terrain_solid: all images have to
+define layout format", although the engine now reported OpenGL 4.0 with compute off.
+Cause: MobileGlues always lists GL_ARB_shader_image_load_store and GL_ARB_shader_storage_buffer_object
+(gl/getter.cpp base_exts), so Iris turns on IRIS_FEATURE_CUSTOM_IMAGES / SSBOs whatever the version,
+Complementary uses its voxel images (writeonly, no format: fine on desktop, refused by OpenGL ES).
+Fix in tools/ona-renderer/patch_renderer.py: those two extensions removed from the base list and
+appended only together with GL_ARB_compute_shader (gles/loader.cpp), i.e. only when SmartRenderer's
+gl43Safe() turns compute on (Bliss). Tested: the patch applies to MobileGlues 0c27a3a8. New ONA
+Renderer release (tag from the patch checksum), then the APKs.
+Nostalgia_v5.1: no images / SSBOs; its "Unable to resolve ... refractionEnabled / exposureAverageWeight"
+are leftovers in its own shaders.properties (not in its code); its first load failed without an
+exception in the logs, the second load worked. Water problem: screenshots asked.
+
+ONA Mobile Shaders, ideas from Nostalgia's look (it uses path traced GI, local exposure, TAA; the
+cheap parts that give the same feel):
+- bounce light (lib/light_fsh.glsl onaShade): sunlight bounced off the ground onto faces looking
+  sideways (half) or down (full), warm tint, x0.16, only with sky light; up faces untouched, so
+  sunlit colours stay. upDir passed from light_vsh as a varying (all four programs include both).
+- DISTANCE_HAZE glows towards the sun (forward scattering, pow 6, x0.35, not in rain).
+- Bloom from four mip levels (2 / 3.5 / 5 / 6.5): wider, softer glow around a brighter core.
+Checks: ona_shader_check 392/392, ona_shader_options_check 56 options, 0 problems.

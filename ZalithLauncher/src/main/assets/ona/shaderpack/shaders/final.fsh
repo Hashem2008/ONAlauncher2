@@ -59,7 +59,9 @@ void main() {
 #endif
 #ifdef BLOOM
     // smaller mip levels are already blurred: two lookups instead of a blur pass
-    vec3 b = texture2D(colortex0, texcoord, 3.0).rgb * 0.5 + texture2D(colortex0, texcoord, 5.0).rgb * 0.5;
+    // four mip levels: a wide soft glow around a brighter core
+    vec3 b = texture2D(colortex0, texcoord, 2.0).rgb * 0.30 + texture2D(colortex0, texcoord, 3.5).rgb * 0.30
+           + texture2D(colortex0, texcoord, 5.0).rgb * 0.25 + texture2D(colortex0, texcoord, 6.5).rgb * 0.15;
     b = max(b - 0.80, 0.0) / 0.20;
     c += b * b * 0.30;
 #endif

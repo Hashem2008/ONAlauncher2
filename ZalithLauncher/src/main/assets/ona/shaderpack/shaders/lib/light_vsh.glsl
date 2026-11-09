@@ -8,6 +8,7 @@ uniform ivec2 eyeBrightnessSmooth;
 varying vec3 sunLight;
 varying vec3 skyLight;
 varying vec3 lightDir;
+varying vec3 upDir;
 varying float exposure;
 
 void onaLightColors() {
@@ -28,6 +29,7 @@ void onaLightColors() {
     skyLight = mix(nightSky, daySky, day);
     skyLight = mix(skyLight, vec3(0.42, 0.44, 0.48) * (0.15 + 0.55 * day), rainStrength * 0.7);
     lightDir = normalize(shadowLightPosition);
+    upDir = up;
 #ifdef AUTO_EXPOSURE
     // the eyes adapt: in a cave the image gets brighter, in the open it stays as it is
     exposure = mix(1.9, 1.0, smoothstep(0.0, 0.55, float(eyeBrightnessSmooth.y) / 240.0));

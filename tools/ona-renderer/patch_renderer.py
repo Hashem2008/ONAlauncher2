@@ -8,6 +8,11 @@ source stays LGPL-2.1, see LICENSE in the checkout):
 - the version string says "ONA Renderer" (Minecraft's F3 / log show which engine runs)
 - the vendor string keeps the MobileGlues authors and adds ONA STUDIO
 - ONA_RENDERER is defined for every source file, for later ONA-only code paths
+- GL_ARB_shader_image_load_store and GL_ARB_shader_storage_buffer_object are only reported together
+  with compute shaders: OpenGL ES needs a format on every image, desktop GLSL does not, and shader
+  packs (Complementary, BSL, Solas...) turn on their image / SSBO paths whenever Iris sees these
+  extensions, even on OpenGL 4.0; those paths then fail to convert ("all images have to define
+  layout format"). With them hidden Iris keeps the paths off and the packs load
 
 Usage: python3 patch_renderer.py <MobileGlues checkout>
 """
@@ -30,3 +35,11 @@ patch("version.h", '#define VERSION_SUFFIX ""', '#define VERSION_SUFFIX " (ONA R
 patch("gl/getter.cpp", 'std::string vendor = "Swung0x48, BZLZHH, Tungsten";',
       'std::string vendor = "Swung0x48, BZLZHH, Tungsten + ONA STUDIO";')
 patch("CMakeLists.txt", 'project("mobileglues")', 'project("mobileglues")\nadd_compile_definitions(ONA_RENDERER=1)')
+patch("gl/getter.cpp", '''                               "GL_ARB_shader_storage_buffer_object",
+                               "GL_ARB_shader_image_load_store",
+''', "")
+patch("gles/loader.cpp", '''        AppendExtension("GL_ARB_compute_shader");''',
+      '''        AppendExtension("GL_ARB_compute_shader");
+        // images and SSBOs only with compute (see the note at the top of patch_renderer.py)
+        AppendExtension("GL_ARB_shader_storage_buffer_object");
+        AppendExtension("GL_ARB_shader_image_load_store");''')
