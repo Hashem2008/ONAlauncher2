@@ -109,7 +109,7 @@ void main() {
     // light shafts: walk from the eye through the air and count how much of it the sun reaches
     float dist = min(length(viewPos), 48.0);
     vec3 dirW = mat3(gbufferModelViewInverse) * normalize(viewPos);
-    float dither = onaNoise(gl_FragCoord.xy);
+    float dither = onaFrameNoise(gl_FragCoord.xy);
     // the shadow projection is affine: the start and the direction once, then one step is an add
     vec3 vlStart = (shadowProjection * (shadowModelView * vec4(0.0, 0.0, 0.0, 1.0))).xyz;
     vec3 vlDir = (shadowProjection * (shadowModelView * vec4(dirW, 0.0))).xyz;

@@ -359,6 +359,7 @@
     <string name="ona_graphics_lvl_impossible_plus">Impossible +</string>
     <string name="ona_graphics_lvl_impossible_ultra">Impossible Ultra</string>
     <string name="ona_graphics_lvl_unbelievable">Unbelievable</string>
+    <string name="ona_graphics_lvl_plus_plus">ONA Shader ++ (beyond real: for looks only, very heavy)</string>
     <string name="ona_boost_title">ONA Boost (ONA\'s FPS mod)</string>
     <string name="ona_boost_summary">Our own mod for phones, added by itself to Fabric 26.x and Forge 1.20.1 versions: when the FPS falls it makes the least visible settings lighter one by one (particles, shadows of mobs, clouds, rain, entity distance, render distance, leaves) and gives them back when the FPS is high again. Your settings always come back, and what you change yourself stays. Works with Sodium, Iris and other mods.</string>
     <string name="ona_boost_target_title">ONA Boost: FPS to keep</string>

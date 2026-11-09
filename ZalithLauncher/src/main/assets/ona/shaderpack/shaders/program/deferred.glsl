@@ -68,6 +68,69 @@ vec4 onaShadedClouds(vec3 dirW, vec3 lightW, vec3 lit, float VdotS) {
 #endif
 #endif
 
+#ifdef NIGHT_SKY
+#ifndef NO_SKY
+uniform int moonPhase;
+
+// a hash without sin(): the same stars on every phone GPU (sin of big numbers differs between them)
+float onaHash3(vec3 p) {
+    p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+    p += dot(p, p.yzx + 33.33);
+    return fract((p.x + p.y) * p.z);
+}
+
+// ONA Shader ++ night: stars, the Milky Way and northern lights for a view direction (world axes).
+// Added on top of the night sky, behind the clouds; "night" is how dark it is (0 by day).
+vec3 onaNightSky(vec3 d, float night, float time) {
+    if (d.y < -0.05 || night <= 0.0) return vec3(0.0);
+    vec3 glow = vec3(0.0);
+    // the Milky Way: a soft tilted band across the sky, thicker and thinner along its way, with a
+    // warmer core line
+    float across = dot(d, normalize(vec3(0.55, 0.35, 0.76)));
+    float dust = onaValueNoise(d.xz * 5.0 + d.y * 3.1) * 0.6 + onaValueNoise(d.zy * 11.0 + d.x * 7.3) * 0.4;
+    float band = exp(-across * across * 14.0) * (0.35 + 0.65 * dust);
+    glow += vec3(0.50, 0.56, 0.78) * band * 0.30;
+    glow += vec3(0.80, 0.55, 0.45) * exp(-across * across * 60.0) * dust * dust * 0.14;
+    // stars: the sky ball cut into little cells, a star in some of them (two sizes of cells: a few
+    // bright stars and many faint ones, more of them inside the band), each twinkling at its own pace
+    for (int layer = 0; layer < 2; layer++) {
+        vec3 p = d * (layer == 0 ? 90.0 : 190.0);
+        vec3 cell = floor(p);
+        float pick = onaHash3(cell);
+        if (pick < (layer == 0 ? 0.05 : 0.08) + band * 0.14) {
+            vec3 h = vec3(onaHash3(cell + 17.3), onaHash3(cell + 41.7), onaHash3(cell + 73.1));
+            float size = layer == 0 ? 0.24 + 0.20 * h.x : 0.20;
+            float star = smoothstep(size, 0.0, length(p - (cell + 0.25 + h * 0.5)));
+            float twinkle = 0.70 + 0.30 * sin(time * (1.5 + h.z * 4.0) + h.y * 40.0);
+            vec3 tint = mix(vec3(0.75, 0.85, 1.00), vec3(1.00, 0.88, 0.70), h.z);
+            glow += tint * star * star * twinkle * (layer == 0 ? 1.0 : 0.6);
+        }
+    }
+    // northern lights on the dark nights around the new moon: sheets hanging in the north that
+    // sway slowly, green below and violet above, made of thin rays. A sheet is where a slow noise
+    // crosses one level; looked up at 8 heights (each pixel at its own in-between heights) the
+    // line becomes a curtain
+    if (moonPhase >= 3 && moonPhase <= 5 && d.y > 0.04) {
+        float dither = onaFrameNoise(gl_FragCoord.xy + 5.0);
+        vec3 aurora = vec3(0.0);
+        for (int i = 0; i < 8; i++) {
+            float f = (float(i) + dither) / 8.0;
+            vec2 a = d.xz * ((1.0 + f * 0.55) / (d.y + 0.12));
+            float n = onaValueNoise(a * 0.55 + vec2(time * 0.010, 0.0)) + onaValueNoise(a * 1.7 - vec2(0.0, time * 0.016)) * 0.35;
+            float sheet = smoothstep(0.09, 0.0, abs(n - 0.62));
+            float rays = 0.6 + 0.4 * onaValueNoise(vec2(a.x * 9.0 + a.y * 7.0, time * 0.3));
+            aurora += mix(vec3(0.10, 1.00, 0.42), vec3(0.55, 0.22, 0.95), f) * sheet * rays * (1.0 - f * 0.6);
+        }
+        float north = smoothstep(-0.15, 0.55, -d.z);
+        float height = smoothstep(0.04, 0.20, d.y) * (1.0 - smoothstep(0.55, 0.95, d.y));
+        glow += aurora * north * height * 0.10;
+    }
+    // the air near the horizon hides them
+    return glow * night * smoothstep(-0.05, 0.25, d.y);
+}
+#endif
+#endif
+
 vec3 onaViewPos(vec2 uv, float depth) {
     vec4 p = gbufferProjectionInverse * vec4(vec3(uv, depth) * 2.0 - 1.0, 1.0);
     return p.xyz / p.w;
@@ -83,6 +146,10 @@ void main() {
         vec3 sunDir = normalize(sunPosition);
         vec3 up = normalize(upPosition);
         vec3 sky = onaSky(dir, sunDir, up, skyColor, fogColor, rainStrength);
+#ifdef NIGHT_SKY
+        // before the clouds, so they cover it
+        sky += onaNightSky(mat3(gbufferModelViewInverse) * dir, (1.0 - smoothstep(-0.22, 0.02, dot(sunDir, up))) * (1.0 - rainStrength), frameTimeCounter);
+#endif
 #ifdef ONA_CLOUDS
         vec3 dirW = mat3(gbufferModelViewInverse) * dir;
 #ifdef VOLUMETRIC_CLOUDS
@@ -127,7 +194,7 @@ void main() {
         vec3 helper = abs(n.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
         vec3 t = normalize(cross(helper, n));
         vec3 b = cross(n, t);
-        float angle = onaNoise(gl_FragCoord.xy) * 6.2831853;
+        float angle = onaFrameNoise(gl_FragCoord.xy) * 6.2831853;
         float radius = 0.6;
         float occlusion = 0.0;
         for (int i = 0; i < SSAO_SAMPLES; i++) {

@@ -57,7 +57,10 @@ enum class OnaGraphicsLevel(@StringRes val titleRes: Int) {
     IMPOSSIBLE(R.string.ona_graphics_impossible),
     IMPOSSIBLE_PLUS(R.string.ona_graphics_lvl_impossible_plus),
     IMPOSSIBLE_ULTRA(R.string.ona_graphics_lvl_impossible_ultra),
-    UNBELIEVABLE(R.string.ona_graphics_lvl_unbelievable);
+    UNBELIEVABLE(R.string.ona_graphics_lvl_unbelievable),
+
+    /** ONA Shader ++: looks only (temporal smoothing, 24-tap shadows, night sky...), the FPS is not looked at */
+    ONA_PLUS_PLUS(R.string.ona_graphics_lvl_plus_plus);
 
     /** From MEDIUM up the shader reads the PBR maps (bumps, shine, glow) */
     val usesPbr: Boolean get() = ordinal >= MEDIUM.ordinal
