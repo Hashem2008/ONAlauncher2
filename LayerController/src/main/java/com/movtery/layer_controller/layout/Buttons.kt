@@ -109,7 +109,12 @@ internal fun TextButton(
                 .buttonStyle(
                     style = style,
                     isDark = isDark,
-                    isPressed = isPressed
+                    isPressed = isPressed,
+                    seed = when (data) {
+                        is ObservableNormalData -> data.uuid.hashCode()
+                        is ObservableTextData -> data.uuid.hashCode()
+                        else -> 0
+                    }
                 )
                 .editMode(
                     isEditMode = isEditMode,
@@ -190,13 +195,15 @@ fun RendererStyleBox(
     modifier: Modifier = Modifier,
     text: String = "",
     isDark: Boolean,
-    isPressed: Boolean
+    isPressed: Boolean,
+    seed: Int = 0
 ) {
     Box(
         modifier = modifier.buttonStyle(
             style = style,
             isDark = isDark,
-            isPressed = isPressed
+            isPressed = isPressed,
+            seed = seed
         ),
         contentAlignment = Alignment.Center
     ) {

@@ -366,4 +366,19 @@
     <string name="ona_boost_target_summary">تحت 85% منها بتخف الإعدادات، وفوق 130% بترجع. ولو في حد للفريمات باللعبة بترجع لما الفريمات تضل عند الحد</string>
     <string name="ona_boost_added">ONA Boost انضاف: بيحافظ على %1$d فريم لحاله</string>
     <string name="ona_community_not_made_for">%1$s معمول لماينكرافت لحد %2$s، مش لـ %3$s لسا: في أجزاء (سكن اللاعب، الماء...) ممكن تطلع غلط لحد ما صاحبه يحدّثه</string>
+    <string name="ona_control_look_title">شكل الأزرار</string>
+    <string name="ona_control_look_summary">كيف بتنرسم كل أزرار الشاشة بأي تخطيط: كلاسيك (شكل التخطيط نفسه)، مكعبات زي الليغو، بيكسل (زي قوائم اللعبة)، زجاج، نيون أو فقاعة</string>
+    <string name="ona_control_look_classic">كلاسيك (شكل التخطيط نفسه)</string>
+    <string name="ona_control_look_bricks">مكعبات (زي الليغو)</string>
+    <string name="ona_control_look_pixel">بيكسل (زي قوائم اللعبة)</string>
+    <string name="ona_control_look_glass">زجاج</string>
+    <string name="ona_control_look_neon">نيون</string>
+    <string name="ona_control_look_bubble">فقاعة</string>
+    <string name="ona_control_press_title">حركة الضغط</string>
+    <string name="ona_control_press_summary">شو بيعمل الزر وإصبعك عليه</string>
+    <string name="ona_control_press_none">بدون</string>
+    <string name="ona_control_press_shrink">تصغير</string>
+    <string name="ona_control_press_bounce">نطّة</string>
+    <string name="ona_control_press_sink">نزول لتحت</string>
+    <string name="ona_control_look_preview">جرّب:</string>
 </resources>

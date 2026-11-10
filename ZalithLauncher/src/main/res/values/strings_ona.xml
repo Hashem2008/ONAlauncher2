@@ -366,4 +366,19 @@
     <string name="ona_boost_target_summary">Under 85% of this the settings get lighter, above 130% they come back. With an FPS limit in the game they come back when the FPS stays at the limit</string>
     <string name="ona_boost_added">ONA Boost added: it keeps %1$d FPS by itself</string>
     <string name="ona_community_not_made_for">%1$s is made for Minecraft up to %2$s, not %3$s yet: some parts (player skin, water...) can look wrong until its author updates it</string>
+    <string name="ona_control_look_title">Button look</string>
+    <string name="ona_control_look_summary">How every on-screen button is drawn, in any layout: classic (the layout\'s own look), toy bricks, pixel (like the game\'s menus), glass, neon or bubble</string>
+    <string name="ona_control_look_classic">Classic (the layout\'s own look)</string>
+    <string name="ona_control_look_bricks">Toy bricks</string>
+    <string name="ona_control_look_pixel">Pixel (like the game\'s menus)</string>
+    <string name="ona_control_look_glass">Glass</string>
+    <string name="ona_control_look_neon">Neon</string>
+    <string name="ona_control_look_bubble">Bubble</string>
+    <string name="ona_control_press_title">Press animation</string>
+    <string name="ona_control_press_summary">What a button does while your finger is on it</string>
+    <string name="ona_control_press_none">None</string>
+    <string name="ona_control_press_shrink">Shrink</string>
+    <string name="ona_control_press_bounce">Bounce</string>
+    <string name="ona_control_press_sink">Push down</string>
+    <string name="ona_control_look_preview">Try:</string>
 </resources>

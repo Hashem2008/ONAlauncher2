@@ -404,7 +404,8 @@ internal fun buttonFontSizeAsState(
 internal fun Modifier.buttonStyle(
     style: ObservableButtonStyle,
     isDark: Boolean = isSystemInDarkTheme(),
-    isPressed: Boolean
+    isPressed: Boolean,
+    seed: Int = 0
 ): Modifier {
     val themeStyle = if (style.commonStyle || !isDark) {
         style.lightStyle
@@ -427,6 +428,13 @@ internal fun Modifier.buttonStyle(
     }
     val borderRadius = remember(themeStyle, isPressed, themeStyle.pressedBorderRadius, themeStyle.borderRadius) {
         if (isPressed) themeStyle.pressedBorderRadius.toAndroidShape() else themeStyle.borderRadius.toAndroidShape()
+    }
+
+    // ONA: a look or press animation chosen in the launcher settings draws the button instead
+    val skin = ButtonLook.skin
+    val press = ButtonLook.press
+    if (skin != ButtonSkin.CLASSIC || press != PressAnimation.NONE) {
+        return this.skinnedButton(skin, press, isPressed, alpha, backgroundColor, borderWidth, borderColor, borderRadius, seed)
     }
 
     return if (style.animateSwap) {

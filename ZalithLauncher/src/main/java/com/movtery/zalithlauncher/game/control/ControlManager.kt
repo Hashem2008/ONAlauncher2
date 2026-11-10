@@ -83,6 +83,16 @@ object ControlManager {
             if (files.isEmpty()) {
                 unpackDefaultControl(context)
             }
+            // ONA: the "ONA Pro" layout (PvP and fast building) joins the player's layouts once;
+            // after that it is theirs to edit or delete
+            if (!AllSettings.onaProLayoutAdded.getValue()) {
+                try {
+                    context.copyAssetFile(fileName = "ona/controls/ona_pro.json", output = getNewRandomFile(), overwrite = false)
+                    AllSettings.onaProLayoutAdded.save(true)
+                } catch (e: Exception) {
+                    Logger.warning(TAG, "Failed to unpack the ONA Pro control layout", e)
+                }
+            }
             refresh()
         }
     }

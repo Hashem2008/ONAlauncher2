@@ -626,6 +626,15 @@ object AllSettings : SettingsRegistry() {
      */
     val controlLayout = stringSetting("controlLayout", "")
 
+    /** ONA: how every on-screen button is drawn (ButtonSkin name), in any layout */
+    val controlButtonSkin = stringSetting("controlButtonSkin", "CLASSIC")
+
+    /** ONA: what a button does while a finger is on it (PressAnimation name) */
+    val controlPressAnimation = stringSetting("controlPressAnimation", "NONE")
+
+    /** ONA: the "ONA Pro" control layout was put next to the player's layouts once */
+    val onaProLayoutAdded = boolSetting("onaProLayoutAdded", false)
+
     //Other
     /**
      * 当前选择的账号

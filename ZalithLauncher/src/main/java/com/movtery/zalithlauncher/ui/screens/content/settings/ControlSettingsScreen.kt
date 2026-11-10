@@ -22,11 +22,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,10 +44,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.movtery.layer_controller.layout.RendererStyleBox
+import com.movtery.layer_controller.observable.DefaultObservableButtonStyle
+import com.movtery.layer_controller.utils.ButtonLook
+import com.movtery.layer_controller.utils.ButtonSkin
+import com.movtery.layer_controller.utils.PressAnimation
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CursorShape
 import com.movtery.zalithlauncher.context.copyLocalFile
@@ -120,6 +129,99 @@ fun ControlSettingsScreen(
                 .padding(all = 12.dp),
             isVisible = isVisible
         ) {
+            // ONA: the look of the on-screen buttons and their press animation, for every layout
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    val applyLook = {
+                        ButtonLook.set(
+                            AllSettings.controlButtonSkin.getValue(),
+                            AllSettings.controlPressAnimation.getValue()
+                        )
+                    }
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top,
+                        unit = AllSettings.controlButtonSkin,
+                        items = ButtonSkin.entries.map { it.name },
+                        title = stringResource(R.string.ona_control_look_title),
+                        summary = stringResource(R.string.ona_control_look_summary),
+                        getItemText = { id ->
+                            when (id) {
+                                "LEGO" -> stringResource(R.string.ona_control_look_bricks)
+                                "PIXEL" -> stringResource(R.string.ona_control_look_pixel)
+                                "GLASS" -> stringResource(R.string.ona_control_look_glass)
+                                "NEON" -> stringResource(R.string.ona_control_look_neon)
+                                "BUBBLE" -> stringResource(R.string.ona_control_look_bubble)
+                                else -> stringResource(R.string.ona_control_look_classic)
+                            }
+                        },
+                        getItemId = { it },
+                        onValueChange = { applyLook() }
+                    )
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.controlPressAnimation,
+                        items = PressAnimation.entries.map { it.name },
+                        title = stringResource(R.string.ona_control_press_title),
+                        summary = stringResource(R.string.ona_control_press_summary),
+                        getItemText = { id ->
+                            when (id) {
+                                "SHRINK" -> stringResource(R.string.ona_control_press_shrink)
+                                "BOUNCE" -> stringResource(R.string.ona_control_press_bounce)
+                                "SINK" -> stringResource(R.string.ona_control_press_sink)
+                                else -> stringResource(R.string.ona_control_press_none)
+                            }
+                        },
+                        getItemId = { it },
+                        onValueChange = { applyLook() }
+                    )
+                    // a few buttons to try the look and the animation on
+                    SettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(all = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.ona_control_look_preview),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            listOf("W", "Jump", "E", "Shift", "Q").forEachIndexed { index, label ->
+                                var pressed by remember { mutableStateOf(false) }
+                                RendererStyleBox(
+                                    style = DefaultObservableButtonStyle,
+                                    modifier = Modifier
+                                        .size(width = if (label.length > 1) 84.dp else 52.dp, height = 52.dp)
+                                        .pointerInput(Unit) {
+                                            detectTapGestures(
+                                                onPress = {
+                                                    pressed = true
+                                                    tryAwaitRelease()
+                                                    pressed = false
+                                                }
+                                            )
+                                        },
+                                    text = label,
+                                    isDark = isSystemInDarkTheme(),
+                                    isPressed = pressed,
+                                    seed = index
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier

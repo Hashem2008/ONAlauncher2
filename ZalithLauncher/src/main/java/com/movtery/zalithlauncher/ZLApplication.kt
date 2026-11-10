@@ -93,6 +93,11 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
 
             MMKV.initialize(this)
             loadAllSettings(this)
+            // ONA: the look of the on-screen buttons, in the launcher and in the game alike
+            com.movtery.layer_controller.utils.ButtonLook.set(
+                com.movtery.zalithlauncher.setting.AllSettings.controlButtonSkin.getValue(),
+                com.movtery.zalithlauncher.setting.AllSettings.controlPressAnimation.getValue()
+            )
 
             Logger.initialize(this)
 
