@@ -41,9 +41,10 @@ import java.util.zip.ZipOutputStream
 
 /**
  * ONA: every log a problem needs, in one zip, with one tap: the launcher's log of the last launch
- * (latest_game.log: renderer, Java, device, native messages), the game's own log, the newest crash
- * reports and JVM crash files, the options (key bindings, render distance...), the mods list, ONA's
- * and the shader loader's settings and the launcher's own log, plus a summary on top.
+ * (latest_game.log: renderer, Java, device, native messages), the game's own logs, the newest crash
+ * reports and JVM crash files, every options file (key bindings, render distance...), the version
+ * file, the whole config folder (text files), the mods list, the control layout in use and the
+ * launcher's own log, plus a summary on top.
  * Long logs keep their end (where the problem is); account tokens are masked.
  */
 object LogCollector {
@@ -51,6 +52,11 @@ object LogCollector {
     /** A log bigger than this keeps its last part (the start is the same in every launch) */
     private const val MAX_LOG_BYTES = 12L * 1024 * 1024
     private const val MAX_SMALL_FILE_BYTES = 2L * 1024 * 1024
+    /** The whole config folder goes in, file by file up to this, all together up to [MAX_CONFIG_BYTES] */
+    private const val MAX_CONFIG_FILE_BYTES = 1L * 1024 * 1024
+    private const val MAX_CONFIG_BYTES = 24L * 1024 * 1024
+    /** Not text: left out of the config folder */
+    private val BINARY = setOf("jar", "zip", "png", "jpg", "jpeg", "gif", "webp", "ogg", "wav", "mp3", "dat", "mca", "nbt", "db", "bin", "so", "class", "ttf", "otf")
     /** The files of the last ... count as "this problem" */
     private const val RECENT_MS = 6L * 60 * 60 * 1000
     private val TOKEN = Regex("""(accessToken[^\w\r\n]{1,4})([A-Za-z0-9._\-]{12,})""")
@@ -101,10 +107,32 @@ object LogCollector {
                 gameDir.listFiles { file -> file.name.startsWith("hs_err_pid") && file.name.endsWith(".log") }
                     ?.filter(::recent)?.sortedByDescending { it.lastModified() }?.take(2)
                     ?.forEach { addLog(it, "3-crash-reports/${it.name}") }
-                addSmall(File(gameDir, "options.txt"), "4-settings/options.txt")
-                for (config in listOf("onaboost.json", "iris.properties", "oculus.properties", "sodium-options.json", "embeddium-options.json")) {
-                    addSmall(File(gameDir, "config/$config"), "4-settings/$config")
+                // every options file of the game and of OptiFine / shaders (key bindings, video settings)
+                gameDir.listFiles { file -> file.isFile && file.name.startsWith("options") && file.name.endsWith(".txt") }
+                    ?.forEach { addSmall(it, "4-settings/${it.name}") }
+                // the version file (loader, libraries, arguments)
+                addSmall(File(version.getVersionPath(), "${version.getVersionName()}.json"), "4-settings/${version.getVersionName()}.json")
+                // other game logs (KubeJS, debug.log: the end)
+                File(gameDir, "logs").walkTopDown().maxDepth(2)
+                    .filter { it.isFile && it.name != "latest.log" && it.name.endsWith(".log") && recent(it) }
+                    .sortedByDescending { it.lastModified() }.take(6)
+                    .forEach { addLog(it, "2-game-log_other/${it.relativeTo(File(gameDir, "logs")).path}") }
+                // the whole config folder: mods' settings, default key bindings of the pack...
+                var configBytes = 0L
+                var configSkipped = 0
+                val configDir = File(gameDir, "config")
+                configDir.walkTopDown().maxDepth(6).filter { it.isFile }.sortedBy { it.path }.forEach { file ->
+                    val tooBig = file.length() > MAX_CONFIG_FILE_BYTES || configBytes + file.length() > MAX_CONFIG_BYTES
+                    if (file.extension.lowercase() in BINARY || tooBig) {
+                        configSkipped++
+                        return@forEach
+                    }
+                    runCatching {
+                        addText(zip, file, "7-config/${file.relativeTo(configDir).path}", MAX_CONFIG_FILE_BYTES)
+                        configBytes += file.length()
+                    }.onFailure { configSkipped++ }
                 }
+                added.add("7-config/ (${configBytes / 1024} KB${if (configSkipped > 0) ", $configSkipped big or binary files left out" else ""})")
                 File(gameDir, "shaderpacks").listFiles { file -> file.isFile && file.name.endsWith(".txt") }
                     ?.forEach { addSmall(it, "4-settings/shaderpacks/${it.name}") }
                 version.getVersionPath().listFiles { file -> file.isFile && file.name.startsWith("ona_") && file.name.endsWith(".txt") }
@@ -113,6 +141,11 @@ object LogCollector {
                 zip.write(modsList(File(gameDir, "mods")).toByteArray())
                 zip.closeEntry()
                 added.add("5-mods.txt")
+            }
+            // the control layout in use (buttons, keys they send)
+            runCatching {
+                val layout = File(PathManager.DIR_CONTROL_LAYOUTS, AllSettings.controlLayout.getValue())
+                if (AllSettings.controlLayout.getValue().isNotEmpty()) addSmall(layout, "8-controls/${layout.name}")
             }
             // the launcher's own log (this run and the one before)
             PathManager.DIR_LAUNCHER_LOGS.listFiles { file -> file.isFile && file.name.endsWith(".log") }

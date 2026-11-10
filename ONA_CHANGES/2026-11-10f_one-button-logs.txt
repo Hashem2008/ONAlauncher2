@@ -14,8 +14,12 @@ Contents:
   2-game-log_latest.log              <gameDir>/logs/latest.log
   3-crash-reports/                   crash reports (newest 3) and hs_err_pid*.log (newest 2) of the
                                      last 6 hours
-  4-settings/                        options.txt, config/onaboost.json, iris/oculus.properties,
-                                     sodium/embeddium options, shaderpacks/*.txt, versions/<v>/ona_*.txt
+  2-game-log_other/                  other recent game logs (KubeJS, debug.log: the end), newest 6
+  4-settings/                        every options*.txt (game, OptiFine, shaders), the version json,
+                                     shaderpacks/*.txt, versions/<v>/ona_*.txt
+  7-config/                          the whole config folder (text files up to 1 MB each, 24 MB in all;
+                                     binary files left out, counted in the summary)
+  8-controls/                        the control layout in use
   5-mods.txt                         every file in mods with its size
   6-launcher-app/                    the launcher's own newest 3 logs
 Logs over 12 MB keep their last 12 MB (a note says so); lines with "accessToken" are masked.
@@ -23,3 +27,6 @@ Buttons: version screen "Send all logs (one file)" (next to "Log"), and the log 
 after a game crash (MainActivity LogShareMenu onShareAll; the version is found from the log path).
 Strings EN + AR (ona_logs_button / ona_logs_collecting / ona_logs_failed).
 No local Kotlin compiler: CI is the check. Not device-tested.
+
+Follow-up (user: "options too, everything needed"): every options file, the version json, other game
+logs, the whole config folder (default key bindings of the pack live there) and the control layout.
