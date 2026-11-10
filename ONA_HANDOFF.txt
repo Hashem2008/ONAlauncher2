@@ -665,6 +665,14 @@ ONA SHADER ++ AS ITS OWN PACK (2026-11-10 b)
   Not device-tested: ask for a screenshot (day, rain on wet ground, night) and the log if the pack
   does not load.
 
+PHYSICS MOD + ZINK WINDOW CONTEXT (2026-11-10 c)
+- Zombie Invade 100 Days (Forge 1.20.1, 144 mods, Physics Mod) on Adreno 840: Smart chose Kopper Zink,
+  "GLFW: Failed to create window context!" -> crash. dfe6099: Physics Mod -> Zink first only with
+  Turnip or a Zink plugin; gl_bridge prints EGL failures into latest_game.log.
+  ONA_CHANGES/2026-11-10c_physics-zink-window-context.txt.
+  CI: APK build of dfe6099 (push_ci.yml dispatch, 4 APKs) was still RUNNING when this was written: check it first.
+  The user also asked for a general crash guide (Arabic): answered in chat.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -745,3 +753,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-09 (هـ): ONA Boost 1.2.0: بيفهم حد الفريمات باللعبة (الإعدادات بترجع صح)، ما بيخفف وإنت تارك اللعبة، ورق شجر سريع (بدون شيدر)، مسافة أقل للجوالات الضعيفة، واللي بتغيره إنت بيضل. والتنزيلات ما عاد يضل منها ملف ناقص. البيلد نجح.
 - 2026-11-10 (أ): صلحنا Complementary لما تغيّر البروفايل من جوا اللعبة (ONA Boost 1.2.1)، صنف ONA Shader ++ (نعومة زمنية، ظلال 24 عينة، حدّة، سما ليلية بنجوم وشفق)، أشكال أزرار (مكعبات، بيكسل، زجاج، نيون، فقاعة) مع حركة ضغط وتخطيط ONA Pro، والشيدرات والريسورس بيتحدثوا لحالهم. وملف ONA_WORK_METHOD.txt لطريقة الشغل. البيلد نجح.
 - 2026-11-10 (ب): ONA Shader ++ صار شيدر مستقل بملفاته (انعكاس على كل سطح لامع، غيوم ثلاثية حقيقية، نعومة زمنية، سما ليلية)، والشيدر القديم رجع زي ما كان بالضبط. البيلد نجح.
+- 2026-11-10 (ج): كراش Zombie Invade 100 Days: محرك Zink ما قدر يفتح نافذة اللعبة على Adreno 840. صار مود Physics يبلّش على محرك ONA إلا لو في Turnip، وأخطاء EGL بتنكتب باللوج. البيلد شغال (تأكد من نتيجته).

@@ -1,0 +1,33 @@
+Zombie Invade 100 Days: no window on Kopper Zink (2026-11-10 c)
+
+User log (Performance APK 2.7.2, Samsung S26 Ultra, Snapdragon 8 Elite Gen 5, Adreno 840,
+Android 17): version "Zombie Invade 100 Days", Forge 1.20.1 47.4.10, 144 mods (Sinytra Connector,
+Embeddium, Oculus, Complementary, Physics Mod), Java 25, LWJGL 3.3.3.
+Header: "ONA Renderer: ... physics=true ... vulkan=false ... -> Kopper Zink".
+Timeline: all mods load (mixin warnings only, no mixin error), then at window creation
+"GLFW: Failed to create window context!" (LWJGL 3.3.3 GLFW stub: pojavCreateContext returned 0)
+and the crash report "Initializing game / java.lang.IllegalStateException: There is no OpenGL
+context current in the current thread" from Embeddium's postWindowCreated -> GL.createCapabilities.
+No "EGLBridge: Binding to OpenGL" line: gl_bridge failed before the bind (eglInitialize or
+eglChooseConfig); the reason only went to the Android log.
+
+Cause: SmartRenderer put Kopper Zink first for Physics Mod 1.20+ on ANY Vulkan GPU. On the Adreno 840
+there is no Turnip (turnipRecommended = Adreno 600..799), so Zink ran on Qualcomm's own driver and
+could not open the window. Not a mod problem.
+
+Fixes (commit dfe6099):
+- SmartRenderer: physicsOnZink also needs goodVulkan (Turnip GPU) or a Zink renderer plugin
+  (VoxySupport.preferredRenderer() is not the bundled Kopper). Else the ONA engine first, Zink stays
+  a later fallback. Log "Physics Mod on ...: Zink is not known to start on this GPU's own driver ->
+  ONA engine first". Physics Mod debris may look stretched on the GLES engine (the reason for the
+  old rule); the game starts.
+- gl_bridge.c: ONA_LAUNCH_LOG (printf + fflush) next to the Android log for eglGetDisplay,
+  eglInitialize, eglChooseConfig (error / no config) and eglCreateContext failures, with the EGL
+  error code, POJAVEXEC_EGL and GALLIUM_DRIVER: the next such failure is readable in latest_game.log.
+  Syntax-checked with clang and stub headers (same diagnostics as before the change).
+Already there before: CrashDoctor reads "Failed to create window" as GRAPHICS -> rendererSuspect ->
+SmartRenderer.recordCrash, so the 2nd launch skipped Zink; now the 1st launch does not crash.
+
+Other things in the log (not the cause): Java 25 for Forge 1.20.1 works; heap 2.5 / 5 GB with 12 GB
+swap in use (heavy); Embeddium "tainted" by Oculus (normal); Connector present.
+CI: see ONA_HANDOFF.txt.
