@@ -686,6 +686,21 @@ PHYSICS MOD 3.0.x: PHYSX 2.2.2 BRIDGE (2026-11-10 d)
   NEEDED libPhysXJniReal.so + RUNPATH $ORIGIN + 7 symbols kept, 16 KB aligned).
   Not device-tested: ask for the next log ("through ONA's bridge", no "Failed loading native PhysX").
 
+ZOMBIE INVADE 100 DAYS: 3rd LOG (2026-11-10 e, no code change)
+- CONFIRMED ON THE PHONE: the game starts on the ONA engine and Physics Mod 3.0.14 loads on the PhysX
+  bridge (-Dphysxjni.nativeLibLocation=.../2.2.2-bridge, no "Failed loading native PhysX"), world
+  joined, played about 2 minutes.
+- User: cannot change hotbar items, cannot jump or crouch. Logs (game + launcher, 51 MB) show no
+  input error. Found instead: endofdays (pack mod) "无法获取全局玩家数据" (no global player data) at
+  join, then "Error rendering overlay 'endofdays:overlay'" NPE in EndDayTimeDayHudRender every frame
+  (17695x, the 51 MB); render distance 2 from the pack/options ("Changing view distance to 2").
+  Amecs API (inside ConnectorExtras) checked with javap: only touches its own priority keybindings.
+  Asked the user: which control layout, do walking / camera / ESC work, the version's options.txt
+  (key bindings), and the endofdays jar if he wants the HUD patched.
+  Ideas if it is the launcher: hotbar box only exists while the game grabs the cursor (isGrabbing);
+  the default layout's jump / crouch send fixed Space / Left Shift, not the game's binding;
+  "ONA Pro" sorts before "default" when no layout was chosen yet (ControlManager.checkSettings).
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -768,3 +783,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (ب): ONA Shader ++ صار شيدر مستقل بملفاته (انعكاس على كل سطح لامع، غيوم ثلاثية حقيقية، نعومة زمنية، سما ليلية)، والشيدر القديم رجع زي ما كان بالضبط. البيلد نجح.
 - 2026-11-10 (ج): كراش Zombie Invade 100 Days: محرك Zink ما قدر يفتح نافذة اللعبة على Adreno 840. صار مود Physics يبلّش على محرك ONA إلا لو في Turnip، وأخطاء EGL بتنكتب باللوج. البيلد نجح.
 - 2026-11-10 (د): مود Physics 3.0 (PhysX 2.2.2 للكمبيوتر بس) صار يشتغل على PhysX أندرويد 2.3.1 من خلال جسر صغير من ONA، بدون ما نلمس المود. البيلد نجح.
+- 2026-11-10 (هـ): تأكدنا عالجوال إنه جسر PhysX شغال ومود Physics بيحمل. مشكلة الأزرار (تبديل الأغراض والقفز والجلوس) ما بينت باللوج: طلبنا options.txt وأسئلة. مود endofdays بيطلع خطأ كل فريم (HUD).
