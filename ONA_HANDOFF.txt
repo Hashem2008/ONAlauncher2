@@ -681,7 +681,9 @@ PHYSICS MOD 3.0.x: PHYSX 2.2.2 BRIDGE (2026-11-10 d)
   2.2.2 -> Android 2.3.1 (bridge dir in cache, JVM properties). 7 of 4554 natives differ, all
   covered; 533 GPU-only natives missing as in every Android build.
   ONA_CHANGES/2026-11-10d_physics-mod-physx-222-bridge.txt, tools/physx-compat/README.txt.
-  CI: APK build of 9407e3e (push_ci.yml dispatch, 4 APKs) was still RUNNING when this was written: check it first.
+  CI: APK run 42862946519 (9407e3e) SUCCESS, 4 APKs (push run 42862935241 also green). Checked in
+  the released Performance APK: lib/arm64-v8a/libPhysXJniCompat.so present (stripped by the build,
+  NEEDED libPhysXJniReal.so + RUNPATH $ORIGIN + 7 symbols kept, 16 KB aligned).
   Not device-tested: ask for the next log ("through ONA's bridge", no "Failed loading native PhysX").
 
 STATUS / OPEN ITEMS (check these first)
@@ -765,4 +767,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (أ): صلحنا Complementary لما تغيّر البروفايل من جوا اللعبة (ONA Boost 1.2.1)، صنف ONA Shader ++ (نعومة زمنية، ظلال 24 عينة، حدّة، سما ليلية بنجوم وشفق)، أشكال أزرار (مكعبات، بيكسل، زجاج، نيون، فقاعة) مع حركة ضغط وتخطيط ONA Pro، والشيدرات والريسورس بيتحدثوا لحالهم. وملف ONA_WORK_METHOD.txt لطريقة الشغل. البيلد نجح.
 - 2026-11-10 (ب): ONA Shader ++ صار شيدر مستقل بملفاته (انعكاس على كل سطح لامع، غيوم ثلاثية حقيقية، نعومة زمنية، سما ليلية)، والشيدر القديم رجع زي ما كان بالضبط. البيلد نجح.
 - 2026-11-10 (ج): كراش Zombie Invade 100 Days: محرك Zink ما قدر يفتح نافذة اللعبة على Adreno 840. صار مود Physics يبلّش على محرك ONA إلا لو في Turnip، وأخطاء EGL بتنكتب باللوج. البيلد نجح.
-- 2026-11-10 (د): مود Physics 3.0 (PhysX 2.2.2 للكمبيوتر بس) صار يشتغل على PhysX أندرويد 2.3.1 من خلال جسر صغير من ONA، بدون ما نلمس المود. البيلد شغال (تأكد من نتيجته).
+- 2026-11-10 (د): مود Physics 3.0 (PhysX 2.2.2 للكمبيوتر بس) صار يشتغل على PhysX أندرويد 2.3.1 من خلال جسر صغير من ONA، بدون ما نلمس المود. البيلد نجح.
