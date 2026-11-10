@@ -629,6 +629,27 @@ ONA BOOST 1.2.0 + SAFE DOWNLOADS (2026-11-09 e)
   Not device-tested: ask for the log line "ONA Boost active: ... render distance not under N chunks",
   whether Complementary loads now (still open), and the FPS.
 
+SHADER PROFILE FIX, ONA SHADER ++, BUTTON LOOKS, PACK UPDATES, WORK METHOD (2026-11-10 a)
+- Log: Complementary ran on POTATO, failed after "Profile: COMPLEMENTARY" was picked in the game.
+  ONA Boost 1.2.1 (890ea35): fabric mixin IrisPackOptionsMixin hands Iris the compute-only options
+  switched off at every pack load. ONA Boost workflow 42697438646 SUCCESS, both 1.2.1 jars download.
+- ONA Shader ++ (8e3af05): profile ONA_PLUS_PLUS / level in the launcher: TAA pass (composite1,
+  colortex3 history), SHADOW_FILTER 5, SHARPEN, MOTION_BLUR, NIGHT_SKY (stars, Milky Way, aurora),
+  more samples. 450/450 programs and 62 options pass. The 14 older profiles are unchanged.
+- Controls (82949ba): Settings > Controls "Button look" (classic, bricks, pixel, glass, neon,
+  bubble) and "Press animation" (shrink, bounce, push down) for every layout
+  (LayerController/utils/ButtonLook.kt); "ONA Pro" layout added once.
+- Updates (b576f27): Shader Community and ONA Resource look for a newer file of the same pack once
+  a day. Mods are not auto-updated on purpose.
+- ONA_WORK_METHOD.txt: how to work on this project (CLAUDE.md points to it).
+  ONA_CHANGES/2026-11-10a_shader-fix-plusplus-controls-updates.txt.
+  CI: APK run 42746818871 (b576f27, 4 APKs) was still RUNNING when this was written: check it first
+  (new Kotlin / Compose code in LayerController and the settings screen: a compile error is possible).
+  Not device-tested. Ask: does the Complementary profile load; a night screenshot and the FPS on
+  ONA Shader ++ (TAA can be switched off alone if it ghosts); the button looks; ONA Pro layout.
+  Ideas not done: skins for the joystick, per-layout looks, opaque-surface reflections, Forge mixin
+  for Oculus (profile change in the game), auto-update of ONA-added mods.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -707,3 +728,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-09 (ج): صلحنا Complementary (المود بيحكي لـ Iris إنه ما في compute)، و Nostalgia 5.1 معمول لـ 1.21.4 مش 26.3. البيلد نجح (بعد تصليح غلط صغير).
 - 2026-11-09 (د): Complementary: اللانشر بيطفي الانعكاسات والإضاءة الملونة اللي بتحتاج compute قبل ما تبلش اللعبة. البيلد نجح.
 - 2026-11-09 (هـ): ONA Boost 1.2.0: بيفهم حد الفريمات باللعبة (الإعدادات بترجع صح)، ما بيخفف وإنت تارك اللعبة، ورق شجر سريع (بدون شيدر)، مسافة أقل للجوالات الضعيفة، واللي بتغيره إنت بيضل. والتنزيلات ما عاد يضل منها ملف ناقص. البيلد نجح.
+- 2026-11-10 (أ): صلحنا Complementary لما تغيّر البروفايل من جوا اللعبة (ONA Boost 1.2.1)، صنف ONA Shader ++ (نعومة زمنية، ظلال 24 عينة، حدّة، سما ليلية بنجوم وشفق)، أشكال أزرار (مكعبات، بيكسل، زجاج، نيون، فقاعة) مع حركة ضغط وتخطيط ONA Pro، والشيدرات والريسورس بيتحدثوا لحالهم. وملف ONA_WORK_METHOD.txt لطريقة الشغل. البيلد شغال (تأكد من نتيجته).

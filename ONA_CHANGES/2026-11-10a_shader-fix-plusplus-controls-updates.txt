@@ -1,0 +1,81 @@
+Complementary profile fix, ONA Shader ++, button looks, pack updates, work method (2026-11-10 a)
+
+User (log latest_game.log + 5 requests): the shader error "Shader storage buffers/immutable buffer
+storage is not supported" again; 1. a new class "ONA Shader ++", realistic beyond belief, FPS does
+not matter; 2. better control buttons: pro buttons, new shapes (LEGO, pixel, others), animated;
+3. downloads (mods, shaders, resource packs) on the latest version, fix problems; 4. a txt for a
+new session that also explains how to work; 5. the app at "100%".
+
+1. THE SHADER ERROR (commit 890ea35, ONA Boost 1.2.1)
+Log timeline: ONA Boost 1.2.0 active ("keeping 120 FPS ... FLAGSHIP phone"), Complementary
+Reimagined r5.9.3 loaded and ran on the POTATO profile (23:37:28), then at 23:38:20
+"Profile: COMPLEMENTARY" -> the error. A profile picked in the shader screen switches
+WORLD_SPACE_REFLECTIONS / COLORED_LIGHTING back on (bufferObject.0 up to 810 MB, 3D images), after
+the launcher's ShaderPackCompat fixed the options file at launch.
+Fix inside the game: fabric mixin IrisPackOptionsMixin (@Pseudo, require = 0) = @ModifyArg on the
+call ShaderPack.<init>(Path, Map, ImmutableList, boolean) in Iris.loadExternalShaderpack, index 1.
+OnaCompat.packOptions(map): when the OpenGL layer has no compute, COLORED_LIGHTING=0,
+WORLD_SPACE_REFLECTIONS=-1, WORLD_SPACE_PLAYER_REF=-1 are put into the map Iris loads the pack
+with, every time, whatever profile was picked (options a pack does not have are ignored by Iris).
+Log line when it had to switch something off: "shader pack: ... kept off (needs compute ...)".
+Version 1.2.1 in fabric/gradle.properties, forge/gradle.properties, OnaBoostInstaller.VERSION.
+Forge 1.20.1 build has no mixin (Oculus): there only the launch-time fix applies.
+Not device-tested: the mixin target was checked with javap against Iris 1.11.7+mc26.3.
+
+2. ONA SHADER ++ (commit 8e3af05)
+Profile ONA_PLUS_PLUS above UNBELIEVABLE; OnaGraphicsLevel.ONA_PLUS_PLUS in the launcher. All of
+Unbelievable plus new options (screen [PLUSPLUS], all OFF in the other 14 profiles):
+- TAA: new pass composite1.fsh/.vsh (program.composite1.enabled=TAA), history in colortex3
+  (clear false). Reprojection by depth with gbufferPrevious* and previousCameraPosition, the hand
+  (depth <= 0.56) stays, history clamped to the 5 colours around the pixel, less history when
+  the spot moved far. lib/common.glsl onaFrameNoise(): the per-pixel noise moves every frame
+  (frameCounter) while TAA is on; used by the shadow filter, light shafts, SSAO and the aurora.
+- SHADOW_FILTER 5: lib/shadow_fsh.glsl ONA_SEARCH_TAPS 8 / ONA_FILTER_TAPS 20 (filter 4 unchanged:
+  5 / 8). "#if SHADOW_FILTER >= 4" where it was "== 4".
+- SHARPEN (+ SHARPEN_STRENGTH), MOTION_BLUR (+ MOTION_BLUR_STRENGTH) in final.fsh.
+- NIGHT_SKY in program/deferred.glsl (onaNightSky, onaHash3 without sin): two layers of
+  twinkling stars, Milky Way band, northern lights when moonPhase is 3..5 (8 sheets, dithered).
+  Tuned on a CPU render (numpy port), added before the clouds, 0 by day and in rain.
+- Higher values allowed: VL_STEPS 24 / 32, SSAO_SAMPLES 24, SSR_STEPS 48 / 64. ++ uses 32 / 24 / 64,
+  shadow distance 224, LENS_FLARE on.
+Checks: 450/450 programs compile (15 profiles x 30), 62 options OK. Not seen on a phone yet:
+if TAA ghosts or blurs, it can be switched off alone in the shader menu (ONA Shader ++ screen).
+
+3. CONTROLS (commit 82949ba)
+- LayerController/utils/ButtonLook.kt: ButtonSkin (CLASSIC, LEGO, PIXEL, GLASS, NEON, BUBBLE),
+  PressAnimation (NONE, SHRINK, BOUNCE, SINK), object ButtonLook (Compose state). Read in
+  Modifier.buttonStyle (utils/Buttons.kt): when both are default the old code path runs
+  unchanged. Skins are drawn with drawBehind, the animation with graphicsLayer + a spring.
+  Bricks / neon / bubble colour each button by its uuid hash (seed). Layout files are not
+  changed (the look is a launcher setting, not part of a layout).
+- Settings: AllSettings.controlButtonSkin / controlPressAnimation (strings), applied in
+  ZLApplication.onCreate (every process) and when changed. Settings > Controls: two list cards
+  and a row of 5 buttons to try (RendererStyleBox).
+- "ONA Pro" layout: assets/ona/controls/ona_pro.json (generated from default_layout.json by a
+  script: + layer "pro" with Q, F, MID (middle click), RUN (Ctrl, toggle), "/", F1; the GUI
+  button also switches that layer). ControlManager.checkDefaultAndRefresh copies it once
+  (AllSettings.onaProLayoutAdded).
+- The joystick keeps its own look (not skinned yet).
+
+4. UPDATES (commit b576f27)
+- CommunityShaders: stamp now "choice|file|tier|time"; once a day download() looks for the newest
+  file for the game version; a new file takes over the old file's options (.txt copied), marker,
+  selected; toast ona_community_updated.
+- OnaResource: stamp "choice|id|time|slug"; OnaTexturePacks.update(version, slug, installedName)
+  only when the installed file is one of that project's files; replacePack keeps its place in
+  resourcePacks (stays off when the player switched it off); toast ona_resource_updated.
+- Mods ONA adds (Sodium, Lithium, FerriteCore, Iris): newest fitting build at the time they are
+  added, on purpose not replaced later by themselves.
+
+5. ONA_WORK_METHOD.txt: how the work is done (log as a timeline, javap against the real game,
+host simulation, local mod builds, shader checks, CPU previews, CI flow, rules, checklist).
+CLAUDE.md points to it.
+
+Request 5 ("100%") is the sum of the above plus round 2026-11-09 e; nothing else was changed.
+
+CI: see ONA_HANDOFF.txt.
+To test on the phone:
+- Complementary: pick the "Complementary" profile in the shader screen: it must load now.
+- ONA Graphics level "ONA Shader ++": night (stars, Milky Way; aurora around the new moon), shadow
+  edges, picture while turning. Send a screenshot + FPS.
+- Settings > Controls > Button look / Press animation; control layouts list: "ONA Pro".

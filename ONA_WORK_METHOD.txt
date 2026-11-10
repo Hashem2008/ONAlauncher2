@@ -1,0 +1,149 @@
+ONA LAUNCHER 2 - HOW TO WORK ON THIS PROJECT (read after ONA_HANDOFF.txt)
+========================================================================
+(بالعربي: هذا الملف بيشرح "طريقة الشغل" نفسها، مش بس شو انعمل. أي جلسة جديدة تقرأه وتمشي عليه
+ بتشتغل بنفس الدقة: تقرأ اللوج، تتأكد من كود اللعبة الحقيقي، تجرّب قبل الرفع، وتحكي الصراحة.)
+
+ONA_HANDOFF.txt says WHAT was done and what is open. ONA_CHANGES/ has one file per round with the
+details. This file says HOW the work is done, so a new session gets the same results.
+
+1. THE USER
+- Writes Jordanian Arabic. Answer in short, simple Jordanian Arabic, always. Never English.
+- A message marked "سؤال" is a question: answer only, change nothing, build nothing.
+- He tests on a phone (Snapdragon 8 Elite Gen 5, Adreno 840) with Fabulously Optimized on Fabric
+  26.3 and sends latest_game.log as a zip. He cannot read code: tell him what changed for HIM
+  (what he will see), where to tap, and what to send back.
+- He asks for many things in one message. Do them in his order of pain: what is broken first, then
+  new things. Say plainly what was not done and why. Never claim "100%".
+- While working, send a short Arabic line now and then (what you are doing), not silence.
+
+2. HARD RULES (never break)
+- Never disable or delete a mod of the player. Only ONA's own files may be replaced or removed
+  (ona-boost-*.jar, speed mods listed in ona_speed_mods_added.txt, packs ONA downloaded).
+- Every change goes into all 4 APKs: arm64, arm, x86_64, performance.
+- After every push / build: ONA_HANDOFF.txt (what, CI run ids and result, what is next, one Arabic
+  line in the list at the end) and a new file in ONA_CHANGES/ (date + letter).
+- ONA Mobile Shaders: sunlit blocks keep their vanilla colours. New effects go behind options
+  that are OFF in every existing profile. Do not "improve" a profile he likes.
+- Community shader packs (Complementary, BSL, ...) are other people's work, mostly all rights
+  reserved: download unchanged, configure only through their options file. Never ship edits.
+- FPS first. Then looks. Then features.
+- Commits: clear message of what and why; end with the Co-Authored-By and Claude-Session lines
+  given in the session; no model names anywhere in the repository. Handoff-only commits carry
+  "[skip ci]". Work on the branch the session names; no pull request unless he asks.
+
+3. THE METHOD (this is the part that makes the difference)
+
+3.1 Read the log as a timeline, not as an error
+- Find the error line, then read UP: what was loaded, what worked before, what the player did
+  just before it. Example (2026-11-09): "Shader storage buffers ... not supported" looked like
+  "Complementary still broken". The timeline said: POTATO profile loaded fine at 23:37, the error
+  came at 23:38 right after "Profile: COMPLEMENTARY". So the launch-time fix worked and the real
+  cause was a profile picked in the game. The fix went where the cause is (inside the game, at
+  every pack load), not a second time into the launcher.
+- Look for ONA's own lines: "ONA Boost active: ...", "ONA Renderer: ...", "ONA Shader boost".
+  They say which build and which settings the phone really ran.
+
+3.2 Never trust memory about Minecraft, Iris or Sodium: open the real code
+- There is no decompiler in the container, javap is enough. Minecraft 26.x jars are not
+  obfuscated; 1.20.1 needs the Mojang mappings text file to translate names.
+    javap -p -cp client.jar net.minecraft.client.Options            (what exists)
+    javap -p -c -v Options.class > dump.txt                          (what it does, BootstrapMethods
+                                                                      show which method a listener is)
+- Things found this way that memory had wrong or did not know:
+  * Options.graphicsPreset().set(x) APPLIES the whole preset (listener = applyGraphicsPreset).
+    Never call it "to restore the label".
+  * Minecraft 26 throttles itself to 30 FPS after a minute without input
+    (FramerateLimitTracker.getThrottleReason()). An FPS watcher must ignore that time.
+  * cutoutLeaves / improvedTransparency listeners rebuild all chunks (LevelExtractor.allChanged).
+  * 1.20.1 graphicsMode().set() does NOT rebuild; the settings screen calls
+    levelRenderer.allChanged() itself.
+  * Iris.loadExternalShaderpack builds ShaderPack(Path, Map, ImmutableList, boolean): the exact
+    descriptor a mixin target needs. Iris checks compute / images by function address.
+- Same for the launcher: before calling a function, grep its signature; before adding a string,
+  grep that the name is free; before using a setting, read how AllSettings declares it.
+
+3.3 Think about every way it runs on a phone
+- The app gets killed by Android at any moment: no half-written files (ModCompat.download writes
+  ".part" and renames), nothing that needs a "clean exit" to put settings back (ONA Boost keeps
+  the player's values in a file and restores them at the next start).
+- No network, slow network, a file that is there but broken: each has a defined result.
+- The player changes things himself in the game while our code is active: his choice wins
+  (ONA Boost only undoes a setting that is still the way it left it).
+- Low end to flagship: DeviceProfiler tier (LOW / MID / HIGH / FLAGSHIP) decides defaults.
+- Every launcher step before the game starts sits in runCatching; a mod that hits an error
+  switches itself off and the game goes on. Nothing of ours may stop the game from starting.
+
+3.4 Prove it before pushing (CI is slow and the phone is slower)
+- Logic: a host simulation. ona-boost/common has no Minecraft imports, so it compiles with plain
+  javac + gson and a fake game (see ONA_CHANGES/2026-11-09e: 14 scenarios, FPS low / high, FPS
+  limit, AFK, crash, player changes). Write the scenario that would have caught the bug.
+- The mod: build both jars locally against the real game before pushing
+  (fabric: JDK 25, "./gradlew build --offline"; forge: JDK 21). A green local build = the CI
+  workflow will publish the jars.
+- Shaders: both checks after ANY shader edit, both must pass:
+    python3 -I tools/ona_shader_check.py <shaders dir> <tmp dir>      (every program x every profile)
+    python3 -I tools/ona_shader_options_check.py <shaders dir>          (options declared, used, labelled)
+  A new look that cannot be seen on a GPU here: port the maths to numpy, render a PNG, LOOK at
+  it, tune, then copy the numbers back (done for the sky and the ++ night sky).
+- Launcher (no Android SDK here, GitHub CI is the compiler): generate JSON / XML with a script and
+  parse it back; assert every text replacement matched exactly once; re-read the edited lines.
+- Say in the reply what was verified how, and what only the phone can tell.
+
+3.5 Kotlin / Compose without a local compiler: rules that avoid red builds
+- A Java method marked @Nullable (ModCompat.primaryFile) needs "?: return null" in Kotlin.
+- Check the exact parameter names of a composable before calling it with named arguments.
+- New enum value: grep for "when (" on that enum (exhaustive whens break).
+- An import for every new symbol; no unused clever APIs: plain Modifier, drawBehind, graphicsLayer,
+  animateFloatAsState are known to compile.
+- Strings: add to values/ AND values-ar/ strings_ona.xml, escape apostrophes (\'), parse the XML.
+- Iris shader options: an on/off option must appear in an "#ifdef" / "#ifndef" line, or Iris
+  calls it invalid. GLSL is #version 120: no integer max(), shadows are compare lookups only.
+
+3.6 CI and release flow
+- Push -> the push starts "Build CI". For the 4 APKs: dispatch push_ci.yml on the branch
+  (workflow_dispatch) and read the 4 jobs. The APKs land in the release
+  https://github.com/Hashem2008/ONAlauncher2/releases/tag/ona-<branch with dashes>.
+- ONA Boost changed: bump the version in 3 places (ona-boost/fabric/gradle.properties "version",
+  ona-boost/forge/gradle.properties "mod_version", OnaBoostInstaller.VERSION). The push starts the
+  "ONA Boost" workflow; check it is green and that both jars download (curl -L, HTTP 200) BEFORE
+  telling the user to install the APK, because the launcher downloads that exact file name.
+- ONA Renderer patch changed: its workflow must finish before the APK build.
+- A red build: get_job_logs with failed_only, fix the first real error, push, build again.
+  Record the failed run too in the handoff.
+
+3.7 Decide like this
+- The smallest change at the place of the cause. Do not rewrite what works.
+- If two fixes are possible, take the one that cannot make things worse when it is wrong
+  (optional mixin with require = 0, an option that is off by default, a check that falls back).
+- No silent updates of mods (a newer Sodium breaks the player's Iris). Packs and ONA's own files
+  may follow new releases.
+- When the request is vague ("make it 100% better"), pick concrete weak spots found by reading
+  the code as a user would hit them, fix those, list them, and ask what he notices next.
+
+4. CHECKLIST BEFORE THE FINAL REPLY
+[ ] both shader checks pass (if a shader file changed)
+[ ] mod builds locally / workflow green / jars download (if ona-boost changed)
+[ ] strings in EN and AR, XML parses
+[ ] pushed to the session's branch, 4 APK jobs green (or the failure is said)
+[ ] ONA_CHANGES/<date><letter>_*.txt written, ONA_HANDOFF.txt updated (CI ids, Arabic line)
+[ ] reply: short Jordanian Arabic, the download link, what changed for him, what was not tested
+    on a phone, what to send back
+
+5. TOOLS THAT LIVE ONLY IN A SESSION'S SCRATCH FOLDER (make them again when needed)
+- Minecraft client jar: version manifest -> version json -> "downloads.client.url".
+  1.20.1 names: the "client_mappings" text file of the same version json.
+- JDK 25 (Temurin tarball) for the Fabric build; JDK 21 is installed for Forge.
+- Mods to read: Iris, Sodium jars from Modrinth (api.modrinth.com/v2/project/<slug>/version).
+- glslangValidator is installed (apt: glslang-tools). numpy + Pillow for previews.
+
+6. MAP
+ona-boost/                      ONA's FPS mod (common, fabric 26.x with mixins, forge 1.20.1)
+ZalithLauncher/src/main/assets/ona/shaderpack/   ONA Mobile Shaders (15 profiles, top: ONA_PLUS_PLUS)
+ZalithLauncher/.../game/graphics/   OnaGraphics, CommunityShaders, OnaResource, OnaTexturePacks,
+                                    ShaderPackCompat
+ZalithLauncher/.../game/version/mod/   ModCompat (downloads, metadata), SpeedModInstaller,
+                                       OnaBoostInstaller, ModPerformanceTuner
+ZalithLauncher/.../ui/screens/content/elements/LauncherElements.kt   the launch flow, step by step
+LayerController/                the on-screen controls (utils/ButtonLook.kt: looks and animations)
+tools/                          shader checks, sky preview, renderer patch
+.github/workflows/              push_ci.yml -> build.yml (APKs), ona_boost.yml, renderer workflow
