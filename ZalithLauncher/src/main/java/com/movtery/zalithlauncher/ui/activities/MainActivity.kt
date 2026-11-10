@@ -495,6 +495,19 @@ class MainActivity : BaseAppCompatActivity() {
                         onUpload = {
                             logsUploadViewModel.operation = ShareLinkOperation.Tip
                             logShareViewModel.closeMenu()
+                        },
+                        onShareAll = {
+                            logShareViewModel.closeMenu()
+                            Toast.makeText(this@MainActivity, getString(R.string.ona_logs_collecting), Toast.LENGTH_SHORT).show()
+                            lifecycleScope.launch {
+                                val version = com.movtery.zalithlauncher.game.launch.LogCollector.versionOf(logFile)
+                                val zip = runCatching { com.movtery.zalithlauncher.game.launch.LogCollector.collect(version) }.getOrNull()
+                                if (zip != null) {
+                                    shareFile(this@MainActivity, zip)
+                                } else {
+                                    Toast.makeText(this@MainActivity, getString(R.string.ona_logs_failed), Toast.LENGTH_LONG).show()
+                                }
+                            }
                         }
                     )
                 }

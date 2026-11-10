@@ -52,7 +52,8 @@ fun LogShareMenu(
     onView: () -> Unit,
     onShare: () -> Unit,
     canUpload: Boolean,
-    onUpload: () -> Unit
+    onUpload: () -> Unit,
+    onShareAll: (() -> Unit)? = null
 ) {
     when (operation) {
         is LogShareMenuOperation.None -> {}
@@ -91,6 +92,23 @@ fun LogShareMenu(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(text = stringResource(R.string.generic_view))
+                        }
+                        // ONA: every log of the version in one zip
+                        if (onShareAll != null) {
+                            Button(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    onShareAll()
+                                    onChange(LogShareMenuOperation.None)
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_share_filled),
+                                    contentDescription = null
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(text = stringResource(R.string.ona_logs_button))
+                            }
                         }
                         //分享日志
                         Button(

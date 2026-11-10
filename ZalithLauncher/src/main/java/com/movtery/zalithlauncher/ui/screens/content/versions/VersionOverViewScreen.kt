@@ -79,6 +79,7 @@ import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
 import java.io.File
 
@@ -333,6 +334,25 @@ private fun VersionManagementLayout(
     }
     var showLogTranslator by remember { mutableStateOf(false) }
     var showOnaGraphics by remember { mutableStateOf(false) }
+    // ONA: every log of this version in one zip, shared with one tap
+    val logsContext = androidx.compose.ui.platform.LocalContext.current
+    val logsScope = androidx.compose.runtime.rememberCoroutineScope()
+    var collectingLogs by remember { mutableStateOf(false) }
+    val collectLogs: () -> Unit = {
+        if (!collectingLogs) {
+            collectingLogs = true
+            android.widget.Toast.makeText(logsContext, logsContext.getString(R.string.ona_logs_collecting), android.widget.Toast.LENGTH_SHORT).show()
+            logsScope.launch {
+                val zip = runCatching { com.movtery.zalithlauncher.game.launch.LogCollector.collect(version) }.getOrNull()
+                collectingLogs = false
+                if (zip != null) {
+                    com.movtery.zalithlauncher.utils.file.shareFile(logsContext, zip)
+                } else {
+                    android.widget.Toast.makeText(logsContext, logsContext.getString(R.string.ona_logs_failed), android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
     if (showOnaGraphics) {
         com.movtery.zalithlauncher.ui.screens.content.elements.OnaGraphicsDialog(
             version = version,
@@ -394,6 +414,15 @@ private fun VersionManagementLayout(
                 ) {
                     Text(
                         text = stringResource(R.string.versions_overview_log)
+                    )
+                }
+                OutlinedButton(
+                    modifier = Modifier.padding(end = 12.dp),
+                    enabled = !collectingLogs,
+                    onClick = collectLogs
+                ) {
+                    Text(
+                        text = stringResource(R.string.ona_logs_button)
                     )
                 }
                 OutlinedButton(

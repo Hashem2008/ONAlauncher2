@@ -383,4 +383,7 @@
     <string name="ona_control_look_preview">Try:</string>
     <string name="ona_community_updated">%1$s updated to its newest version (%2$s)</string>
     <string name="ona_resource_updated">Texture pack updated to its newest version (%1$s)</string>
+    <string name="ona_logs_button">Send all logs (one file)</string>
+    <string name="ona_logs_collecting">Collecting all logs into one file…</string>
+    <string name="ona_logs_failed">Could not collect the logs</string>
 </resources>
