@@ -1,0 +1,60 @@
+ONA Shader ++ as a shader pack of its own (2026-11-10 b)
+
+User: "everything works, but I told you to make a NEW, complete, very realistic shader named ONA++,
+and you tied it to the old shader". Round 2026-11-10 a had made it a profile (level) of ONA Mobile
+Shaders. Commit d169929.
+
+1. ONA MOBILE SHADERS: back exactly as before
+assets/ona/shaderpack has no difference to commit 890ea35 (git diff is empty): 14 profiles, no
+TAA / SHARPEN / MOTION_BLUR / NIGHT_SKY options, no composite1. 392/392 programs, 56 options.
+
+2. ONA SHADER ++: assets/ona/shaderpack_pp, pack name "ONA Shader ++"
+A second pack with its own files, menu and profiles. It stands on the lighting code of ONA Mobile
+Shaders (forward shading, compare-only shadows: the part that is proven on phones; a renderer
+written from zero could not be tried on a GPU here) and adds the heavy systems that pack leaves
+out. Everything is on by default (lib/settings.glsl = profile PP_ULTRA).
+Profiles: PP_HIGH, PP_ULTRA, PP_EXTREME (samples: shadow filter 4/5/5, shadow map 3072/4096/4096,
+light shafts 16/24/32, SSAO 12/16/24, reflection steps 32/48/64, cloud steps 12/16/24, cloud light
+steps 2/3/4; motion blur off in High).
+
+New in this pack:
+a. REFLECT_WORLD: the world mirrored in every shiny surface.
+   Surface info in colortex1 = vec4(normal.xy * 0.5 + 0.5 (view space, z looks at the eye),
+   mirror amount, 1.0). Alpha is always 1, so the write lands the same with and without blending.
+   - gbuffers_terrain: mirror = clamp(fresnel * (smoothness - 0.4) / 0.6 * SPECULAR_STRENGTH, 0, 0.8)
+     * zone (wet ground, puddles, polished / metal PBR blocks; indoors too), stored * 0.9.
+   - gbuffers_water: water = 1.0; glass, ice and other see-through blocks by the view angle.
+   - gbuffers_textured_lit (entities, hand, particles): 0, and they cover the info behind them.
+   - gbuffers_weather (new, copy of the old textured_lit): writes the picture only, so rain does
+     not cut holes into the mirrors of wet ground.
+   - composite: onaInfoNormal(); mirror > 0.95 = water (fresnel as before, refraction mask),
+     else the stored amount; not for the hand (depth <= 0.56).
+b. VOLUMETRIC_CLOUDS is now a real march: onaCloudDensity / onaVolumeClouds in program/deferred.glsl,
+   layer 240..400, CLOUD_STEPS x CLOUD_LIGHT_STEPS, same base noise as onaCloudCover (the cloud
+   shadows on the ground match), start depth dithered per pixel and frame. Tuned on a CPU render
+   (numpy port; day and dusk looked right: dark bellies, lit rims).
+c. From round a, moved here: TAA (composite1, colortex3), SHADOW_FILTER 5, SHARPEN, MOTION_BLUR,
+   NIGHT_SKY, onaFrameNoise.
+
+Checks: tools/ona_shader_check.py 96/96 (3 profiles x 32 programs) and, on a copy with 39 extra
+test profiles (every on/off option flipped alone, everything off, low values, each shadow filter),
+1344/1344; tools/ona_shader_options_check.py 65 options, no problems.
+Always run both checks on BOTH pack dirs after a shader edit.
+
+3. LAUNCHER (game/graphics/OnaGraphics.kt)
+- PLUS_PLUS_NAME "ONA Shader ++", PLUS_PLUS_ASSET_DIR, PLUS_PLUS_PROFILE "PP_ULTRA";
+  packName(level), assetDir(pack); installPack / packRevision take the pack.
+- ONA Graphics entry "ONA Shader ++" (OnaGraphicsLevel.ONA_PLUS_PLUS, isPlusPlus): installs and
+  selects the ++ pack, writes "ONA Shader ++.txt" from PP_ULTRA (same caps as before for OptiFine
+  and heavy modpacks), PBR pack on.
+- offerPack: both packs are in the shader list of every version that can load shaders (also
+  called at the start of applyOnLaunch).
+- OnaGraphics.isOnaPack(name) for SmartRenderer, ShaderProfileTuner, BestGameSettings,
+  ShaderPackCompat. ShaderBoost keeps its milder resolution cap for ONA Mobile Shaders only
+  (++ is heavy: the normal cap of a desktop pack).
+
+Not seen on a phone. What can go wrong and how to tell:
+- pack does not load: Iris shows the failing program in chat ("Copy Info") -> send the log.
+- mirrors on mobs / hand or holes in mirrors: surface info of some program (which thing?).
+- ghosting or blur: TAA off in the pack's "ONA Shader ++" screen; clouds too slow: 3D cloud quality.
+CI: see ONA_HANDOFF.txt.

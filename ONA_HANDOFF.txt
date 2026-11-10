@@ -650,6 +650,21 @@ SHADER PROFILE FIX, ONA SHADER ++, BUTTON LOOKS, PACK UPDATES, WORK METHOD (2026
   Ideas not done: skins for the joystick, per-layout looks, opaque-surface reflections, Forge mixin
   for Oculus (profile change in the game), auto-update of ONA-added mods.
 
+ONA SHADER ++ AS ITS OWN PACK (2026-11-10 b)
+- The user wanted a NEW separate shader "ONA++", not a level of the old one. d169929:
+  assets/ona/shaderpack (ONA Mobile Shaders) is byte-for-byte as at 890ea35 again;
+  assets/ona/shaderpack_pp = "ONA Shader ++": own files / menu / profiles (PP_HIGH, PP_ULTRA,
+  PP_EXTREME), on the proven lighting core, plus: world mirrored in every shiny surface (surface
+  info in colortex1 from terrain / entities / water, own weather program), clouds marched in 3D,
+  TAA, 24-tap shadows, sharpen, motion blur, night sky. The ONA Graphics entry "ONA Shader ++"
+  now installs and selects that pack; both packs are offered in every version's shader list.
+  Checks on the new pack: 96/96, 1344/1344 with test profiles, 65 options. Run the checks on both
+  pack dirs after any shader edit.
+  ONA_CHANGES/2026-11-10b_ona-shader-plusplus-own-pack.txt.
+  CI: APK run 42751308673 (d169929, 4 APKs) was still RUNNING when this was written: check it first.
+  Not device-tested: ask for a screenshot (day, rain on wet ground, night) and the log if the pack
+  does not load.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -729,3 +744,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-09 (د): Complementary: اللانشر بيطفي الانعكاسات والإضاءة الملونة اللي بتحتاج compute قبل ما تبلش اللعبة. البيلد نجح.
 - 2026-11-09 (هـ): ONA Boost 1.2.0: بيفهم حد الفريمات باللعبة (الإعدادات بترجع صح)، ما بيخفف وإنت تارك اللعبة، ورق شجر سريع (بدون شيدر)، مسافة أقل للجوالات الضعيفة، واللي بتغيره إنت بيضل. والتنزيلات ما عاد يضل منها ملف ناقص. البيلد نجح.
 - 2026-11-10 (أ): صلحنا Complementary لما تغيّر البروفايل من جوا اللعبة (ONA Boost 1.2.1)، صنف ONA Shader ++ (نعومة زمنية، ظلال 24 عينة، حدّة، سما ليلية بنجوم وشفق)، أشكال أزرار (مكعبات، بيكسل، زجاج، نيون، فقاعة) مع حركة ضغط وتخطيط ONA Pro، والشيدرات والريسورس بيتحدثوا لحالهم. وملف ONA_WORK_METHOD.txt لطريقة الشغل. البيلد نجح.
+- 2026-11-10 (ب): ONA Shader ++ صار شيدر مستقل بملفاته (انعكاس على كل سطح لامع، غيوم ثلاثية حقيقية، نعومة زمنية، سما ليلية)، والشيدر القديم رجع زي ما كان بالضبط. البيلد شغال (تأكد من نتيجته).

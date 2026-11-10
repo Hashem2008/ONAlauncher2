@@ -87,6 +87,8 @@ details. This file says HOW the work is done, so a new session gets the same res
   it, tune, then copy the numbers back (done for the sky and the ++ night sky).
 - Launcher (no Android SDK here, GitHub CI is the compiler): generate JSON / XML with a script and
   parse it back; assert every text replacement matched exactly once; re-read the edited lines.
+- A pack with few profiles hides compile errors of single options: copy the pack, add test
+  profiles (every on/off option flipped alone, all off, low values) and run the check on the copy.
 - Say in the reply what was verified how, and what only the phone can tell.
 
 3.5 Kotlin / Compose without a local compiler: rules that avoid red builds
@@ -117,6 +119,9 @@ details. This file says HOW the work is done, so a new session gets the same res
   (optional mixin with require = 0, an option that is off by default, a check that falls back).
 - No silent updates of mods (a newer Sodium breaks the player's Iris). Packs and ONA's own files
   may follow new releases.
+- Read the request for its NOUNS. "A new complete shader named ONA++" is a new pack with its own
+  name in the shader list, not a level of the pack that exists (that mistake cost a round).
+  When a word can mean two builds, say in one line which one you are building before you build.
 - When the request is vague ("make it 100% better"), pick concrete weak spots found by reading
   the code as a user would hit them, fix those, list them, and ask what he notices next.
 
@@ -138,7 +143,10 @@ details. This file says HOW the work is done, so a new session gets the same res
 
 6. MAP
 ona-boost/                      ONA's FPS mod (common, fabric 26.x with mixins, forge 1.20.1)
-ZalithLauncher/src/main/assets/ona/shaderpack/   ONA Mobile Shaders (15 profiles, top: ONA_PLUS_PLUS)
+ZalithLauncher/src/main/assets/ona/shaderpack/      ONA Mobile Shaders (14 profiles; the one he likes:
+                                                    do not change its look)
+ZalithLauncher/src/main/assets/ona/shaderpack_pp/   ONA Shader ++ (its own pack: mirrors everywhere, 3D
+                                                    clouds, TAA; profiles PP_HIGH / PP_ULTRA / PP_EXTREME)
 ZalithLauncher/.../game/graphics/   OnaGraphics, CommunityShaders, OnaResource, OnaTexturePacks,
                                     ShaderPackCompat
 ZalithLauncher/.../game/version/mod/   ModCompat (downloads, metadata), SpeedModInstaller,
