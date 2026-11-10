@@ -643,8 +643,8 @@ SHADER PROFILE FIX, ONA SHADER ++, BUTTON LOOKS, PACK UPDATES, WORK METHOD (2026
   a day. Mods are not auto-updated on purpose.
 - ONA_WORK_METHOD.txt: how to work on this project (CLAUDE.md points to it).
   ONA_CHANGES/2026-11-10a_shader-fix-plusplus-controls-updates.txt.
-  CI: APK run 42746818871 (b576f27, 4 APKs) was still RUNNING when this was written: check it first
-  (new Kotlin / Compose code in LayerController and the settings screen: a compile error is possible).
+  CI: APK run 42746818871 (b576f27) SUCCESS, 4 APKs (arm64, arm, x86_64, performance); the new
+  Kotlin / Compose code compiled at the first try.
   Not device-tested. Ask: does the Complementary profile load; a night screenshot and the FPS on
   ONA Shader ++ (TAA can be switched off alone if it ghosts); the button looks; ONA Pro layout.
   Ideas not done: skins for the joystick, per-layout looks, opaque-surface reflections, Forge mixin
@@ -728,4 +728,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-09 (ج): صلحنا Complementary (المود بيحكي لـ Iris إنه ما في compute)، و Nostalgia 5.1 معمول لـ 1.21.4 مش 26.3. البيلد نجح (بعد تصليح غلط صغير).
 - 2026-11-09 (د): Complementary: اللانشر بيطفي الانعكاسات والإضاءة الملونة اللي بتحتاج compute قبل ما تبلش اللعبة. البيلد نجح.
 - 2026-11-09 (هـ): ONA Boost 1.2.0: بيفهم حد الفريمات باللعبة (الإعدادات بترجع صح)، ما بيخفف وإنت تارك اللعبة، ورق شجر سريع (بدون شيدر)، مسافة أقل للجوالات الضعيفة، واللي بتغيره إنت بيضل. والتنزيلات ما عاد يضل منها ملف ناقص. البيلد نجح.
-- 2026-11-10 (أ): صلحنا Complementary لما تغيّر البروفايل من جوا اللعبة (ONA Boost 1.2.1)، صنف ONA Shader ++ (نعومة زمنية، ظلال 24 عينة، حدّة، سما ليلية بنجوم وشفق)، أشكال أزرار (مكعبات، بيكسل، زجاج، نيون، فقاعة) مع حركة ضغط وتخطيط ONA Pro، والشيدرات والريسورس بيتحدثوا لحالهم. وملف ONA_WORK_METHOD.txt لطريقة الشغل. البيلد شغال (تأكد من نتيجته).
+- 2026-11-10 (أ): صلحنا Complementary لما تغيّر البروفايل من جوا اللعبة (ONA Boost 1.2.1)، صنف ONA Shader ++ (نعومة زمنية، ظلال 24 عينة، حدّة، سما ليلية بنجوم وشفق)، أشكال أزرار (مكعبات، بيكسل، زجاج، نيون، فقاعة) مع حركة ضغط وتخطيط ONA Pro، والشيدرات والريسورس بيتحدثوا لحالهم. وملف ONA_WORK_METHOD.txt لطريقة الشغل. البيلد نجح.
