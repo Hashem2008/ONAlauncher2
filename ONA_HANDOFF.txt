@@ -701,6 +701,13 @@ ZOMBIE INVADE 100 DAYS: 3rd LOG (2026-11-10 e, no code change)
   the default layout's jump / crouch send fixed Space / Left Shift, not the game's binding;
   "ONA Pro" sorts before "default" when no layout was chosen yet (ControlManager.checkSettings).
 
+ONE BUTTON FOR ALL LOGS (2026-11-10 f)
+- 1814b57: LogCollector + "Send all logs (one file)" in the version screen and the after-crash log
+  menu: one zip with launcher log, game log, crash files, options.txt, settings, mods list, summary.
+  Ask the user for this zip from now on. ONA_CHANGES/2026-11-10f_one-button-logs.txt.
+  CI: APK build of 1814b57 (push_ci.yml dispatch, 4 APKs) was still RUNNING when this was written: check it first
+  (new Kotlin in VersionOverViewScreen / MainActivity / LogShareMenu: a compile error is possible).
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -784,3 +791,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (ج): كراش Zombie Invade 100 Days: محرك Zink ما قدر يفتح نافذة اللعبة على Adreno 840. صار مود Physics يبلّش على محرك ONA إلا لو في Turnip، وأخطاء EGL بتنكتب باللوج. البيلد نجح.
 - 2026-11-10 (د): مود Physics 3.0 (PhysX 2.2.2 للكمبيوتر بس) صار يشتغل على PhysX أندرويد 2.3.1 من خلال جسر صغير من ONA، بدون ما نلمس المود. البيلد نجح.
 - 2026-11-10 (هـ): تأكدنا عالجوال إنه جسر PhysX شغال ومود Physics بيحمل. مشكلة الأزرار (تبديل الأغراض والقفز والجلوس) ما بينت باللوج: طلبنا options.txt وأسئلة. مود endofdays بيطلع خطأ كل فريم (HUD).
+- 2026-11-10 (و): زر واحد "إرسال كل اللوقات" بصفحة النسخة وبعد الكراش: بيجمع كل اللوقات والإعدادات وقائمة المودات بملف ZIP واحد وبيفتح المشاركة. البيلد شغال (تأكد من نتيجته).

@@ -1,0 +1,25 @@
+One button for all logs (2026-11-10 f)
+
+User: "make an update so I can collect all logs in one place with one button, it is tiring".
+Commit 1814b57.
+
+game/launch/LogCollector.kt: collect(version) -> <cache>/ona-logs/ONA-logs_<version>_<date>.zip
+(only the 2 newest zips kept), shared through the existing shareFile() (FileProvider "cache-path").
+Contents:
+  0-SUMMARY.txt                      launcher version, device + ONA DeviceProfile, version and loader,
+                                     renderer (ONA Smart + last reason, last used), resolution +
+                                     upscaler, control layout + button look + press animation,
+                                     ONA Graphics / Shader Community / ONA Boost settings, file list
+  1-launcher-log_latest_game.log     version.getLatestLog() (+ latest_jvm.log)
+  2-game-log_latest.log              <gameDir>/logs/latest.log
+  3-crash-reports/                   crash reports (newest 3) and hs_err_pid*.log (newest 2) of the
+                                     last 6 hours
+  4-settings/                        options.txt, config/onaboost.json, iris/oculus.properties,
+                                     sodium/embeddium options, shaderpacks/*.txt, versions/<v>/ona_*.txt
+  5-mods.txt                         every file in mods with its size
+  6-launcher-app/                    the launcher's own newest 3 logs
+Logs over 12 MB keep their last 12 MB (a note says so); lines with "accessToken" are masked.
+Buttons: version screen "Send all logs (one file)" (next to "Log"), and the log menu that opens
+after a game crash (MainActivity LogShareMenu onShareAll; the version is found from the log path).
+Strings EN + AR (ona_logs_button / ona_logs_collecting / ona_logs_failed).
+No local Kotlin compiler: CI is the check. Not device-tested.
