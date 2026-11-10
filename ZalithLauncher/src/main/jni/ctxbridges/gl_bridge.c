@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <EGL/egl.h>
 #include <android/log.h>
 #include <android/native_window.h>
@@ -25,6 +26,15 @@ static EGLBoolean bridge_eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurf
     return eglMakeCurrent_p(dpy, draw, read, ctx);
 }
 
+// ONA: the reason a context could not be made, also into the launcher log (latest_game.log): the
+// Android log alone is not something a player can send. Flushed at once, the game ends right after.
+#define ONA_LAUNCH_LOG(...) do { printf(__VA_ARGS__); fflush(stdout); } while (0)
+
+static const char* ona_egl_name(void) {
+    const char* egl = getenv("POJAVEXEC_EGL");
+    return egl != NULL ? egl : "system EGL";
+}
+
 static EGLBoolean bridge_eglSwapBuffers(EGLDisplay dpy, EGLSurface draw) {
     if (sfpew_eglSwapBuffers_p != NULL) return sfpew_eglSwapBuffers_p(dpy, draw);
     return eglSwapBuffers_p(dpy, draw);
@@ -45,12 +55,15 @@ bool gl_init() {
     {
         __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "%s",
                             "eglGetDisplay_p(EGL_DEFAULT_DISPLAY) returned EGL_NO_DISPLAY");
+        ONA_LAUNCH_LOG("EGLBridge: eglGetDisplay returned EGL_NO_DISPLAY (%s)\n", ona_egl_name());
         return false;
     }
     if (eglInitialize_p(g_EglDisplay, 0, 0) != EGL_TRUE)
     {
-        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "eglInitialize_p() failed: %04x",
-                            eglGetError_p());
+        EGLint error = eglGetError_p();
+        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "eglInitialize_p() failed: %04x", error);
+        ONA_LAUNCH_LOG("EGLBridge: eglInitialize failed: 0x%04x (%s, GALLIUM_DRIVER=%s): the renderer could not start on this GPU's driver\n",
+                       error, ona_egl_name(), getenv("GALLIUM_DRIVER") != NULL ? getenv("GALLIUM_DRIVER") : "-");
         return false;
     }
     return true;
@@ -91,8 +104,9 @@ gl_render_window_t* gl_init_context(gl_render_window_t *share) {
 
     if (eglChooseConfig_p(g_EglDisplay, egl_attributes, NULL, 0, &num_configs) != EGL_TRUE)
     {
-        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "eglChooseConfig_p() failed: %04x",
-                            eglGetError_p());
+        EGLint error = eglGetError_p();
+        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "eglChooseConfig_p() failed: %04x", error);
+        ONA_LAUNCH_LOG("EGLBridge: eglChooseConfig failed: 0x%04x (%s)\n", error, ona_egl_name());
         free(bundle);
         return NULL;
     }
@@ -101,6 +115,7 @@ gl_render_window_t* gl_init_context(gl_render_window_t *share) {
     {
         __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "%s",
                             "eglChooseConfig_p() found no matching config");
+        ONA_LAUNCH_LOG("EGLBridge: eglChooseConfig found no matching config (%s)\n", ona_egl_name());
         free(bundle);
         return NULL;
     }
@@ -130,8 +145,9 @@ gl_render_window_t* gl_init_context(gl_render_window_t *share) {
 
     if (bundle->context == EGL_NO_CONTEXT)
     {
-        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "bridge_eglCreateContext() finished with error: %04x",
-                            eglGetError_p());
+        EGLint error = eglGetError_p();
+        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "bridge_eglCreateContext() finished with error: %04x", error);
+        ONA_LAUNCH_LOG("EGLBridge: eglCreateContext failed: 0x%04x (%s, LIBGL_ES=%d)\n", error, ona_egl_name(), libgl_es);
         free(bundle);
         return NULL;
     }

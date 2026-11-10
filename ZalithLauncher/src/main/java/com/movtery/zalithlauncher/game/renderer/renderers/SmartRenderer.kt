@@ -82,9 +82,15 @@ object SmartRenderer : RendererInterface {
         if (ownShaders.isNotEmpty()) Logger.info(TAG, "Mods with their own shaders: $ownShaders -> Krypton before GL4ES")
 
         // Physics Mod (1.20+) draws its debris with instanced UBO meshes that come out as long
-        // stretched triangles on the GLES translators; desktop GL through Mesa draws them right
-        val physicsOnZink = situation.physicsMod && !mc.isLowerVer("1.20") && anyVulkan
+        // stretched triangles on the GLES translators; desktop GL through Mesa draws them right.
+        // Only where Zink is known to start: on Turnip (Adreno 6xx / 7xx) or with a Zink plugin.
+        // On a phone's own Vulkan driver (Adreno 8xx, Mali, Xclipse) Zink may not even open the
+        // window ("GLFW: Failed to create window context", Zombie Invade 100 Days on Adreno 840):
+        // there the game starts on the ONA engine and Zink stays a later fallback.
+        val zinkPlugin = VoxySupport.preferredRenderer() !== KopperZinkRenderer
+        val physicsOnZink = situation.physicsMod && !mc.isLowerVer("1.20") && anyVulkan && (goodVulkan || zinkPlugin)
         if (physicsOnZink) Logger.info(TAG, "Physics Mod on $mc -> Kopper Zink first")
+        else if (situation.physicsMod && !mc.isLowerVer("1.20")) Logger.info(TAG, "Physics Mod on $mc: Zink is not known to start on this GPU's own driver -> ONA engine first")
 
         val candidates = buildList {
             if (physicsOnZink) add(KopperZinkRenderer)
