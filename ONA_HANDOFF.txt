@@ -705,8 +705,9 @@ ONE BUTTON FOR ALL LOGS (2026-11-10 f)
 - 1814b57: LogCollector + "Send all logs (one file)" in the version screen and the after-crash log
   menu: one zip with launcher log, game log, crash files, options.txt, settings, mods list, summary.
   Ask the user for this zip from now on. ONA_CHANGES/2026-11-10f_one-button-logs.txt.
-  CI: APK build of 1814b57 (push_ci.yml dispatch, 4 APKs) was still RUNNING when this was written: check it first
-  (new Kotlin in VersionOverViewScreen / MainActivity / LogShareMenu: a compile error is possible).
+  CI: Builds of 1814b57 cancelled; follow-up 413e116 adds every options*.txt, the version json, other game
+  logs, the whole config folder and the control layout. APK build of 413e116 (dispatch) was still
+  RUNNING when this was written: check it first (new Kotlin: a compile error is possible).
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
