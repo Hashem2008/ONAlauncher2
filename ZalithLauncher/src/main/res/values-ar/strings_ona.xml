@@ -381,4 +381,6 @@
     <string name="ona_control_press_bounce">نطّة</string>
     <string name="ona_control_press_sink">نزول لتحت</string>
     <string name="ona_control_look_preview">جرّب:</string>
+    <string name="ona_community_updated">%1$s تحدّث لآخر إصدار (%2$s)</string>
+    <string name="ona_resource_updated">الريسورس باك تحدّث لآخر إصدار (%1$s)</string>
 </resources>

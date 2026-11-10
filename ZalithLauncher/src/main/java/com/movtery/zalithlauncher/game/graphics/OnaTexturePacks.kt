@@ -76,20 +76,65 @@ object OnaTexturePacks {
      */
     suspend fun install(version: Version, pack: Pack): String? = withContext(Dispatchers.IO) {
         runCatching {
-            val mc = version.getVersionInfo()?.minecraftVersion
-            val versions = (mc?.let { versionsOf(pack.slug, it) }?.takeIf { it.size() > 0 } ?: versionsOf(pack.slug, null))
-            val file = versions.firstNotNullOfOrNull { element ->
-                ModCompat.primaryFile(element.asJsonObject)?.takeIf { it.get("filename").asString.endsWith(".zip") }
-            } ?: return@runCatching null
-            val name = File(file.get("filename").asString).name
+            val (name, url) = newestFile(version, pack.slug) ?: return@runCatching null
             val dir = File(version.getGameDir(), "resourcepacks").apply { mkdirs() }
             val target = File(dir, name)
             // kept when it is there and whole; half a file (a download that was cut off) is fetched again
-            if (!ModCompat.isZip(target)) ModCompat.download(file.get("url").asString, target)
+            if (!ModCompat.isZip(target)) ModCompat.download(url, target)
             enableOnTop(version.getGameDir(), "file/$name")
             Logger.info(TAG, "${pack.slug}: $name enabled for ${version.getVersionName()}")
             name
         }.onFailure { Logger.warning(TAG, "Could not install ${pack.slug}", it) }.getOrNull()
+    }
+
+    /** The pack's newest file for this game version (else its newest): file name and address */
+    private fun newestFile(version: Version, slug: String): Pair<String, String>? {
+        val mc = version.getVersionInfo()?.minecraftVersion
+        val versions = (mc?.let { versionsOf(slug, it) }?.takeIf { it.size() > 0 } ?: versionsOf(slug, null))
+        val file = versions.firstNotNullOfOrNull { element ->
+            ModCompat.primaryFile(element.asJsonObject)?.takeIf { it.get("filename").asString.endsWith(".zip") }
+        } ?: return null
+        return File(file.get("filename").asString).name to file.get("url").asString
+    }
+
+    /**
+     * A newer file of the pack ONA Resource put in: downloaded and set in the old file's place in
+     * the pack list (a pack the player switched off stays off). Only when [installedName] really is
+     * a file of [slug], so the textures never change to another pack by themselves.
+     * @return the new file name, or null when it is up to date (or cannot be told)
+     */
+    suspend fun update(version: Version, slug: String, installedName: String): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val ofThisPack = versionsOf(slug, null).any { element ->
+                runCatching {
+                    element.asJsonObject.getAsJsonArray("files").any { File(it.asJsonObject.get("filename").asString).name == installedName }
+                }.getOrDefault(false)
+            }
+            if (!ofThisPack) return@runCatching null
+            val (name, url) = newestFile(version, slug) ?: return@runCatching null
+            if (name == installedName) return@runCatching null
+            val target = File(File(version.getGameDir(), "resourcepacks").apply { mkdirs() }, name)
+            if (!ModCompat.isZip(target)) ModCompat.download(url, target)
+            replacePack(version.getGameDir(), "file/$installedName", "file/$name")
+            Logger.info(TAG, "$slug: $installedName -> $name for ${version.getVersionName()}")
+            name
+        }.onFailure { Logger.warning(TAG, "Could not look for a newer $slug", it) }.getOrNull()
+    }
+
+    /** options.txt: [newId] in the place of [oldId] in resourcePacks (nothing when the old one is not enabled) */
+    private fun replacePack(gameDir: File, oldId: String, newId: String) {
+        val options = File(gameDir, "options.txt")
+        if (!options.isFile) return
+        val lines = options.readLines().toMutableList()
+        val index = lines.indexOfFirst { it.startsWith("resourcePacks:") }
+        if (index < 0) return
+        val list = runCatching { JsonParser.parseString(lines[index].substringAfter(':')).asJsonArray }.getOrNull() ?: return
+        val ids = list.mapNotNull { runCatching { it.asString }.getOrNull() }
+        if (oldId !in ids) return
+        val out = JsonArray()
+        ids.forEach { id -> if (id == oldId) out.add(newId) else if (id != newId) out.add(id) }
+        lines[index] = "resourcePacks:$out"
+        options.writeText(lines.joinToString("\n", postfix = "\n"))
     }
 
     private fun versionsOf(slug: String, mc: String?): JsonArray {

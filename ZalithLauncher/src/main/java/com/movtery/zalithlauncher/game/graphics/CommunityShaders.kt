@@ -44,6 +44,8 @@ object CommunityShaders {
     private const val API = "https://api.modrinth.com/v2"
     private const val USER_AGENT = "ONALauncher2 (github.com/Hashem2008/ONAlauncher2)"
     private const val STAMP = "ona_community.txt"
+    /** A newer file of the chosen pack is looked for this often */
+    private const val UPDATE_CHECK_MS = 24L * 60 * 60 * 1000
     /** Next to a pack this launcher set up, so the heavy-mod tuner leaves its profile alone */
     const val MARKER = ".ona_community"
 
@@ -91,8 +93,40 @@ object CommunityShaders {
         if (parts.getOrNull(0) == choice && parts.getOrNull(2) == tier.name && packFile?.isFile == true &&
             loaderNow != OnaGraphics.Loader.NONE
         ) {
-            OnaGraphics.selectShader(gameDir, loaderNow, packFile.name)
-            return@withContext null
+            val now = System.currentTimeMillis()
+            val checkedAt = parts.getOrNull(3)?.toLongOrNull() ?: 0L
+            if (now - checkedAt in 0 until UPDATE_CHECK_MS) {
+                OnaGraphics.selectShader(gameDir, loaderNow, packFile.name)
+                return@withContext null
+            }
+            // once a day: a newer file of the pack from its author (no network: asked again tomorrow)
+            val newer = runCatching { download(choice, gameDir, loaderNow, version.getVersionInfo()?.minecraftVersion)?.file }
+                .onFailure { Logger.warning(TAG, "Could not look for a newer $choice", it) }
+                .getOrNull()
+            if (newer == null || newer.name == packFile.name) {
+                stampFile.writeText("$choice|${packFile.name}|${tier.name}|$now")
+                OnaGraphics.selectShader(gameDir, loaderNow, packFile.name)
+                return@withContext null
+            }
+            runCatching {
+                // the options the player has for the old file go with the new one
+                val oldOptions = File(packFile.parentFile, "${packFile.name}.txt")
+                val newOptions = File(newer.parentFile, "${newer.name}.txt")
+                if (!newOptions.exists()) {
+                    if (oldOptions.isFile) {
+                        oldOptions.copyTo(newOptions)
+                    } else {
+                        newOptions.writeText(
+                            phoneOptions(newer, tier).second.entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
+                        )
+                    }
+                }
+                File(newer.parentFile, "${newer.name}$MARKER").writeText(tier.name)
+            }.onFailure { Logger.warning(TAG, "Could not carry the options over to ${newer.name}", it) }
+            OnaGraphics.selectShader(gameDir, loaderNow, newer.name)
+            stampFile.writeText("$choice|${newer.name}|${tier.name}|$now")
+            Logger.info(TAG, "${version.getVersionName()}: ${SHADERS.getValue(choice)} updated, ${packFile.name} -> ${newer.name}")
+            return@withContext context.getString(R.string.ona_community_updated, SHADERS.getValue(choice), newer.name)
         }
 
         val lines = mutableListOf<String>()
@@ -109,7 +143,7 @@ object CommunityShaders {
             )
             File(pack.parentFile, "${pack.name}$MARKER").writeText(tier.name)
             OnaGraphics.selectShader(gameDir, loader, pack.name)
-            stampFile.writeText("$choice|${pack.name}|${tier.name}")
+            stampFile.writeText("$choice|${pack.name}|${tier.name}|${System.currentTimeMillis()}")
             Logger.info(TAG, "${version.getVersionName()}: $title (${pack.name}), profile ${profile ?: "default"}, ${options.size} options")
             context.getString(R.string.ona_community_on, title, profile ?: "default")
         }.onFailure { Logger.warning(TAG, "Could not set up $choice", it) }.getOrNull()

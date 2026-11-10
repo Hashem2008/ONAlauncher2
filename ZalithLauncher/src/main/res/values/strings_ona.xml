@@ -381,4 +381,6 @@
     <string name="ona_control_press_bounce">Bounce</string>
     <string name="ona_control_press_sink">Push down</string>
     <string name="ona_control_look_preview">Try:</string>
+    <string name="ona_community_updated">%1$s updated to its newest version (%2$s)</string>
+    <string name="ona_resource_updated">Texture pack updated to its newest version (%1$s)</string>
 </resources>

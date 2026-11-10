@@ -48,6 +48,8 @@ object OnaResource {
     const val PERFORMANCE_FILE = "ONA Performance Pack.zip"
     private const val STAMP = "ona_resource.txt"
     private const val PERFORMANCE_GENERATION = 1
+    /** A newer file of the texture pack is looked for this often */
+    private const val UPDATE_CHECK_MS = 24L * 60 * 60 * 1000
     private const val BLOCKS = "assets/minecraft/textures/block/"
     private const val ITEMS = "assets/minecraft/textures/item/"
     /** Animated textures that keep moving in the performance pack (still water looks broken) */
@@ -63,15 +65,28 @@ object OnaResource {
     suspend fun applyOnLaunch(context: Context, version: Version, choice: String): String? = withContext(Dispatchers.IO) {
         val stampFile = File(version.getVersionPath(), STAMP)
         val old = runCatching { stampFile.readText().trim() }.getOrDefault("")
-        val oldChoice = old.substringBefore('|')
-        val oldId = old.substringAfter('|', "")
+        // choice | pack id | time of the last look for a newer file | the pack's Modrinth name
+        val parts = old.split('|')
+        val oldChoice = parts[0]
+        val oldId = parts.getOrNull(1).orEmpty()
         if (oldChoice == choice || (old.isEmpty() && choice == "OFF")) {
             // a game update brings new textures: the performance pack follows them
             if (choice == "PERFORMANCE") runCatching { ensurePerformancePack(version) }
-            return@withContext null
+            if (choice !in OnaTexturePacks.RESOLUTIONS || !oldId.startsWith("file/")) return@withContext null
+            // once a day: a newer file of the same pack (no network: asked again tomorrow)
+            val now = System.currentTimeMillis()
+            val checkedAt = parts.getOrNull(2)?.toLongOrNull() ?: 0L
+            if (now - checkedAt in 0 until UPDATE_CHECK_MS) return@withContext null
+            val installed = oldId.removePrefix("file/")
+            // put in by an older launcher: the pack is not noted, the first of this size is tried
+            val slug = parts.getOrNull(3).orEmpty().ifEmpty { OnaTexturePacks.search(choice).firstOrNull()?.slug.orEmpty() }
+            val newer = if (slug.isEmpty()) null else OnaTexturePacks.update(version, slug, installed)
+            stampFile.writeText("$choice|${if (newer != null) "file/$newer" else oldId}|$now|$slug")
+            return@withContext newer?.let { context.getString(R.string.ona_resource_updated, it) }
         }
         val gameDir = version.getGameDir()
         if (oldId.isNotEmpty()) OnaTexturePacks.removePack(gameDir, oldId)
+        var slug = ""
         val result: Pair<String, String> = when (choice) {
             "OFF" -> "" to context.getString(R.string.ona_resource_turned_off)
             "PERFORMANCE" -> {
@@ -88,10 +103,11 @@ object OnaResource {
                 val name = pack?.let { OnaTexturePacks.install(version, it) }
                 // no stamp: tried again on the next launch
                 if (pack == null || name == null) return@withContext context.getString(R.string.ona_resource_failed, choice)
+                slug = pack.slug
                 "file/$name" to context.getString(R.string.ona_resource_pack_on, pack.title, choice)
             }
         }
-        stampFile.writeText("$choice|${result.first}")
+        stampFile.writeText("$choice|${result.first}|${System.currentTimeMillis()}|$slug")
         Logger.info(TAG, "${version.getVersionName()}: ONA Resource $choice (${result.first})")
         result.second
     }
