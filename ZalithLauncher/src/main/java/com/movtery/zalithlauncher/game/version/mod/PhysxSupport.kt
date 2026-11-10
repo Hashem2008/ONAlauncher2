@@ -39,7 +39,11 @@ import java.util.zip.ZipInputStream
  * it, so the mod loads ARM64 PhysX instead of the x86 one.
  *
  * physx-jni 1.1.0 (Physics Mod for 1.18.2) has neither the properties nor an Android build:
- * ONA ships its own arm64 port of it (see [PORTED_VERSIONS]). Other old versions are reported.
+ * ONA ships its own arm64 port of it (see [PORTED_VERSIONS]).
+ *
+ * physx-jni 2.2.2 (Physics Mod 3.0.x for 1.20.1) has the properties but no Android build: it runs on
+ * the Android build of 2.3.1 through ONA's bridge library (tools/physx-compat, see [BRIDGED_VERSIONS]).
+ * Other old versions are reported.
  */
 object PhysxSupport {
     private const val TAG = "PhysxSupport"
@@ -65,6 +69,52 @@ object PhysxSupport {
      * compiled for the phone CPU by tools/physx4-android in CI and bundled in the APK.
      */
     private val PORTED_VERSIONS = setOf("1.1.0")
+
+    /**
+     * physx-jni versions that run on the Android build of a newer one through ONA's bridge
+     * (libPhysXJniCompat.so, arm64): it answers the few native methods the newer build no longer
+     * has, everything else comes from the real library next to it. Checked method by method:
+     * 2.2.2 -> 2.3.1 differ in 7 of 4554 (tools/physx-compat/physx_jni_compat.c).
+     */
+    private val BRIDGED_VERSIONS = mapOf("2.2.2" to "2.3.1")
+    private const val BRIDGE_LIB = "libPhysXJniCompat.so"
+    /** The name the bridge looks for next to itself (its DT_NEEDED) */
+    private const val BRIDGED_REAL_LIB = "libPhysXJniReal.so"
+
+    private fun bundledBridge(): File = File(PathManager.DIR_NATIVE_LIB, BRIDGE_LIB)
+
+    private fun bridgeDir(physxVersion: String): File = File(PathManager.DIR_CACHE, "physx-android/$physxVersion-bridge")
+
+    /** The bridge only exists for arm64 (the Android builds of physx-jni are arm64 only) */
+    private fun canBridge(physxVersion: String): Boolean =
+        physxVersion in BRIDGED_VERSIONS && APP_ABI == "arm64-v8a" && LIB_NAME == "libPhysXJniBindings_64.so" && bundledBridge().isFile
+
+    /**
+     * The folder physx-jni loads from: the bridge under the name physx-jni asks for, the real
+     * library of the newer version under the name the bridge needs. Copied again when it changed.
+     */
+    private fun placeBridge(physxVersion: String): Boolean {
+        val realVersion = BRIDGED_VERSIONS[physxVersion] ?: return false
+        val real = nativeLib(realVersion)
+        if (!real.isFile || !bundledBridge().isFile) return false
+        return runCatching {
+            val dir = bridgeDir(physxVersion).apply { mkdirs() }
+            // size and time, not a checksum: the real library is 60 MB
+            fun copyIfChanged(source: File, target: File) {
+                if (target.isFile && target.length() == source.length() && target.lastModified() >= source.lastModified()) return
+                val temp = File(target.path + ".part")
+                source.copyTo(temp, overwrite = true)
+                if (!temp.renameTo(target)) {
+                    target.delete()
+                    if (!temp.renameTo(target)) throw java.io.IOException("Cannot write $target")
+                }
+                target.setLastModified(maxOf(System.currentTimeMillis(), source.lastModified()))
+            }
+            copyIfChanged(bundledBridge(), File(dir, LIB_NAME))
+            copyIfChanged(real, File(dir, BRIDGED_REAL_LIB))
+            true
+        }.onFailure { Logger.warning(TAG, "Could not place the PhysX $physxVersion bridge", it) }.getOrDefault(false)
+    }
 
     private fun bundledPort(): File = File(PathManager.DIR_NATIVE_LIB, LIB_NAME)
 
@@ -151,6 +201,16 @@ object PhysxSupport {
         } ?: return Result(Status.NONE, null, null)
         if (!isAndroidBuildAvailable(physxVersion)) {
             if (placePort(physxVersion)) return Result(Status.PORTED, physxVersion, jar.name)
+            if (canBridge(physxVersion)) {
+                val realVersion = BRIDGED_VERSIONS.getValue(physxVersion)
+                if (!nativeLib(realVersion).isFile && !download(realVersion)) {
+                    return Result(Status.DOWNLOAD_FAILED, physxVersion, jar.name)
+                }
+                if (placeBridge(physxVersion)) {
+                    Logger.info(TAG, "${jar.name}: physx-jni $physxVersion runs on Android PhysX $realVersion through ONA's bridge")
+                    return Result(Status.READY, "$physxVersion (Android $realVersion)", jar.name)
+                }
+            }
             Logger.warning(TAG, "${jar.name} uses physx-jni $physxVersion, which has no Android build")
             return Result(Status.UNSUPPORTED_OLD, physxVersion, jar.name)
         }
@@ -162,8 +222,17 @@ object PhysxSupport {
     /** JVM arguments that make physx-jni load the ARM64 library, empty when not prepared */
     fun jvmArgs(version: Version): List<String> {
         val physxVersion = candidates(version.modsDir()).firstNotNullOfOrNull { detectVersion(it) } ?: return emptyList()
-        // 1.x: no properties, the port just has to be in place (done again here for the game process)
         if (!isAndroidBuildAvailable(physxVersion)) {
+            // 2.2.2: the bridge folder made by prepare()
+            if (canBridge(physxVersion) && File(bridgeDir(physxVersion), BRIDGED_REAL_LIB).isFile &&
+                File(bridgeDir(physxVersion), LIB_NAME).isFile
+            ) {
+                return listOf(
+                    "-Dphysxjni.nativeLibLocation=${bridgeDir(physxVersion).absolutePath}",
+                    "-Dphysxjni.loadFromResources=false"
+                )
+            }
+            // 1.x: no properties, the port just has to be in place (done again here for the game process)
             placePort(physxVersion)
             return emptyList()
         }

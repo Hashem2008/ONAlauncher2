@@ -1,0 +1,33 @@
+Zombie Invade 100 Days, 2nd log: Physics Mod 3.0.14 and PhysX 2.2.2 (2026-11-10 d)
+
+Second log (same Performance APK as round c, so before dfe6099): "skipped=1 -> MobileGlues (ONA engine)":
+the crash doctor had marked Kopper Zink after the first crash, the window opens now.
+New cause: physics-mod-3.0.14-mc-1.20.1-forge.jar -> "Failed loading native PhysX libraries for
+platform LINUX" / UnsatisfiedLinkError "libPhysXJniBindings_64.so is for EM_X86_64 instead of
+EM_AARCH64" (physx-jni 2.2.2 ships PC libraries only) -> "Failed to complete lifecycle event
+CONSTRUCT, 1 errors found" -> Forge in a broken state (vanilla stitcher, resource packs removed,
+armorchroma "Missing fallback icons", Embeddium options screen NPE on ResourcePackLoader) -> crash.
+Everything after CONSTRUCT follows from Physics Mod not loading.
+
+physx-jni facts (javap on de.fabmax:physx-jni 2.2.2 and 2.3.1, readelf on physx-jni-android 2.3.1):
+- 2.2.2 reads physxjni.nativeLibLocation / physxjni.loadFromResources (loads <dir>/<lib name>).
+- Native methods: 4554 in both; 7 differ (JniThreadManager._init gone, PxSceneFlag eSUPPRESS/
+  eFORCE_READBACK -> eENABLE_DIRECT_GPU_API, vehicle2 "Renponses" typo fixed, tank nbWheelsInTracks
+  replaced). The Android library lacks 533 GPU/CUDA/particle/OmniPVD methods (all versions).
+- Android build: arm64-v8a only, 63 MB .so in a 17 MB aar, 4 KB page aligned, has JNI_OnLoad.
+
+Fix (no change to the mod):
+- tools/physx-compat: libPhysXJniCompat.so (arm64, -nostdlib, 16 KB aligned, DT_NEEDED
+  libPhysXJniReal.so + RUNPATH $ORIGIN) implements the 7 methods (forwards the renamed vehicle2 pair).
+  Built with build.sh (clang + lld), committed to jniLibs/arm64-v8a. Every one of 2.2.2's natives
+  resolves to the real library or the bridge (script check, 0 unresolved outside GPU features).
+- PhysxSupport: BRIDGED_VERSIONS 2.2.2 -> 2.3.1. prepare() downloads Android 2.3.1 (existing Maven
+  download), builds <cache>/physx-android/2.2.2-bridge (bridge as libPhysXJniBindings_64.so, real as
+  libPhysXJniReal.so; copied when size / time changed), status READY "2.2.2 (Android 2.3.1)".
+  jvmArgs() points physx-jni at that folder. arm 32-bit and x86_64 APKs: as before (reported).
+Not device-tested. Risks: PhysX 5.3 under 2.2.2's Java side (identical signatures, values of enums
+come from the native side); a GPU-physics option in the mod would hit the missing GPU methods.
+What to look for in the next log: "runs on Android PhysX 2.3.1 through ONA's bridge", no
+"Failed loading native PhysX", Physics Mod listed without CONSTRUCT errors.
+Also in the log: Complementary r5.9.3 on Oculus 1.8.0 logs "Unknown variable: BIOME_PALE_GARDEN"
+(1.21.4 biomes in its custom uniforms), Oculus goes on.
