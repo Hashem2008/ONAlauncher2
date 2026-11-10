@@ -661,7 +661,7 @@ ONA SHADER ++ AS ITS OWN PACK (2026-11-10 b)
   Checks on the new pack: 96/96, 1344/1344 with test profiles, 65 options. Run the checks on both
   pack dirs after any shader edit.
   ONA_CHANGES/2026-11-10b_ona-shader-plusplus-own-pack.txt.
-  CI: APK run 42751308673 (d169929, 4 APKs) was still RUNNING when this was written: check it first.
+  CI: APK run 42751308673 (d169929) SUCCESS, 4 APKs (arm64, arm, x86_64, performance).
   Not device-tested: ask for a screenshot (day, rain on wet ground, night) and the log if the pack
   does not load.
 
@@ -744,4 +744,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-09 (د): Complementary: اللانشر بيطفي الانعكاسات والإضاءة الملونة اللي بتحتاج compute قبل ما تبلش اللعبة. البيلد نجح.
 - 2026-11-09 (هـ): ONA Boost 1.2.0: بيفهم حد الفريمات باللعبة (الإعدادات بترجع صح)، ما بيخفف وإنت تارك اللعبة، ورق شجر سريع (بدون شيدر)، مسافة أقل للجوالات الضعيفة، واللي بتغيره إنت بيضل. والتنزيلات ما عاد يضل منها ملف ناقص. البيلد نجح.
 - 2026-11-10 (أ): صلحنا Complementary لما تغيّر البروفايل من جوا اللعبة (ONA Boost 1.2.1)، صنف ONA Shader ++ (نعومة زمنية، ظلال 24 عينة، حدّة، سما ليلية بنجوم وشفق)، أشكال أزرار (مكعبات، بيكسل، زجاج، نيون، فقاعة) مع حركة ضغط وتخطيط ONA Pro، والشيدرات والريسورس بيتحدثوا لحالهم. وملف ONA_WORK_METHOD.txt لطريقة الشغل. البيلد نجح.
-- 2026-11-10 (ب): ONA Shader ++ صار شيدر مستقل بملفاته (انعكاس على كل سطح لامع، غيوم ثلاثية حقيقية، نعومة زمنية، سما ليلية)، والشيدر القديم رجع زي ما كان بالضبط. البيلد شغال (تأكد من نتيجته).
+- 2026-11-10 (ب): ONA Shader ++ صار شيدر مستقل بملفاته (انعكاس على كل سطح لامع، غيوم ثلاثية حقيقية، نعومة زمنية، سما ليلية)، والشيدر القديم رجع زي ما كان بالضبط. البيلد نجح.
