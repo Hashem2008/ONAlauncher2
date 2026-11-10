@@ -3,16 +3,8 @@
 #include "/lib/common.glsl"
 
 uniform sampler2D colortex0;
-#if defined GODRAYS || defined DEPTH_OF_FIELD || defined LENS_FLARE || defined MOTION_BLUR
+#if defined GODRAYS || defined DEPTH_OF_FIELD || defined LENS_FLARE
 uniform sampler2D depthtex0;
-#endif
-#ifdef MOTION_BLUR
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferPreviousProjection;
-uniform mat4 gbufferPreviousModelView;
-uniform vec3 cameraPosition;
-uniform vec3 previousCameraPosition;
 #endif
 #if defined BLOOM || defined DEPTH_OF_FIELD
 const bool colortex0MipmapEnabled = true;
@@ -47,50 +39,6 @@ void main() {
     vec3 c = vec3(texture2D(colortex0, texcoord + off).r, texture2D(colortex0, texcoord).g, texture2D(colortex0, texcoord - off).b);
 #else
     vec3 c = texture2D(colortex0, texcoord).rgb;
-#endif
-#ifdef SHARPEN
-    {
-        // crisp: what makes this pixel differ from the four around it is made stronger, but never
-        // past the brightest or darkest of them (no bright or dark rims around edges)
-        vec2 spx = vec2(1.0 / viewWidth, 1.0 / viewHeight);
-        vec3 s1 = texture2D(colortex0, texcoord + vec2(spx.x, 0.0)).rgb;
-        vec3 s2 = texture2D(colortex0, texcoord - vec2(spx.x, 0.0)).rgb;
-        vec3 s3 = texture2D(colortex0, texcoord + vec2(0.0, spx.y)).rgb;
-        vec3 s4 = texture2D(colortex0, texcoord - vec2(0.0, spx.y)).rgb;
-        vec3 sharp = c + (c - (s1 + s2 + s3 + s4) * 0.25) * (SHARPEN_STRENGTH * 1.2);
-        c = clamp(sharp, min(c, min(min(s1, s2), min(s3, s4))), max(c, max(max(s1, s2), max(s3, s4))));
-    }
-#endif
-#ifdef MOTION_BLUR
-    {
-        // camera motion blur: the picture is smeared along the way each spot of the world moved on
-        // screen since the last frame (at most 3% of the screen; the hand stays sharp)
-        float md = texture2D(depthtex0, texcoord).r;
-        if (md > 0.56) {
-            vec4 mv = gbufferProjectionInverse * vec4(vec3(texcoord, md) * 2.0 - 1.0, 1.0);
-            mv /= mv.w;
-            vec4 mw = gbufferModelViewInverse * mv;
-            mw.xyz += cameraPosition - previousCameraPosition;
-            vec4 mc = gbufferPreviousProjection * (gbufferPreviousModelView * mw);
-            if (mc.w > 0.0) {
-                vec2 vel = (texcoord - (mc.xy / mc.w * 0.5 + 0.5)) * (MOTION_BLUR_STRENGTH * 0.6);
-                float speed = length(vel);
-                if (speed > 0.03) vel *= 0.03 / speed;
-                if (speed > 0.0005) {
-                    vec3 sum = c;
-                    float count = 1.0;
-                    for (int i = 0; i < 6; i++) {
-                        vec2 muv = texcoord + vel * ((float(i) + 0.5) / 6.0 - 0.5);
-                        if (muv.x < 0.0 || muv.x > 1.0 || muv.y < 0.0 || muv.y > 1.0) continue;
-                        if (texture2D(depthtex0, muv).r <= 0.56) continue;
-                        sum += texture2D(colortex0, muv).rgb;
-                        count += 1.0;
-                    }
-                    c = sum / count;
-                }
-            }
-        }
-    }
 #endif
 #ifdef DEPTH_OF_FIELD
     // camera focus on the middle of the screen; the hand and the sky stay as they are

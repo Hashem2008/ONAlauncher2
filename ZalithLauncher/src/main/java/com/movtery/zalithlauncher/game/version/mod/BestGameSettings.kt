@@ -212,7 +212,7 @@ object BestGameSettings {
     private fun applyShaderPack(gameDir: File, tier: DeviceTier, applied: MutableSet<String>): String? {
         val pack = selectedShaderPack(gameDir) ?: return null
         // ONA's own pack gets its level from ONA Graphics
-        if (pack == com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME) return null
+        if (com.movtery.zalithlauncher.game.graphics.OnaGraphics.isOnaPack(pack)) return null
         val relative = "shaderpacks/$pack.txt"
         if (relative in applied) return null
         if (!File(gameDir, "shaderpacks/$pack").exists()) return null

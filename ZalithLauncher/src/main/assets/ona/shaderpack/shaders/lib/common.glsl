@@ -38,19 +38,6 @@ float onaNoise(vec2 pixel) {
     return fract(52.9829189 * fract(dot(pixel, vec2(0.06711056, 0.00583715))));
 }
 
-// The same, on other spots every frame while temporal smoothing is on: the blend of the frames
-// then holds many times the samples of one frame (smooth shadow edges and shafts, no grain)
-#ifdef TAA
-uniform int frameCounter;
-float onaFrameNoise(vec2 pixel) {
-    return onaNoise(pixel + mod(float(frameCounter), 16.0) * vec2(5.588238, 3.141593));
-}
-#else
-float onaFrameNoise(vec2 pixel) {
-    return onaNoise(pixel);
-}
-#endif
-
 // Sky made of a blue zenith, a pale horizon that turns orange on the sun's side at dawn and dusk,
 // a forward-scattering halo around the sun and a dark blue night (colours tuned on a CPU render).
 vec3 onaAtmosphere(vec3 dir, vec3 sunDir, vec3 upDir, float rain) {

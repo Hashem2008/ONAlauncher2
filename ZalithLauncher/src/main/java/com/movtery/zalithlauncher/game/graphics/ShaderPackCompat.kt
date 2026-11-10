@@ -43,7 +43,7 @@ object ShaderPackCompat {
     /** @return the options set off now (empty when nothing changed) */
     fun apply(gameDir: File): List<String> = runCatching {
         val name = ShaderBoost.activeShaderPack(gameDir) ?: return@runCatching emptyList()
-        if (name == OnaGraphics.SHADER_NAME) return@runCatching emptyList()
+        if (OnaGraphics.isOnaPack(name)) return@runCatching emptyList()
         val pack = File(File(gameDir, "shaderpacks"), name)
         if (!pack.exists() || SmartRenderer.gl43Safe(pack)) return@runCatching emptyList()
         val declared = declaredOptions(pack)

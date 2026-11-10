@@ -59,8 +59,15 @@ enum class OnaGraphicsLevel(@StringRes val titleRes: Int) {
     IMPOSSIBLE_ULTRA(R.string.ona_graphics_lvl_impossible_ultra),
     UNBELIEVABLE(R.string.ona_graphics_lvl_unbelievable),
 
-    /** ONA Shader ++: looks only (temporal smoothing, 24-tap shadows, night sky...), the FPS is not looked at */
+    /**
+     * ONA Shader ++: ONA's second shader pack (assets/ona/shaderpack_pp), for looks only: the world
+     * mirrored in every shiny surface, clouds walked through in 3D, temporal smoothing, 24-tap
+     * shadows, a night sky. Choosing it here installs and selects that pack.
+     */
     ONA_PLUS_PLUS(R.string.ona_graphics_lvl_plus_plus);
+
+    /** ONA Shader ++ is a pack of its own, not a level of ONA Mobile Shaders */
+    val isPlusPlus: Boolean get() = this == ONA_PLUS_PLUS
 
     /** From MEDIUM up the shader reads the PBR maps (bumps, shine, glow) */
     val usesPbr: Boolean get() = ordinal >= MEDIUM.ordinal
@@ -91,6 +98,18 @@ object OnaGraphics {
     /** Bump when OnaPbr changes: packs made by an older launcher are made again */
     private const val PBR_GENERATION = 2
     private const val ASSET_DIR = "ona/shaderpack"
+
+    /** ONA's second pack: its own files, its own name in the game's shader list */
+    const val PLUS_PLUS_NAME = "ONA Shader ++"
+    private const val PLUS_PLUS_ASSET_DIR = "ona/shaderpack_pp"
+    /** The profile of ONA Shader ++ the launcher starts it with (the player picks others in the game) */
+    private const val PLUS_PLUS_PROFILE = "PP_ULTRA"
+
+    /** One of ONA's own shader packs (they get their settings from ONA Graphics, not from the tuners) */
+    fun isOnaPack(name: String?): Boolean = name == SHADER_NAME || name == PLUS_PLUS_NAME
+
+    private fun packName(level: OnaGraphicsLevel) = if (level.isPlusPlus) PLUS_PLUS_NAME else SHADER_NAME
+    private fun assetDir(packName: String) = if (packName == PLUS_PLUS_NAME) PLUS_PLUS_ASSET_DIR else ASSET_DIR
 
     fun autoLevel(tier: DeviceTier): OnaGraphicsLevel = when (tier) {
         DeviceTier.LOW -> OnaGraphicsLevel.PERFORMANCE
@@ -163,7 +182,8 @@ object OnaGraphics {
         // 2. The shader pack, fresh from the APK, and the options of the level
         onProgress(context.getString(R.string.ona_graphics_copying))
         val packsDir = File(gameDir, "shaderpacks").apply { mkdirs() }
-        installPack(context, packsDir)
+        val pack = packName(level)
+        installPack(context, packsDir, pack)
         var options = profileOptions(context, level)
         if (loader == Loader.OPTIFINE) {
             val capped = capOptions(options, maxResolution = 2048, maxDistance = 96f)
@@ -177,10 +197,10 @@ object OnaGraphics {
             if (capped != options) lines.add(context.getString(R.string.ona_graphics_heavy_capped, mods))
             options = capped
         }
-        File(packsDir, "$SHADER_NAME.txt").writeText(
+        File(packsDir, "$pack.txt").writeText(
             options.entries.joinToString("\n", postfix = "\n") { (key, value) -> "$key=$value" }
         )
-        selectShader(gameDir, loader)
+        selectShader(gameDir, loader, pack)
         lines.add(context.getString(R.string.ona_graphics_level_set, context.getString(level.titleRes)))
 
         // 3. PBR maps from MEDIUM up
@@ -209,10 +229,16 @@ object OnaGraphics {
     fun offerPack(context: Context, version: Version) {
         if (detectLoader(version) == Loader.NONE) return
         val packsDir = File(version.getGameDir(), "shaderpacks")
+        // ONA Shader ++ is in the list too (its own defaults are its "Ultra" profile)
+        val plusPlus = File(File(packsDir, PLUS_PLUS_NAME), REVISION_FILE)
+        if (!plusPlus.isFile || plusPlus.readText().trim() != packRevision(context, PLUS_PLUS_NAME)) {
+            packsDir.mkdirs()
+            installPack(context, packsDir, PLUS_PLUS_NAME)
+        }
         val marker = File(File(packsDir, SHADER_NAME), REVISION_FILE)
-        if (marker.isFile && marker.readText().trim() == packRevision(context)) return
+        if (marker.isFile && marker.readText().trim() == packRevision(context, SHADER_NAME)) return
         packsDir.mkdirs()
-        installPack(context, packsDir)
+        installPack(context, packsDir, SHADER_NAME)
         val options = File(packsDir, "$SHADER_NAME.txt")
         if (!options.isFile) {
             val tier = com.movtery.zalithlauncher.utils.device.DeviceProfiler.current()?.tier ?: DeviceTier.MID
@@ -228,8 +254,10 @@ object OnaGraphics {
      * ("profile.HIGH=SHADOWS !GODRAYS PBR=2 ..."), so the launcher and the in-game profile agree.
      */
     fun profileOptions(context: Context, level: OnaGraphicsLevel): Map<String, String> {
-        val properties = context.assets.open("$ASSET_DIR/shaders/shaders.properties").use { it.readBytes().decodeToString() }
-        val line = properties.lines().firstOrNull { it.startsWith("profile.${level.name}=") } ?: return emptyMap()
+        val dir = assetDir(packName(level))
+        val profile = if (level.isPlusPlus) PLUS_PLUS_PROFILE else level.name
+        val properties = context.assets.open("$dir/shaders/shaders.properties").use { it.readBytes().decodeToString() }
+        val line = properties.lines().firstOrNull { it.startsWith("profile.$profile=") } ?: return emptyMap()
         val options = linkedMapOf<String, String>()
         line.substringAfter('=').trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.forEach { token ->
             when {
@@ -266,7 +294,7 @@ object OnaGraphics {
     }
 
     /** Checksum of the pack in the APK: changes whenever the shader code changes */
-    private fun packRevision(context: Context): String {
+    private fun packRevision(context: Context, pack: String): String {
         val crc = java.util.zip.CRC32()
         fun walk(path: String) {
             val children = context.assets.list(path).orEmpty()
@@ -275,15 +303,15 @@ object OnaGraphics {
                 context.assets.open(path).use { crc.update(it.readBytes()) }
             } else children.sorted().forEach { walk("$path/$it") }
         }
-        walk(ASSET_DIR)
+        walk(assetDir(pack))
         return java.lang.Long.toHexString(crc.value)
     }
 
-    private fun installPack(context: Context, packsDir: File) {
-        val packDir = File(packsDir, SHADER_NAME)
+    private fun installPack(context: Context, packsDir: File, pack: String) {
+        val packDir = File(packsDir, pack)
         packDir.deleteRecursively()
-        copyAssets(context, ASSET_DIR, packDir)
-        File(packDir, REVISION_FILE).writeText(packRevision(context))
+        copyAssets(context, assetDir(pack), packDir)
+        File(packDir, REVISION_FILE).writeText(packRevision(context, pack))
     }
 
     /**
@@ -295,11 +323,14 @@ object OnaGraphics {
      */
     suspend fun applyOnLaunch(context: Context, version: Version, level: OnaGraphicsLevel): Result? = withContext(Dispatchers.IO) {
         if (version.modEnvironment()?.loader == null && detectLoader(version) == Loader.NONE) return@withContext null
+        // both of ONA's packs are in the game's shader list, whichever one is chosen here
+        runCatching { offerPack(context, version) }
         val stamp = File(version.getVersionPath(), "ona_graphics.txt")
-        val wanted = "${level.name}|${packRevision(context)}"
+        val pack = packName(level)
+        val wanted = "${level.name}|${packRevision(context, pack)}"
         val loader = detectLoader(version)
         if (loader != Loader.NONE && runCatching { stamp.readText().trim() }.getOrNull() == wanted) {
-            selectShader(version.getGameDir(), loader)
+            selectShader(version.getGameDir(), loader, pack)
             // packs added or removed since: the maps follow the textures that are on now
             val pbr = level.usesPbr && runCatching { ensurePbrPack(context, version) { } }.getOrDefault(false)
             setPbrPack(version.getGameDir(), enabled = pbr)

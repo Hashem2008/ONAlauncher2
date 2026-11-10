@@ -172,7 +172,7 @@ object SmartRenderer : RendererInterface {
             sodiumLike = sodiumLike,
             modCount = modNames.size,
             physicsMod = modNames.any { it.contains("physics-mod") || it.contains("physicsmod") },
-            onaShaders = activePack == com.movtery.zalithlauncher.game.graphics.OnaGraphics.SHADER_NAME,
+            onaShaders = com.movtery.zalithlauncher.game.graphics.OnaGraphics.isOnaPack(activePack),
             computeShaders = activePack?.let { gl43Safe(File(File(gameDir, "shaderpacks"), it)) } ?: false
         )
     }
