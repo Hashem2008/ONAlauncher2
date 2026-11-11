@@ -717,8 +717,7 @@ LOGS ZIP v2 + INPUT TRACE (2026-11-11 a)
   changes (400 per start) into the game process log. Key bindings in options.txt are the defaults,
   layout "Default", press animation BOUNCE, renderDistance 2. In that session the player was knocked
   out and died (Hardcore Revival KnockoutScreen).
-  CI: APK build of b93bde1 (dispatch, 4 APKs) was still RUNNING when this was written: check it
-  first (new Kotlin: LogCollector, InputTrace).
+  CI: APK run 43100462657 (b93bde1) SUCCESS, 4 APKs (push run cancelled). Not device-tested.
   Next: ask for a new zip after trying jump / crouch / hotbar; read 6-launcher-app/*_game.log
   (InputTrace lines: do the keys go out, is the cursor grabbed).
 
@@ -806,4 +805,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (د): مود Physics 3.0 (PhysX 2.2.2 للكمبيوتر بس) صار يشتغل على PhysX أندرويد 2.3.1 من خلال جسر صغير من ONA، بدون ما نلمس المود. البيلد نجح.
 - 2026-11-10 (هـ): تأكدنا عالجوال إنه جسر PhysX شغال ومود Physics بيحمل. مشكلة الأزرار (تبديل الأغراض والقفز والجلوس) ما بينت باللوج: طلبنا options.txt وأسئلة. مود endofdays بيطلع خطأ كل فريم (HUD).
 - 2026-11-10 (و): زر واحد "إرسال كل اللوقات" بصفحة النسخة وبعد الكراش: بيجمع كل اللوقات والإعدادات وقائمة المودات بملف ZIP واحد وبيفتح المشاركة. البيلد نجح.
-- 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد شغال (تأكد من نتيجته).
+- 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد نجح.
