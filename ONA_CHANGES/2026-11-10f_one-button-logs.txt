@@ -30,3 +30,17 @@ No local Kotlin compiler: CI is the check. Not device-tested.
 
 Follow-up (user: "options too, everything needed"): every options file, the version json, other game
 logs, the whole config folder (default key bindings of the pack live there) and the control layout.
+
+Follow-up 2 (2026-11-11, first zip from the phone: ONA-logs_Zombie_Invade_100_Days_2026-11-12_00-03):
+- The 12 MB tail of the 31 MB logs covered only the last 45 seconds (endofdays HUD error every frame),
+  the header with device / renderer was lost. Now repeated errors (same text, other time stamp; a
+  line without time stamp belongs to the line before) are copied 3 times and counted, with a list at
+  the end: the 51 MB logs of 2026-11-10 shrink to about 0.5 MB (checked with a Python port of the same
+  logic). Still too big: the first 1/6 and the last 5/6 of the limit are kept.
+- Launcher app logs: the newest 2 of every process (the game runs in ":game"; only "main" was in).
+- game/input/InputTrace.kt: the on-screen buttons, hotbar taps and in-game / menu changes are written
+  to the game process's launcher log (400 events per start): key, down / up, modifiers held, cursor
+  grabbed or not. Needed for "cannot jump / crouch / change items": the game logs say nothing.
+Seen in that zip: options.txt key bindings are the defaults (jump space, sneak left.shift, hotbar
+1-9), the pack's defaultoptions too; layout "Default"; button look CLASSIC, press BOUNCE;
+renderDistance 2 in options.txt; a Kopper Zink plugin (Mesa 25.0.7 fork) is installed.

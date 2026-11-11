@@ -36,6 +36,8 @@ object ZLBridgeStates {
     @JvmStatic
     fun changeCursorMode(mode: Int) {
         require(mode in 0..1)
+        // ONA: in game / menu changes, for "Send all logs"
+        if (this._cursorMode.value != mode) com.movtery.zalithlauncher.game.input.InputTrace.cursor(mode == CURSOR_DISABLED)
         this._cursorMode.update { mode }
     }
 

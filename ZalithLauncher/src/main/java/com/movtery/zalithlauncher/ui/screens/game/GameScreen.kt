@@ -708,6 +708,7 @@ fun GameScreen(
                 widthPercentage = AllSettings.hotbarWidth.state.hotbarPercentage(),
                 heightPercentage = AllSettings.hotbarHeight.state.hotbarPercentage(),
                 sendKeycode = { keycode ->
+                    com.movtery.zalithlauncher.game.input.InputTrace.key("hotbar", keycode, true)
                     CallbackBridge.sendKeyPress(keycode)
                 },
                 isGrabbing = isGrabbing,

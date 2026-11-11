@@ -32,8 +32,10 @@ fun lwjglEvent(
     val keycode: Int = ControlEventKeycode.getKeycodeFromEvent(eventKey)?.toInt() ?: return
 
     if (isMouse) {
+        com.movtery.zalithlauncher.game.input.InputTrace.mouse("button", keycode, isPressed)
         CallbackBridge.sendMouseButton(keycode, isPressed)
     } else {
+        com.movtery.zalithlauncher.game.input.InputTrace.key("button", keycode, isPressed)
         CallbackBridge.sendKeyPress(keycode, CallbackBridge.getCurrentMods(), isPressed)
         CallbackBridge.setModifiers(keycode, isPressed)
     }
