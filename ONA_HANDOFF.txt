@@ -709,6 +709,19 @@ ONE BUTTON FOR ALL LOGS (2026-11-10 f)
   logs, the whole config folder and the control layout. APK run 42872087578 (413e116) SUCCESS, 4 APKs
   (push run 42872053482 also green). Not device-tested.
 
+LOGS ZIP v2 + INPUT TRACE (2026-11-11 a)
+- First zip from the phone (Zombie Invade 100 Days): logs were 31 MB of one endofdays HUD error per
+  frame, the kept 12 MB tail covered 45 s. b93bde1: repeated errors copied 3x and counted (51 MB ->
+  0.5 MB on the old logs), start + end kept when still big, launcher logs of every process (the game
+  runs in ":game"). game/input/InputTrace.kt logs on-screen keys, hotbar taps and cursor grab
+  changes (400 per start) into the game process log. Key bindings in options.txt are the defaults,
+  layout "Default", press animation BOUNCE, renderDistance 2. In that session the player was knocked
+  out and died (Hardcore Revival KnockoutScreen).
+  CI: APK build of b93bde1 (dispatch, 4 APKs) was still RUNNING when this was written: check it
+  first (new Kotlin: LogCollector, InputTrace).
+  Next: ask for a new zip after trying jump / crouch / hotbar; read 6-launcher-app/*_game.log
+  (InputTrace lines: do the keys go out, is the cursor grabbed).
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -793,3 +806,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (د): مود Physics 3.0 (PhysX 2.2.2 للكمبيوتر بس) صار يشتغل على PhysX أندرويد 2.3.1 من خلال جسر صغير من ONA، بدون ما نلمس المود. البيلد نجح.
 - 2026-11-10 (هـ): تأكدنا عالجوال إنه جسر PhysX شغال ومود Physics بيحمل. مشكلة الأزرار (تبديل الأغراض والقفز والجلوس) ما بينت باللوج: طلبنا options.txt وأسئلة. مود endofdays بيطلع خطأ كل فريم (HUD).
 - 2026-11-10 (و): زر واحد "إرسال كل اللوقات" بصفحة النسخة وبعد الكراش: بيجمع كل اللوقات والإعدادات وقائمة المودات بملف ZIP واحد وبيفتح المشاركة. البيلد نجح.
+- 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد شغال (تأكد من نتيجته).
