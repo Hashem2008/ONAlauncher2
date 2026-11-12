@@ -731,7 +731,7 @@ CRASH "REGISTRY LOADING": LITHOSPHERE 1.9 ON 1.21.8 (2026-11-12 a)
   provider build that has them, else a build of the data mod that only uses what is there
   (here Lithosphere 1.8.2). Host test with real jars + Modrinth: replaced 1.9 -> 1.8.2 in 3 s; no
   false alarm with Lithostitched 2.0.6. ONA_CHANGES/2026-11-12a_worldgen-types-lithosphere.txt.
-  CI: APK run 43184972523 (d0ef1f1) RUNNING (push run 43184946538 cancelled). Not device-tested.
+  CI: APK run 43184972523 (d0ef1f1) SUCCESS, 4 APKs (push run 43184946538 cancelled). Not device-tested.
 - Still open: Zombie Invade jump / crouch / hotbar (waiting for a zip with InputTrace).
 
 STATUS / OPEN ITEMS (check these first)
@@ -819,4 +819,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (هـ): تأكدنا عالجوال إنه جسر PhysX شغال ومود Physics بيحمل. مشكلة الأزرار (تبديل الأغراض والقفز والجلوس) ما بينت باللوج: طلبنا options.txt وأسئلة. مود endofdays بيطلع خطأ كل فريم (HUD).
 - 2026-11-10 (و): زر واحد "إرسال كل اللوقات" بصفحة النسخة وبعد الكراش: بيجمع كل اللوقات والإعدادات وقائمة المودات بملف ZIP واحد وبيفتح المشاركة. البيلد نجح.
 - 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد نجح.
-- 2026-11-12 (أ): كراش Lithosphere 1.9 على 1.21.8 (بده Lithostitched أحدث مش موجود لهاي النسخة): اللانشر صار يكتشف هيك مشكلة لحاله وبيبدّل لنسخة بتشتغل (1.8.2). البيلد شغال.
+- 2026-11-12 (أ): كراش Lithosphere 1.9 على 1.21.8 (بده Lithostitched أحدث مش موجود لهاي النسخة): اللانشر صار يكتشف هيك مشكلة لحاله وبيبدّل لنسخة بتشتغل (1.8.2). البيلد نجح.
