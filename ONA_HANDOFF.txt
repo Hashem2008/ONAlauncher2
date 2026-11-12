@@ -757,7 +757,16 @@ DISTANT HORIZONS 3.3: SQLITE-JDBC FOR ANDROID (2026-11-12 c)
   game/version/mod/DhSqliteSupport.kt adds -Ddh_sqlite.lib.path / lib.name when the jar has no
   dh_sqlite/native/Linux-Android/. Host test: DH 3.3.3's own classes wrote and read 1000 rows.
   ONA_CHANGES/2026-11-12c_distant-horizons-sqlite.txt.
-  CI: APK run 43198470992 (8f78921) RUNNING (push run 43198463584 cancelled). Not device-tested.
+  CI: APK run 43198470992 (8f78921) SUCCESS, 4 APKs (push run 43198463584 cancelled); "Build sqlite-jdbc"
+  printed "Built ... 61 JNI entry points" (arm64 1.2 MB). Not device-tested.
+
+DISTANT HORIZONS: FASTER FAR TERRAIN (2026-11-12 d)
+- Screenshots: DH runs (FPS 69-185), "36,512 chunks left, ETA 33 min at 18 chunks/sec", chat walls "Chunky
+  detected" / "G1 Garbage collector detected".
+- 7cc34ce: ModPerformanceTuner DH patch: numberOfThreads FLAGSHIP max(3, cores/2) (= DH default, was 3),
+  HIGH 3; surfaceRegenMaxDistancePercent 0.5 (slow full pass on the near half only); the two warnings off.
+  Keys checked by javap in DH 3.3.3 (file keys = field names). ONA_CHANGES/2026-11-12d_distant-horizons-speed.txt.
+  CI: APK run 43200275404 (7cc34ce) RUNNING. Not device-tested. The version has Voxy AND DH (user decides).
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -846,4 +855,5 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد نجح.
 - 2026-11-12 (أ): كراش Lithosphere 1.9 على 1.21.8 (بده Lithostitched أحدث مش موجود لهاي النسخة): اللانشر صار يكتشف هيك مشكلة لحاله وبيبدّل لنسخة بتشتغل (1.8.2). البيلد نجح.
 - 2026-11-12 (ب): كراش Distant Horizons بالبداية (مكتبة ضغط للكمبيوتر بس): بنينا مكتبة zstd-jni للجوال واللانشر بيحطها بالاسم اللي بدّه إياه المود. البيلد نجح.
-- 2026-11-12 (ج): مكتبة zstd اشتغلت. الوقفة الجاية بـ Distant Horizons 3.3 كانت مكتبة sqlite (ما إلها نسخة جوال): بنيناها للجوال واللانشر بيدلّ المود عليها. البيلد شغال.
+- 2026-11-12 (ج): مكتبة zstd اشتغلت. الوقفة الجاية بـ Distant Horizons 3.3 كانت مكتبة sqlite (ما إلها نسخة جوال): بنيناها للجوال واللانشر بيدلّ المود عليها. البيلد نجح.
+- 2026-11-12 (د): Distant Horizons صار يشتغل. سرّعنا رسم البعيد: خيوط زي افتراضي المود (4 بدل 3) والمرحلة البطيئة (الشجر) بس عالنص القريب، وشلنا رسائل التحذير. البيلد شغال.
