@@ -744,8 +744,9 @@ DISTANT HORIZONS: ZSTD-JNI FOR ANDROID (2026-11-12 b)
   libzstd-jni_dh-<version>.so into the LWJGL natives folder; log "ONA zstd-jni: ..."). Host test: DH's own
   zstd classes ran on the built library through the fallback, round trip OK.
   ONA_CHANGES/2026-11-12b_distant-horizons-zstd-jni.txt.
-  CI: APK run 43191658814 (72b8dec) RUNNING (push run 43191652546 cancelled). Check the "Build zstd-jni"
-  step printed "Built ... 148 JNI entry points" for each ABI (it is continue-on-error). Not device-tested.
+  CI: APK run 43191658814 (72b8dec) SUCCESS, 4 APKs (push run 43191652546 cancelled). "Build zstd-jni"
+  printed "Built ... 148 JNI entry points" (arm64: 680 KB each). Not device-tested: next log must show
+  "ONA zstd-jni: libzstd-jni_dh-1.5.7-6.so: phone build ready" and DH starting.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -833,4 +834,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (و): زر واحد "إرسال كل اللوقات" بصفحة النسخة وبعد الكراش: بيجمع كل اللوقات والإعدادات وقائمة المودات بملف ZIP واحد وبيفتح المشاركة. البيلد نجح.
 - 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد نجح.
 - 2026-11-12 (أ): كراش Lithosphere 1.9 على 1.21.8 (بده Lithostitched أحدث مش موجود لهاي النسخة): اللانشر صار يكتشف هيك مشكلة لحاله وبيبدّل لنسخة بتشتغل (1.8.2). البيلد نجح.
-- 2026-11-12 (ب): كراش Distant Horizons بالبداية (مكتبة ضغط للكمبيوتر بس): بنينا مكتبة zstd-jni للجوال واللانشر بيحطها بالاسم اللي بدّه إياه المود. البيلد شغال.
+- 2026-11-12 (ب): كراش Distant Horizons بالبداية (مكتبة ضغط للكمبيوتر بس): بنينا مكتبة zstd-jni للجوال واللانشر بيحطها بالاسم اللي بدّه إياه المود. البيلد نجح.
