@@ -734,6 +734,19 @@ CRASH "REGISTRY LOADING": LITHOSPHERE 1.9 ON 1.21.8 (2026-11-12 a)
   CI: APK run 43184972523 (d0ef1f1) SUCCESS, 4 APKs (push run 43184946538 cancelled). Not device-tested.
 - Still open: Zombie Invade jump / crouch / hotbar (waiting for a zip with InputTrace).
 
+DISTANT HORIZONS: ZSTD-JNI FOR ANDROID (2026-11-12 b)
+- Zip: "Distant Graphics" 1.21.11 (DH 3.0.3-b, Bliss shader, MobileGlues). DH stopped the game at start:
+  libzstd-jni_dh-1.5.7-6 needs libpthread.so.0 (glibc). DH bundles zstd-jni renamed dhcomgithubluben.zstd,
+  desktop natives only; its loader falls back to System.loadLibrary("zstd-jni_dh-<version>").
+- 72b8dec: tools/zstd-jni-android/build.sh (zstd-jni v1.5.7-6, libona_zstdjni_dh.so + libona_zstdjni.so,
+  148 JNI functions, same set as 1.5.7-12), build.yml step "Build zstd-jni" (cached, every ABI),
+  game/version/mod/ZstdJniSupport.kt (GameLauncher.progressFinalUserArgs copies it as
+  libzstd-jni_dh-<version>.so into the LWJGL natives folder; log "ONA zstd-jni: ..."). Host test: DH's own
+  zstd classes ran on the built library through the fallback, round trip OK.
+  ONA_CHANGES/2026-11-12b_distant-horizons-zstd-jni.txt.
+  CI: APK run 43191658814 (72b8dec) RUNNING (push run 43191652546 cancelled). Check the "Build zstd-jni"
+  step printed "Built ... 148 JNI entry points" for each ABI (it is continue-on-error). Not device-tested.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -820,3 +833,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (و): زر واحد "إرسال كل اللوقات" بصفحة النسخة وبعد الكراش: بيجمع كل اللوقات والإعدادات وقائمة المودات بملف ZIP واحد وبيفتح المشاركة. البيلد نجح.
 - 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد نجح.
 - 2026-11-12 (أ): كراش Lithosphere 1.9 على 1.21.8 (بده Lithostitched أحدث مش موجود لهاي النسخة): اللانشر صار يكتشف هيك مشكلة لحاله وبيبدّل لنسخة بتشتغل (1.8.2). البيلد نجح.
+- 2026-11-12 (ب): كراش Distant Horizons بالبداية (مكتبة ضغط للكمبيوتر بس): بنينا مكتبة zstd-jni للجوال واللانشر بيحطها بالاسم اللي بدّه إياه المود. البيلد شغال.
