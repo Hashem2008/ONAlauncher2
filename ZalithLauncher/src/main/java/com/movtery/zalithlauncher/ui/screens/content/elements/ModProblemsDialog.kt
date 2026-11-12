@@ -85,6 +85,8 @@ private fun describe(context: Context, problem: ModCompat.Problem): String = whe
         context.getString(R.string.mod_problem_missing, problem.modName, problem.requiredId)
     ModCompat.PROBLEM_BREAKS ->
         context.getString(R.string.mod_problem_breaks, problem.modName, problem.requiredId, problem.actualVersion)
+    ModCompat.PROBLEM_MISSING_TYPE ->
+        context.getString(R.string.mod_problem_type, problem.modName, problem.requiredId, problem.requiredRange, problem.actualVersion ?: "?")
     ModCompat.PROBLEM_WRONG_LOADER ->
         context.getString(R.string.mod_problem_wrong_loader, problem.modName, problem.requiredId, problem.actualVersion)
     else ->

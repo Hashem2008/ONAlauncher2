@@ -1,0 +1,34 @@
+Crash "Registry Loading" with Lithosphere 1.9 on 1.21.8 (2026-11-12 a)
+
+User: latest_game.log zip + "it crashed, fix it". Version "1.21.8 Fabric 0.20.1" (Voxy, Kopper Zink,
+Turnip plugin, Performance APK). The renderer was fine (zink Vulkan 1.4 on Adreno 840 opened, title
+screen reached). The crash came when the world loaded:
+  Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]:
+  lithostitched:fast_noise  ->  Failed to parse lithosphere:worldgen/density_function/... from pack
+  mr_lithosphere  ->  "Failed to load registries due to errors" (Description: Registry Loading).
+Cause (checked on Modrinth and in the jars):
+- Lithosphere 1.9+mod (2026-11-10) is tagged for 1.21 ... 26.3 and uses the Lithostitched types
+  fast_noise (14x), cellular, axis, simplex, ... Its fabric.mod.json does not list Lithostitched.
+- The newest Lithostitched for 1.21.8 is 1.5.0+beta5 (2025-09): no "fast_noise", "cellular", "axis"
+  in any of its files. Only Lithostitched 2.0.x (26.3) has them. So 1.9 can never load on 1.21.8.
+- Lithosphere 1.8.2+mod uses no Lithostitched type at all.
+
+Fix (launcher, general, not a Lithosphere rule):
+- New game/version/mod/DataTypes.java: reads the world data of every mod jar (data/*/worldgen,
+  dimension, dimension_type json; overlay folders are not read) and collects "type": "ns:name"
+  of other namespaces. For a namespace that is an installed mod id, the provider jar's words
+  (classes' strings, resources, nested jars) must contain the name (or its upper case). A jar that
+  cannot be read counts as "has it" (only a clear miss is acted on).
+- ModCompat.PROBLEM_MISSING_TYPE (5) in analyze(); fix: first a build of the provider (same
+  Modrinth project, fits the game, loader and other mods) that has all the names; else the newest
+  build of the data mod that only uses what the installed provider has. Same projects only,
+  nothing switched off. Runs in the automatic fixer before the launch (ModAutoResolver).
+- Dialog text mod_problem_type (EN + AR) when it cannot be fixed.
+
+Checked on the host (javac with Android stubs, real jars, real Modrinth):
+- lithosphere-1.9 + lithostitched 1.5.0+beta5, 1.21.8 fabric: problem found
+  "[axis, cellular, fast_noise]"; fix replaced lithosphere-1.9.jar with lithosphere-1.8.2.jar
+  in 3 s; analyze afterwards: no type problem left.
+- lithosphere-1.9 + lithostitched 2.0.6 + still-life 0.3: no type problem (no false alarm).
+Not tested on the phone. The world was not created with 1.9 (the crash came at loading), so 1.8.2 is
+safe for it.

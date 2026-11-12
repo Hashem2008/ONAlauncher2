@@ -89,6 +89,13 @@ public class ModCompat {
      * 1.11.7 and older): [file] is the mod that breaks it, [providerFile] the broken one
      */
     public static final int PROBLEM_BREAKS = 4;
+    /**
+     * ONA: a data mod's world generation uses types the installed provider does not have
+     * (Lithosphere 1.9 -> lithostitched:fast_noise, Lithostitched 1.5.0+beta5): [requiredId] is
+     * the provider's mod id, [requiredRange] the missing type names (comma separated),
+     * [providerFile] the provider jar, [actualVersion] its version
+     */
+    public static final int PROBLEM_MISSING_TYPE = 5;
 
     public static class Problem {
         public int kind;
@@ -576,6 +583,24 @@ public class ModCompat {
                 }
             }
         }
+        // ONA: world generation types of another mod that its installed build does not have
+        for (ModInfo info : mods) {
+            Map<String, Set<String>> used = DataTypes.usedTypes(info.file);
+            for (Map.Entry<String, Set<String>> entry : used.entrySet()) {
+                String id = entry.getKey();
+                if (info.providedIds.contains(id)) continue;
+                File provider = providerOf.get(id);
+                if (provider == null || provider.equals(info.file)) continue;
+                List<String> missing = DataTypes.missing(provider, entry.getValue());
+                if (missing.isEmpty()) continue;
+                List<String> present = versionsOf.get(id);
+                Problem problem = problem(PROBLEM_MISSING_TYPE, info, id, String.join(",", missing),
+                        present == null || present.isEmpty() ? null : present.get(0));
+                problem.providerFile = provider;
+                problems.add(problem);
+                Log.i(TAG, info.name + " uses " + id + " types " + missing + " that " + provider.getName() + " does not have");
+            }
+        }
         return problems;
     }
 
@@ -612,6 +637,7 @@ public class ModCompat {
             }
             if (problem.kind == PROBLEM_WRONG_VERSION) return fixWrongVersion(problem, modsDir, environment);
             if (problem.kind == PROBLEM_BREAKS) return fixBreaks(problem, modsDir, environment);
+            if (problem.kind == PROBLEM_MISSING_TYPE) return fixMissingType(problem, modsDir, environment);
             // Incompatible or wrong loader: look for the right build of the same project first
             String projectId = findProjectForFile(problem.file);
             if (projectId != null) {
@@ -684,6 +710,42 @@ public class ModCompat {
             }
         }
         return FIX_FAILED;
+    }
+
+    /**
+     * ONA: a data mod uses world generation types its provider does not have. First a build of the
+     * provider (same project) that has every one of them and fits the other mods; else the newest
+     * build of the data mod that only uses what the installed provider has (Lithosphere 1.9 ->
+     * 1.8.2 on 1.21.8, where no Lithostitched has "fast_noise"). Only builds of the same projects
+     * are swapped, nothing is turned off.
+     */
+    private static int fixMissingType(Problem problem, File modsDir, Environment environment) throws IOException {
+        File provider = problem.providerFile;
+        if (provider == null || !provider.isFile() || problem.requiredRange == null) return FIX_FAILED;
+        Set<String> names = new java.util.LinkedHashSet<>(Arrays.asList(problem.requiredRange.split(",")));
+        String providerProject = findProjectForFile(provider);
+        if (providerProject == null) providerProject = findProjectForModId(problem.requiredId, environment);
+        if (providerProject != null) {
+            File installed = installWhere(providerProject, modsDir, environment, problem.requiredId, null,
+                    info -> DataTypes.missing(info.file, names).isEmpty()
+                            && fitsOthers(modsDir, info, provider, environment, true));
+            if (installed != null) {
+                if (!installed.equals(provider) && !provider.delete()) Log.w(TAG, "Could not remove " + provider);
+                Log.i(TAG, "Replaced " + provider.getName() + " with " + installed.getName() + " (has " + names + ")");
+                return FIX_REPLACED;
+            }
+        }
+        if (problem.file == null || !problem.file.isFile()) return FIX_FAILED;
+        String dataProject = findProjectForFile(problem.file);
+        if (dataProject == null) return FIX_FAILED;
+        File installed = installWhere(dataProject, modsDir, environment, null, null,
+                info -> DataTypes.missingIn(info.file, problem.requiredId, provider).isEmpty()
+                        && fitsOthers(modsDir, info, problem.file, environment, true));
+        if (installed == null) return FIX_FAILED;
+        if (!installed.equals(problem.file) && !problem.file.delete()) Log.w(TAG, "Could not remove " + problem.file);
+        Log.i(TAG, "Replaced " + problem.file.getName() + " with " + installed.getName()
+                + " (uses only what " + provider.getName() + " has)");
+        return FIX_REPLACED;
     }
 
     /**
