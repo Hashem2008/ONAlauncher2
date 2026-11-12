@@ -1,0 +1,28 @@
+Distant Horizons on the phone: zstd-jni built for Android (2026-11-12 b)
+
+User: new zip + "fix the problem". Version "Distant Graphics" (1.21.11 Fabric, 31 mods, Bliss shader,
+renderer MobileGlues / ONA engine). The game stopped before the title screen:
+  Distant Horizons critical setup error: One or more libraries are either in-accessible, corrupted
+  ... libzstd-jni_dh-1.5.7-6...so: dlopen failed: library "libpthread.so.0" not found
+  no zstd-jni_dh-1.5.7-6 in java.library.path ... Unsupported OS/arch
+Cause (javap on DH 3.0.3-b and 3.3.3): DH bundles zstd-jni renamed to dhcomgithubluben.zstd with
+desktop natives only (linux/aarch64 needs glibc). Its loader (Native.load) extracts the jar's
+library and on UnsatisfiedLinkError calls System.loadLibrary("zstd-jni_dh-<version>").
+DH's other natives are fine: sqlite-jdbc has Linux-Android builds, lz4 has a Java fallback.
+
+Fix:
+- tools/zstd-jni-android/build.sh: zstd-jni v1.5.7-6 sources (BSD) compiled for the ABI, two
+  libraries: libona_zstdjni_dh.so (JNI names Java_dhcomgithubluben_zstd_..., class names
+  dhcomgithubluben/zstd/...) and libona_zstdjni.so (plain com.github.luben.zstd). Checks 148 JNI
+  entry points. build.yml step "Build zstd-jni" (cached by script hash), every ABI.
+- game/version/mod/ZstdJniSupport.kt: before the JVM starts (GameLauncher.progressFinalUserArgs)
+  the mods' jars (and nested zstd-jni jars) are read for libzstd-jni[_dh]-<version> names and the
+  phone build is copied under each name into the LWJGL natives folder (on java.library.path).
+  Launch log: "ONA zstd-jni: libzstd-jni_dh-1.5.7-6.so: phone build ready". Mods are not touched.
+
+Checked on the host: the script builds both libraries (gcc, x86_64); exported JNI names equal DH's
+own library (148, same set in 1.5.7-6 and 1.5.7-12). DH's own zstd classes from the 3.0.3-b jar ran
+on the built library through the loadLibrary fallback (jar resource missing, like on the phone):
+compress / decompress and the stream classes round trip OK. The name scan finds
+libzstd-jni_dh-1.5.7-6.so in DH 3.0.3-b and -1.5.7-12.so in 3.3.3.
+Not tested on the phone (NDK build only in CI).

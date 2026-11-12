@@ -155,6 +155,29 @@ jobs:
             exit 1
           }
 
+      # ONA: zstd-jni for this CPU. Distant Horizons bundles it (renamed) with desktop natives only,
+      # the game stopped at start ("libpthread.so.0" not found); ZstdJniSupport puts these in place.
+      - name: Cache zstd-jni Android port
+        if: steps.abi.outputs.abi != ''
+        id: zstdjni-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}/libona_zstdjni_dh.so
+            ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}/libona_zstdjni.so
+          key: zstd-jni-android-${{ steps.abi.outputs.abi }}-${{ hashFiles('tools/zstd-jni-android/build.sh') }}
+
+      - name: Build zstd-jni (libona_zstdjni_dh.so, libona_zstdjni.so, ${{ steps.abi.outputs.abi }})
+        if: steps.abi.outputs.abi != '' && steps.zstdjni-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        run: |
+          bash tools/zstd-jni-android/build.sh "$RUNNER_TEMP/zstd-jni" \
+            "ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}" \
+            "${{ steps.abi.outputs.abi }}" || {
+            echo "::warning::zstd-jni for ${{ steps.abi.outputs.abi }} was not built, Distant Horizons keeps failing there (see this step)"
+            exit 1
+          }
+
       # ONA: the Horizon (Rust) engine, built once by horizon.yml and published as a release of
       # this repository. Without it the APK still builds; the Rust switch then says so.
       - name: Add Horizon (Rust) engine

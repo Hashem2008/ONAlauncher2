@@ -25,6 +25,7 @@ import com.movtery.zalithlauncher.game.version.mod.MobileModRules
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.PhysxSupport
+import com.movtery.zalithlauncher.game.version.mod.ZstdJniSupport
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import android.app.Activity
@@ -280,6 +281,10 @@ class GameLauncher(
         }
         // ONA: PhysX mods load the Android ARM64 build of their physx-jni
         args.addAll(runCatching { PhysxSupport.jvmArgs(version) }.getOrDefault(emptyList()))
+        // ONA: zstd-jni of mods that only bring PC natives (Distant Horizons) finds the phone build
+        runCatching { ZstdJniSupport.place(File(version.getGameDir(), "mods"), File(lwjglNativesDir)) }
+            .onSuccess { lines -> lines.forEach { appendInfo("ONA zstd-jni: $it") } }
+            .onFailure { appendInfo("ONA zstd-jni: ${it.message}") }
         // ONA: the JIT compiles Minecraft's (and mixin-merged) huge methods too
         args.addAll(OnaTweaks.jitArgs(args))
     }
