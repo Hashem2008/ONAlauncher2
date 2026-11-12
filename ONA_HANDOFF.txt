@@ -721,6 +721,19 @@ LOGS ZIP v2 + INPUT TRACE (2026-11-11 a)
   Next: ask for a new zip after trying jump / crouch / hotbar; read 6-launcher-app/*_game.log
   (InputTrace lines: do the keys go out, is the cursor grabbed).
 
+CRASH "REGISTRY LOADING": LITHOSPHERE 1.9 ON 1.21.8 (2026-11-12 a)
+- Zip from the phone: 1.21.8 Fabric (Voxy, Kopper Zink + Turnip; renderer fine). Crash at world load:
+  Unknown registry key ... density_function_type: lithostitched:fast_noise. Lithosphere 1.9+mod is
+  tagged for 1.21.8 but needs Lithostitched types (fast_noise, cellular, axis) that only
+  Lithostitched 2.0.x (26.3) has; newest for 1.21.8 is 1.5.0+beta5.
+- d0ef1f1: game/version/mod/DataTypes.java + ModCompat.PROBLEM_MISSING_TYPE: the automatic fixer reads
+  worldgen / dimension json of every jar, checks the provider jar has each "ns:name" type, swaps in a
+  provider build that has them, else a build of the data mod that only uses what is there
+  (here Lithosphere 1.8.2). Host test with real jars + Modrinth: replaced 1.9 -> 1.8.2 in 3 s; no
+  false alarm with Lithostitched 2.0.6. ONA_CHANGES/2026-11-12a_worldgen-types-lithosphere.txt.
+  CI: APK run 43184972523 (d0ef1f1) RUNNING (push run 43184946538 cancelled). Not device-tested.
+- Still open: Zombie Invade jump / crouch / hotbar (waiting for a zip with InputTrace).
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -806,3 +819,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-10 (هـ): تأكدنا عالجوال إنه جسر PhysX شغال ومود Physics بيحمل. مشكلة الأزرار (تبديل الأغراض والقفز والجلوس) ما بينت باللوج: طلبنا options.txt وأسئلة. مود endofdays بيطلع خطأ كل فريم (HUD).
 - 2026-11-10 (و): زر واحد "إرسال كل اللوقات" بصفحة النسخة وبعد الكراش: بيجمع كل اللوقات والإعدادات وقائمة المودات بملف ZIP واحد وبيفتح المشاركة. البيلد نجح.
 - 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد نجح.
+- 2026-11-12 (أ): كراش Lithosphere 1.9 على 1.21.8 (بده Lithostitched أحدث مش موجود لهاي النسخة): اللانشر صار يكتشف هيك مشكلة لحاله وبيبدّل لنسخة بتشتغل (1.8.2). البيلد شغال.
