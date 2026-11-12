@@ -178,6 +178,26 @@ jobs:
             exit 1
           }
 
+      # ONA: sqlite-jdbc natives with Distant Horizons' names (DH 3.3 has no Android build of them)
+      - name: Cache sqlite-jdbc Android port
+        if: steps.abi.outputs.abi != ''
+        id: sqlitejdbc-cache
+        uses: actions/cache@v4
+        with:
+          path: ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}/libona_sqlitejdbc_dh.so
+          key: sqlite-jdbc-android-${{ steps.abi.outputs.abi }}-${{ hashFiles('tools/sqlite-jdbc-android/build.sh') }}
+
+      - name: Build sqlite-jdbc (libona_sqlitejdbc_dh.so, ${{ steps.abi.outputs.abi }})
+        if: steps.abi.outputs.abi != '' && steps.sqlitejdbc-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        run: |
+          bash tools/sqlite-jdbc-android/build.sh "$RUNNER_TEMP/sqlite-jdbc" \
+            "ZalithLauncher/src/main/jniLibs/${{ steps.abi.outputs.abi }}" \
+            "${{ steps.abi.outputs.abi }}" || {
+            echo "::warning::sqlite-jdbc for ${{ steps.abi.outputs.abi }} was not built, Distant Horizons 3.3 keeps failing there (see this step)"
+            exit 1
+          }
+
       # ONA: the Horizon (Rust) engine, built once by horizon.yml and published as a release of
       # this repository. Without it the APK still builds; the Rust switch then says so.
       - name: Add Horizon (Rust) engine

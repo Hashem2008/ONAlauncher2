@@ -26,6 +26,7 @@ import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.game.version.mod.VoxySupport
 import com.movtery.zalithlauncher.game.version.mod.PhysxSupport
 import com.movtery.zalithlauncher.game.version.mod.ZstdJniSupport
+import com.movtery.zalithlauncher.game.version.mod.DhSqliteSupport
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.utils.device.OnaTweaks
 import android.app.Activity
@@ -285,6 +286,13 @@ class GameLauncher(
         runCatching { ZstdJniSupport.place(File(version.getGameDir(), "mods"), File(lwjglNativesDir)) }
             .onSuccess { lines -> lines.forEach { appendInfo("ONA zstd-jni: $it") } }
             .onFailure { appendInfo("ONA zstd-jni: ${it.message}") }
+        // ONA: Distant Horizons 3.3's sqlite-jdbc has no phone natives: point it at the launcher's build
+        runCatching { DhSqliteSupport.jvmArgs(File(version.getGameDir(), "mods")) }
+            .onSuccess { (dhArgs, line) ->
+                args.addAll(dhArgs)
+                line?.let { appendInfo("ONA $it") }
+            }
+            .onFailure { appendInfo("ONA Distant Horizons sqlite: ${it.message}") }
         // ONA: the JIT compiles Minecraft's (and mixin-merged) huge methods too
         args.addAll(OnaTweaks.jitArgs(args))
     }

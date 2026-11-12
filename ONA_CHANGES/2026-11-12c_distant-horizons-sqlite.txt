@@ -1,0 +1,27 @@
+Distant Horizons 3.3 on the phone: sqlite-jdbc built for Android (2026-11-12 c)
+
+User: new zip + "fix the problem". Version "1.21.8 Fabric 0.20.1" (Voxy 0.2.5 AND Distant Horizons 3.3.3,
+Lithosphere now 1.8.2 = the fix of round a worked). Round b worked too:
+  ONA zstd-jni: libzstd-jni_dh-1.5.7-12.so: phone build ready (libona_zstdjni_dh.so)
+and DH got past zstd. Next stop at start:
+  No native library found for os.name=Linux-Android, os.arch=aarch64 ... (dh_sqlite.SQLiteJDBCLoader)
+Cause: DH bundles sqlite-jdbc renamed "dh_sqlite" (3.0.3-b: 3.47.2.0 WITH Linux-Android natives;
+3.3.3: 3.53.2.1 WITHOUT them). The loader reads dh_sqlite.lib.path / dh_sqlite.lib.name first (javap).
+
+Fix:
+- tools/sqlite-jdbc-android/build.sh: sqlite-jdbc 3.53.2.1 NativeDB.c (renamed: Java_dh_1sqlite_...,
+  dh_sqlite/... classes) + SQLite 3.53.2 amalgamation prepared and compiled the way sqlite-jdbc's
+  Makefile does (same SQLITE_* flags, extension functions, JDBC_EXTENSIONS, 16 KB pages).
+  Output libona_sqlitejdbc_dh.so; build.yml step "Build sqlite-jdbc" (cached, every ABI).
+- game/version/mod/DhSqliteSupport.kt: when a mod jar has dh_sqlite/SQLiteJDBCLoader.class and no
+  dh_sqlite/native/Linux-Android/ entries, GameLauncher adds
+  -Ddh_sqlite.lib.path=<APK native dir> -Ddh_sqlite.lib.name=libona_sqlitejdbc_dh.so.
+  Log: "ONA Distant Horizons sqlite: phone build (libona_sqlitejdbc_dh.so)". DH 3.0.x keeps its own.
+
+Checked on the host: the script builds (gcc); the 61 exported JNI names equal DH 3.3.3's own Linux
+library; DH 3.3.3's own dh_sqlite classes (jar natives removed) with those two properties opened a
+database file (jdbc:dh_sqlite:), wrote 1000 rows in a batch and read them back (sqlite 3.53.2).
+Not tested on the phone.
+
+Note for the user: this version has both Voxy and Distant Horizons (two far-view mods); nothing was
+switched off.
