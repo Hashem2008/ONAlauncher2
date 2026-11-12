@@ -748,6 +748,17 @@ DISTANT HORIZONS: ZSTD-JNI FOR ANDROID (2026-11-12 b)
   printed "Built ... 148 JNI entry points" (arm64: 680 KB each). Not device-tested: next log must show
   "ONA zstd-jni: libzstd-jni_dh-1.5.7-6.so: phone build ready" and DH starting.
 
+DISTANT HORIZONS 3.3: SQLITE-JDBC FOR ANDROID (2026-11-12 c)
+- Zip: 1.21.8 (Voxy + DH 3.3.3, Lithosphere now 1.8.2 = round a worked). Round b worked: "ONA zstd-jni:
+  libzstd-jni_dh-1.5.7-12.so: phone build ready". Next stop: dh_sqlite "No native library found for
+  os.name=Linux-Android". DH 3.3.3 bundles sqlite-jdbc 3.53.2.1 (renamed dh_sqlite) without Android natives.
+- 8f78921: tools/sqlite-jdbc-android/build.sh (NativeDB.c renamed + SQLite 3.53.2 amalgamation, sqlite-jdbc's
+  Makefile flags) -> libona_sqlitejdbc_dh.so; build.yml step "Build sqlite-jdbc" (cached, every ABI);
+  game/version/mod/DhSqliteSupport.kt adds -Ddh_sqlite.lib.path / lib.name when the jar has no
+  dh_sqlite/native/Linux-Android/. Host test: DH 3.3.3's own classes wrote and read 1000 rows.
+  ONA_CHANGES/2026-11-12c_distant-horizons-sqlite.txt.
+  CI: APK run 43198470992 (8f78921) RUNNING (push run 43198463584 cancelled). Not device-tested.
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -835,3 +846,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-11 (أ): ملف اللوقات صار أذكى: الخطأ المكرر بينعد بدل ما ينسخ (51 ميغا صارت نص ميغا)، فيه لوج عملية اللعبة، وسجل للأزرار (شو انبعث للعبة) عشان نعرف مشكلة القفز والجلوس. البيلد نجح.
 - 2026-11-12 (أ): كراش Lithosphere 1.9 على 1.21.8 (بده Lithostitched أحدث مش موجود لهاي النسخة): اللانشر صار يكتشف هيك مشكلة لحاله وبيبدّل لنسخة بتشتغل (1.8.2). البيلد نجح.
 - 2026-11-12 (ب): كراش Distant Horizons بالبداية (مكتبة ضغط للكمبيوتر بس): بنينا مكتبة zstd-jni للجوال واللانشر بيحطها بالاسم اللي بدّه إياه المود. البيلد نجح.
+- 2026-11-12 (ج): مكتبة zstd اشتغلت. الوقفة الجاية بـ Distant Horizons 3.3 كانت مكتبة sqlite (ما إلها نسخة جوال): بنيناها للجوال واللانشر بيدلّ المود عليها. البيلد شغال.
