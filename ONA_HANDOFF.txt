@@ -766,7 +766,7 @@ DISTANT HORIZONS: FASTER FAR TERRAIN (2026-11-12 d)
 - 7cc34ce: ModPerformanceTuner DH patch: numberOfThreads FLAGSHIP max(3, cores/2) (= DH default, was 3),
   HIGH 3; surfaceRegenMaxDistancePercent 0.5 (slow full pass on the near half only); the two warnings off.
   Keys checked by javap in DH 3.3.3 (file keys = field names). ONA_CHANGES/2026-11-12d_distant-horizons-speed.txt.
-  CI: APK run 43200275404 (7cc34ce) RUNNING. Not device-tested. The version has Voxy AND DH (user decides).
+  CI: APK run 43200275404 (7cc34ce) SUCCESS, 4 APKs (push run 43199097585 also green). Not device-tested. The version has Voxy AND DH (user decides).
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
@@ -856,4 +856,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-12 (أ): كراش Lithosphere 1.9 على 1.21.8 (بده Lithostitched أحدث مش موجود لهاي النسخة): اللانشر صار يكتشف هيك مشكلة لحاله وبيبدّل لنسخة بتشتغل (1.8.2). البيلد نجح.
 - 2026-11-12 (ب): كراش Distant Horizons بالبداية (مكتبة ضغط للكمبيوتر بس): بنينا مكتبة zstd-jni للجوال واللانشر بيحطها بالاسم اللي بدّه إياه المود. البيلد نجح.
 - 2026-11-12 (ج): مكتبة zstd اشتغلت. الوقفة الجاية بـ Distant Horizons 3.3 كانت مكتبة sqlite (ما إلها نسخة جوال): بنيناها للجوال واللانشر بيدلّ المود عليها. البيلد نجح.
-- 2026-11-12 (د): Distant Horizons صار يشتغل. سرّعنا رسم البعيد: خيوط زي افتراضي المود (4 بدل 3) والمرحلة البطيئة (الشجر) بس عالنص القريب، وشلنا رسائل التحذير. البيلد شغال.
+- 2026-11-12 (د): Distant Horizons صار يشتغل. سرّعنا رسم البعيد: خيوط زي افتراضي المود (4 بدل 3) والمرحلة البطيئة (الشجر) بس عالنص القريب، وشلنا رسائل التحذير. البيلد نجح.
