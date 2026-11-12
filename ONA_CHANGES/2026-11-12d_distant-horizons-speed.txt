@@ -1,0 +1,22 @@
+Distant Horizons: far terrain ready sooner (2026-11-12 d)
+
+User: 4 screenshots (DH works now: "DH is generating chunks. 36,512 left. ETA: 33m 39s at 18 chunks/sec",
+FPS 69-185) + "the world takes a year to become the real one, and there is another problem" (chat:
+"Distant Horizons: Chunky detected ..." and "G1 Garbage collector detected ...").
+
+Read in DH 3.3.3 (javap of Config$Common$MultiThreading / WorldGenerator / Logging$Warning and
+ThreadPresetConfigEventHandler); file keys are the field names:
+- numberOfThreads default = half the cores (4 on the 8 core SM8850). ModPerformanceTuner set 3 for
+  FLAGSHIP: slower than DH alone.
+- generatorPlan default SURFACE_THEN_CHUNKS: fast surface for the whole radius, then the slow full
+  chunk pass (trees, features) over it; surfaceRegenMaxDistancePercent default -1 = the whole radius.
+- showGarbageCollectorWarning, showModCompatibilityWarningsOnStartup: the two chat walls.
+
+Change (ModPerformanceTuner, DH patch; only keys present in the file are changed, backup kept):
+- numberOfThreads: FLAGSHIP max(3, cores / 2) (= DH's default), HIGH 3 (was 2), else 2.
+- surfaceRegenMaxDistancePercent 0.5: the slow pass covers the nearer half of the LOD radius, a quarter
+  of the chunks (radius 96 -> trees up to 48 chunks, surface beyond).
+- showGarbageCollectorWarning false, showModCompatibilityWarningsOnStartup false.
+Not changed: the GC (switching to ZGC on the phone's Java is not tested), radius 96, Voxy (the version
+has Voxy AND DH; both draw far terrain, the user decides).
+Not tested on the phone.

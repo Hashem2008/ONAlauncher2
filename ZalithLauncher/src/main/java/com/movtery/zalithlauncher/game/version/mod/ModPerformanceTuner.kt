@@ -123,8 +123,21 @@ object ModPerformanceTuner {
                 "transparency" to "FAKE",
                 "enableSsao" to "false",
                 "enableNoiseTexture" to "false",
-                // Leave the big cores to the game itself
-                "numberOfThreads" to if (strong(tier)) "3" else "2"
+                // World generation threads. DH's own default is half the cores (4 on an 8 core phone);
+                // 3 made LODs slower than without ONA. Flagships get DH's default, others stay lighter.
+                "numberOfThreads" to when (tier) {
+                    DeviceTier.FLAGSHIP -> maxOf(3, Runtime.getRuntime().availableProcessors() / 2).toString()
+                    DeviceTier.HIGH -> "3"
+                    else -> "2"
+                },
+                // DH 3.x: the rough surface is made for the whole LOD radius first, then a second, slow
+                // pass (trees, features) redoes it. That pass now covers the nearer half of the radius
+                // only (a quarter of the chunks): far away the surface pass is what is seen anyway.
+                "surfaceRegenMaxDistancePercent" to "0.5",
+                // Chat walls on every start: the G1 notice (ONA does not switch the game's GC on phones)
+                // and mod notices like "Chunky detected"
+                "showGarbageCollectorWarning" to "false",
+                "showModCompatibilityWarningsOnStartup" to "false"
             )
         },
         // Sodium (Fabric / NeoForge): stutter when new chunks load. Chunk meshes are built on worker
