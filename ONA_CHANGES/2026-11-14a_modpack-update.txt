@@ -1,0 +1,29 @@
+2026-11-14 a - MODPACK UPDATE (branch ccr-e01e41b4-afl745, based on claude/hala-7rl45s ad04960)
+
+REPORT: RLCraft (CurseForge zip import, Forge 1.12.2 14.23.5.2860, 178 mods, pack says v2.9.3)
+could not join an Aternos server: "not the same version / pack not latest".
+LOG: "Connecting to ...aternos.me, 38425" then netty ClosedChannelException, game quit 5 s later.
+The kick text is NOT in the logs (Forge 1.12 shows it only on screen). No mod was added by ONA
+(foamfix, phosphor, Forgelin are pack mods). So: pack version differs from the server's, or the
+server was offline. Asked the user for a screenshot of the message + the server's pack version.
+
+WHAT CHANGED
+- game/download/modpack/update/PackSource.kt: ona_pack_source.json in the version folder
+  (platform, projectId, versionId, name, pack version, minecraft, packMods = mod files the pack
+  brought). Written by CurseForgePack.readCurseForge / ModrinthPack.readModrinth (manifest) and
+  completed in the final install step (ModPackInstaller: ids; ModPackInfoTask (imports): no ids).
+- PackUpdater.kt: check(version) finds the pack (record ids, else exact-title search on CurseForge
+  then Modrinth), newest RELEASE by date (any type if none), compares with installed version
+  (versionId, version tokens, or for old installs file names + CustomMainMenu text).
+  migrate(old,new): saves (overwrite), options/optionsof/optionsshaders/servers.dat..., missing
+  screenshots/journeymap/Xaero/resourcepacks/shaderpacks, player-added mods (only when the old
+  record exists; ONA's own mods and duplicates skipped). Old version never touched.
+- PackUpdateDialog.kt + button "Update modpack" on the version page (modded versions only):
+  installs the newest release as a NEW version "<name> <ver>" with ModPackInstaller, then migrates,
+  then selects it. Strings ona_pack_update_* (EN + AR).
+- LauncherElements RealLaunch: versions with a record get a background check every 12 h (6 s max),
+  toast ona_pack_update_toast when newer.
+- Mods of non-pack versions: Zalith's own "update mods" in the Mods page already exists (not silent).
+
+NOT DONE / OPEN: comparing with the server's mod list directly (server list ping modinfo) - good
+next step if the user's problem is not the pack version. Not tested on a device.
