@@ -156,6 +156,18 @@ fun List<PlatformVersion>.mapWithVersions(classes: PlatformClasses): List<Versio
         }
     }
 
+    // ONA: a file without a loader tag (e.g. "RLCraft v2.9.3" on CurseForge) used to sit alone in a
+    // collapsed "1.12.2" card below "1.12.2 Forge", so the newest release looked missing. When that
+    // game version has exactly one loader, those files join its card, newest first.
+    grouped.keys.filter { it.second == null }.toList().forEach { untagged ->
+        val tagged = grouped.keys.filter { it.first == untagged.first && it.second != null }
+        if (tagged.size == 1) {
+            val target = grouped.getValue(tagged.first())
+            grouped.remove(untagged)?.forEach { v -> if (v !in target) target += v }
+            target.sortByDescending { it.platformDatePublished() }
+        }
+    }
+
     val currentVersion = VersionsManager.currentVersion.value
 
     return grouped.map { (key, versions) ->
