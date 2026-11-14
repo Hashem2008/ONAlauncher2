@@ -768,6 +768,18 @@ DISTANT HORIZONS: FASTER FAR TERRAIN (2026-11-12 d)
   Keys checked by javap in DH 3.3.3 (file keys = field names). ONA_CHANGES/2026-11-12d_distant-horizons-speed.txt.
   CI: APK run 43200275404 (7cc34ce) SUCCESS, 4 APKs (push run 43199097585 also green). Not device-tested. The version has Voxy AND DH (user decides).
 
+MODPACK UPDATE FOR ONLINE SERVERS (2026-11-14 a, branch ccr-e01e41b4-afl745 = claude/hala-7rl45s + this)
+- NOTE: newest work was on claude/hala-7rl45s (main is older). This session's branch started from hala ad04960.
+- RLCraft 2.9.3 (imported zip) could not join an Aternos server ("not the same version"). Log: connect then
+  ClosedChannelException, kick text only on screen. No ONA-added mods. Details:
+  ONA_CHANGES/2026-11-14a_modpack-update.txt.
+- 3d0b496: ona_pack_source.json per pack version + PackUpdater + "Update modpack" button on the version page
+  (newest release installed as a NEW version, worlds/settings/servers/own mods moved, old version untouched),
+  toast at launch when a newer release is out (every 12 h).
+- CI: run 43619442981 SUCCESS, 4 APKs (arm64, arm, x86_64, performance) in release
+  ona-ccr-e01e41b4-afl745. Push run 43619438324 cancelled (duplicate). Not device-tested.
+- NEXT: user taps "Update modpack" on RLCraft; ask for the on-screen kick text and the server's pack version.
+  Idea: compare with the server's mod list via server list ping (Forge modinfo) and name the exact mods.
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -857,3 +869,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-12 (ب): كراش Distant Horizons بالبداية (مكتبة ضغط للكمبيوتر بس): بنينا مكتبة zstd-jni للجوال واللانشر بيحطها بالاسم اللي بدّه إياه المود. البيلد نجح.
 - 2026-11-12 (ج): مكتبة zstd اشتغلت. الوقفة الجاية بـ Distant Horizons 3.3 كانت مكتبة sqlite (ما إلها نسخة جوال): بنيناها للجوال واللانشر بيدلّ المود عليها. البيلد نجح.
 - 2026-11-12 (د): Distant Horizons صار يشتغل. سرّعنا رسم البعيد: خيوط زي افتراضي المود (4 بدل 3) والمرحلة البطيئة (الشجر) بس عالنص القريب، وشلنا رسائل التحذير. البيلد نجح.
+- 2026-11-14 (أ): زر "تحديث المودباك" بصفحة النسخة: بيلاقي آخر إصدار وبينزله كنسخة جديدة وبينقل العوالم والإعدادات والسيرفرات. عشان السيرفرات الأونلاين. البيلد نجح (4 نسخ).
