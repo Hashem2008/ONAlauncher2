@@ -780,6 +780,10 @@ MODPACK UPDATE FOR ONLINE SERVERS (2026-11-14 a, branch ccr-e01e41b4-afl745 = cl
   ona-ccr-e01e41b4-afl745. Push run 43619438324 cancelled (duplicate). Not device-tested.
 - NEXT: user taps "Update modpack" on RLCraft; ask for the on-screen kick text and the server's pack version.
   Idea: compare with the server's mod list via server list ping (Forge modinfo) and name the exact mods.
+- User screenshot: the RLCraft download page showed only v2.9.2d / v2.9.1c under "1.12.2 Forge"; v2.9.3 has no
+  Forge tag on CurseForge and sat in a separate collapsed "1.12.2" card. 23a6f16: mapWithVersions
+  (DownloadAssetsElements.kt) merges untagged files into the single loader card of that game version, newest
+  first. CI run 43627664660 SUCCESS, 4 APKs. Not device-tested.
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
@@ -870,3 +874,4 @@ tools/physx4-android/build.sh, .github/workflows/build.yml
 - 2026-11-12 (ج): مكتبة zstd اشتغلت. الوقفة الجاية بـ Distant Horizons 3.3 كانت مكتبة sqlite (ما إلها نسخة جوال): بنيناها للجوال واللانشر بيدلّ المود عليها. البيلد نجح.
 - 2026-11-12 (د): Distant Horizons صار يشتغل. سرّعنا رسم البعيد: خيوط زي افتراضي المود (4 بدل 3) والمرحلة البطيئة (الشجر) بس عالنص القريب، وشلنا رسائل التحذير. البيلد نجح.
 - 2026-11-14 (أ): زر "تحديث المودباك" بصفحة النسخة: بيلاقي آخر إصدار وبينزله كنسخة جديدة وبينقل العوالم والإعدادات والسيرفرات. عشان السيرفرات الأونلاين. البيلد نجح (4 نسخ).
+- 2026-11-14 (ب): إصدار RLCraft 2.9.3 كان مخبّى بكرت لحاله (الملف ما عليه كلمة Forge). صار ينضم لكرت Forge والأحدث أول. البيلد نجح.
