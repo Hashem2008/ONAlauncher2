@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.game.download.modpack.platform.modrinth
 
+import com.movtery.zalithlauncher.game.download.modpack.update.PackSources
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
@@ -76,6 +77,15 @@ class ModrinthPack(
         task.updateMessage(androidText(R.string.download_modpack_install_overrides))
         extractFiles("overrides", targetFolder)
         extractFiles("client-overrides", targetFolder)
+
+        //ONA: remember which pack and pack version this is (for "Update modpack")
+        PackSources.fromManifest(
+            dir = targetFolder,
+            platform = "MODRINTH",
+            name = manifest.name,
+            version = manifest.versionId,
+            minecraft = manifest.getGameVersion()
+        )
 
         return ModPackInfo(
             name = manifest.name,

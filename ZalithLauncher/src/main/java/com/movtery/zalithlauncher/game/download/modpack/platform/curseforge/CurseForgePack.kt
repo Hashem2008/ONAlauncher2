@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.game.download.modpack.platform.curseforge
 
+import com.movtery.zalithlauncher.game.download.modpack.update.PackSources
 import com.google.gson.JsonParseException
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
@@ -144,6 +145,15 @@ class CurseForgePack(
         task.updateProgress(-1f)
         task.updateMessage(androidText(R.string.download_modpack_install_overrides))
         extractFiles(manifest.overrides ?: "overrides", targetFolder)
+
+        //ONA: remember which pack and pack version this is (for "Update modpack")
+        PackSources.fromManifest(
+            dir = targetFolder,
+            platform = "CURSEFORGE",
+            name = manifest.name,
+            version = manifest.version,
+            minecraft = manifest.minecraft.gameVersion
+        )
 
         return ModPackInfo(
             name = manifest.name,

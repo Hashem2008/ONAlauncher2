@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.game.download.modpack.install
 
+import com.movtery.zalithlauncher.game.download.modpack.update.PackSources
 import android.content.Context
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
@@ -186,6 +187,9 @@ abstract class ModPackInfoTask(
                 this.versionSummary = modpackInfo.summary ?: "" //整合包描述
                 this.ramAllocation = modpackInfo.ram ?: -1
             }.save()
+
+            //ONA: imported pack, ids are found later by name
+            PackSources.finishInstall(targetClientDir)
 
             //清理临时整合包目录
             task.updateProgress(-1f)

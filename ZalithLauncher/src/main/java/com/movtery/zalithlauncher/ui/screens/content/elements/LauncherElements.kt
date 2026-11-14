@@ -615,6 +615,26 @@ fun LaunchGameOperation(
                 if (fpsReducerFixed.isNotEmpty()) {
                     eventViewModel.sendToast(androidText(R.string.ona_fpsreducer_fixed), Toast.LENGTH_LONG)
                 }
+                // ONA: a newer release of this modpack is out (checked at most every 12 h, 6 s at most)
+                val packCheck = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val dir = version.getGameDir()
+                        val stamp = java.io.File(dir, "ona_pack_update_checked.txt")
+                        val due = !stamp.isFile || System.currentTimeMillis() - stamp.lastModified() > 12 * 3600_000L
+                        if (due && java.io.File(dir, com.movtery.zalithlauncher.game.download.modpack.update.PackSources.FILE).isFile) {
+                            stamp.writeText(System.currentTimeMillis().toString())
+                            kotlinx.coroutines.withTimeoutOrNull(6_000L) {
+                                com.movtery.zalithlauncher.game.download.modpack.update.PackUpdater.check(version)
+                            }
+                        } else null
+                    }.getOrNull()
+                }
+                if (packCheck != null && packCheck.upToDate == false) {
+                    eventViewModel.sendToast(
+                        androidText(R.string.ona_pack_update_toast, packCheck.title, packCheck.latestLabel),
+                        Toast.LENGTH_LONG
+                    )
+                }
                 // ONA: render mods that crash GL4ES based renderers are switched off for them
                 if (Renderers.isCurrentRendererValid()) {
                     val renderer = Renderers.getCurrentRenderer()

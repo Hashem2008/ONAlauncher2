@@ -334,6 +334,9 @@ private fun VersionManagementLayout(
     }
     var showLogTranslator by remember { mutableStateOf(false) }
     var showOnaGraphics by remember { mutableStateOf(false) }
+    // ONA: newest release of the modpack this version came from
+    var showPackUpdate by remember { mutableStateOf(false) }
+    val isModded = remember(version) { version.getVersionInfo()?.loaderInfos?.isNotEmpty() == true }
     // ONA: every log of this version in one zip, shared with one tap
     val logsContext = androidx.compose.ui.platform.LocalContext.current
     val logsScope = androidx.compose.runtime.rememberCoroutineScope()
@@ -357,6 +360,12 @@ private fun VersionManagementLayout(
         com.movtery.zalithlauncher.ui.screens.content.elements.OnaGraphicsDialog(
             version = version,
             onDismiss = { showOnaGraphics = false }
+        )
+    }
+    if (showPackUpdate) {
+        com.movtery.zalithlauncher.ui.screens.content.elements.PackUpdateDialog(
+            version = version,
+            onDismiss = { showPackUpdate = false }
         )
     }
     if (showLogTranslator) {
@@ -424,6 +433,16 @@ private fun VersionManagementLayout(
                     Text(
                         text = stringResource(R.string.ona_logs_button)
                     )
+                }
+                if (isModded) {
+                    OutlinedButton(
+                        modifier = Modifier.padding(end = 12.dp),
+                        onClick = { showPackUpdate = true }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.ona_pack_update_button_open)
+                        )
+                    }
                 }
                 OutlinedButton(
                     modifier = Modifier.padding(end = 12.dp),
