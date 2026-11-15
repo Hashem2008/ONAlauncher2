@@ -373,7 +373,9 @@ ONA CONTROLS = SEPARATE APP (2026-11-15, branch ccr-3291e893-ej006h)
      push_ci.yml (launcher) was NOT changed; it still runs on every push.
 - The section above (FLOATING OVERLAY CONTROLS ...) describes the code; paths are now
   ona-controls/app/src/main/java/com/onalauncher/controls/... instead of .../zalithlauncher/overlay/.
-- CI result: (filled after the build)
+- Commit 06b4f97: ona_controls.yml run 43657786197 SUCCESS (2 min): release ona-controls has
+  ONA-Controls.apk. Launcher run 43657786175 (clean launcher, same as e5f9e67) started on the same push.
+  NOT tested on a device.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
