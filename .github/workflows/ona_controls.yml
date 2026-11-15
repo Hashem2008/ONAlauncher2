@@ -46,9 +46,11 @@ jobs:
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --target "$GITHUB_SHA" \
               --title "ONA Controls" --notes "Standalone floating controls app. Built from ${GITHUB_SHA::7}." || true
-          gh release upload "$tag" ONA-Controls.apk --repo "$GITHUB_REPOSITORY" --clobber
+          git -C .. archive --format=zip --prefix=ONA-Controls-source/ -o ona-controls/ONA-Controls-source.zip HEAD ona-controls .github/workflows/ona_controls.yml
+          gh release upload "$tag" ONA-Controls.apk ONA-Controls-source.zip --repo "$GITHUB_REPOSITORY" --clobber
           gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes "Standalone floating controls app. Built from ${GITHUB_SHA::7} (${GITHUB_REF_NAME})." || true
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/ONA-Controls.apk" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/ONA-Controls-source.zip" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload APK to this build page
         uses: actions/upload-artifact@v7

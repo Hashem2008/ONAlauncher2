@@ -494,6 +494,11 @@ ONA CONTROLS 1.8: MOUSE REMOVED AGAIN (2026-11-15)
   Do NOT bring the mouse back unless the user asks.
 - Commit 866d395: ona_controls.yml run 43701502201 SUCCESS, release ona-controls = 1.8. NOT tested on a device.
 
+ONA CONTROLS SOURCE ZIP ON THE RELEASE (2026-11-15)
+- User asked for the source code as a file. ona_controls.yml now also uploads ONA-Controls-source.zip
+  (git archive of ona-controls/ + the workflow) to the release ona-controls next to the APK.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
