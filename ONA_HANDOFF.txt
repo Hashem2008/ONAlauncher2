@@ -353,7 +353,11 @@ FLOATING OVERLAY CONTROLS OVER OTHER APPS (2026-11-15, branch ccr-3291e893-ej006
   (res/xml/ona_overlay_accessibility.xml). Strings ona_overlay_* EN + AR.
 - LIMITS (told the user): without root or a PC there is no way to inject KEYBOARD keys into another
   app (Android blocks it); the no-root mode can only touch the app (TAP buttons, TOUCH_DRAG stick).
-- CI result: (see next line, filled after the build)
+- Commit 9828ba0, CI run 43656541890: arm64 job SUCCESS (APK on the build page + release
+  ona-ccr-3291e893-ej006h, since this is not main). NOT tested on a device.
+- NEXT: user tests: Settings -> Controls -> first card; allow overlay + accessibility; add Winlator
+  (or a game) as target app; open it -> controls must appear, leave -> they hide. Check the editor
+  (bubble "ONA" -> Edit layout). Then merge the branch into main if the user agrees.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
