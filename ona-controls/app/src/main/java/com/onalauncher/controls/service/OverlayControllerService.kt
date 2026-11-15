@@ -431,7 +431,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         backend.stop()
         backend = when (OverlayPrefs.backend(this)) {
             BackendType.PC_BRIDGE -> TcpBridgeBackend(OverlayPrefs.host(this), OverlayPrefs.port(this))
-            BackendType.ACCESSIBILITY_TOUCH -> AccessibilityTouchBackend()
+            BackendType.ACCESSIBILITY_TOUCH -> com.onalauncher.controls.input.NoRootBackend()
             BackendType.ROOT_SHELL -> RootShellBackend()
         }
         backend.start()

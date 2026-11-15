@@ -377,6 +377,17 @@ ONA CONTROLS = SEPARATE APP (2026-11-15, branch ccr-3291e893-ej006h)
   ONA-Controls.apk. Launcher run 43657786175 (clean launcher, same as e5f9e67) started on the same push.
   NOT tested on a device.
 
+ONA CONTROLS 1.1: LETTER KEYS WITHOUT ROOT (2026-11-15)
+- User: app works well, but key buttons (G, any letter) do nothing. Cause: the no-root mode only
+  sent touches. Fix: input/NoRootBackend.kt (used for BackendType.ACCESSIBILITY_TOUCH): keys go
+  through the accessibility service acting as an input method (Android 13+, xml flag
+  flagInputMethodEditor, getInputMethod().currentInputConnection.sendKeyEvent) with real down/up
+  and Shift/Ctrl/Alt meta state; touches still via AccessibilityTouchBackend. Needs the app in front
+  to have a focused input view (Winlator supports the Android keyboard, so it should).
+  If keys still do nothing: turn the accessibility switch of ONA Controls off and on (new flag),
+  notification shows "Keys: app has no input focus" when there is no connection.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".

@@ -28,8 +28,8 @@
     <string name="ona_overlay_rename">تغيير الاسم</string>
     <string name="ona_overlay_new_profile">بروفايل جديد</string>
     <string name="ona_overlay_output">وين بتروح الضغطات</string>
-    <string name="ona_overlay_backend_touch">لمس على التطبيق (بدون روت)</string>
-    <string name="ona_overlay_backend_touch_summary">الأزرار اللي عليها TAP بتلمس نقطتها، وعصا TOUCH_DRAG بتحرك عصا اللعبة نفسها. بدها إمكانية الوصول. إصبع واحد كل مرة.</string>
+    <string name="ona_overlay_backend_touch">بدون روت: أزرار + لمس</string>
+    <string name="ona_overlay_backend_touch_summary">الأحرف و ESC و Enter و Shift… بتروح للتطبيق اللي قدامك مثل الكيبورد (أندرويد 13 وفوق). الأزرار اللي عليها TAP بتلمس نقطتها، وعصا TOUCH_DRAG بتحرك عصا اللعبة. بدها إمكانية الوصول.</string>
     <string name="ona_overlay_backend_pc">جسر الكمبيوتر / Wine (TCP)</string>
     <string name="ona_overlay_backend_pc_summary">أزرار وماوس ويد تحكم بتنبعت عالواي فاي لـ pc-bridge/ona_bridge.py عالكمبيوتر.</string>
     <string name="ona_overlay_backend_root">روت</string>
@@ -41,7 +41,7 @@
     <string name="ona_overlay_how">كيف بتشتغل (البطارية)</string>
     <string name="ona_overlay_how_text">كشف التطبيق بيعتمد على حدث إمكانية الوصول اللي أندرويد ببعته بس لما تتغير الشاشة: بدون فحص متكرر. بدون إمكانية الوصول، بنقرأ الاستخدام مرة كل ثانية وبس والشاشة شغالة. الأزرار بترسم بس وقت اللمس، وكل زر شباك صغير لحاله، فباقي الشاشة بتروح للتطبيق مباشرة.</string>
     <string name="ona_overlay_a11y_label">أزرار ONA العائمة</string>
-    <string name="ona_overlay_a11y_description">بتخلي ONA يظهر أزرارك العائمة لما تفتح التطبيق اللي اخترته (بيشوف بس أي تطبيق قدامك) وبيلمس التطبيق للأزرار اللي عليها TAP. ما بيقرأ محتوى الشاشة.</string>
+    <string name="ona_overlay_a11y_description">بتخلي ONA Controls يظهر أزرارك لما تفتح التطبيق اللي اخترته (بيشوف بس أي تطبيق قدامك)، ويضغط أزرار بالتطبيق مثل الكيبورد، ويلمسه للأزرار اللي عليها TAP. ما بيقرأ محتوى الشاشة.</string>
     <string name="ona_overlay_menu_edit">عدّل الترتيب</string>
     <string name="ona_overlay_menu_hide">خبّي الأزرار</string>
     <string name="ona_overlay_menu_show">أظهر الأزرار</string>

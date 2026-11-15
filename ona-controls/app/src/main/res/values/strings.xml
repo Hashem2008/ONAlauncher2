@@ -28,8 +28,8 @@
     <string name="ona_overlay_rename">Rename profile</string>
     <string name="ona_overlay_new_profile">New profile</string>
     <string name="ona_overlay_output">Where the input goes</string>
-    <string name="ona_overlay_backend_touch">Touch on the app (no root)</string>
-    <string name="ona_overlay_backend_touch_summary">Buttons set to TAP touch their point, TOUCH_DRAG sticks move the app\'s own stick. Needs the accessibility switch. One finger at a time.</string>
+    <string name="ona_overlay_backend_touch">No root: keys + touch</string>
+    <string name="ona_overlay_backend_touch_summary">Letter keys, ESC, Enter, Shift… go to the app in front like a keyboard (Android 13+). Buttons set to TAP touch their point, TOUCH_DRAG sticks move the app\'s own stick. Needs the accessibility switch.</string>
     <string name="ona_overlay_backend_pc">PC / Wine bridge (TCP)</string>
     <string name="ona_overlay_backend_pc_summary">Keys, mouse and gamepad sent over Wi-Fi to pc-bridge/ona_bridge.py on the PC.</string>
     <string name="ona_overlay_backend_root">Root shell</string>
@@ -41,7 +41,7 @@
     <string name="ona_overlay_how">How it works (battery)</string>
     <string name="ona_overlay_how_text">App detection uses the accessibility event that Android sends only when a window changes: no polling, no wake-ups. Without accessibility, usage access is read once per second and only while the screen is on. Controls redraw only while touched; each control is its own small window, so the rest of the screen goes straight to the app.</string>
     <string name="ona_overlay_a11y_label">ONA floating controls</string>
-    <string name="ona_overlay_a11y_description">Lets ONA show your floating controls when the app you picked is opened (it only looks at which app is in front) and touch that app for buttons you set to TAP. It does not read screen content.</string>
+    <string name="ona_overlay_a11y_description">Lets ONA Controls show your floating controls when the app you picked is opened (it only looks at which app is in front), press keys in that app like a keyboard, and touch it for buttons you set to TAP. It does not read screen content.</string>
     <string name="ona_overlay_menu_edit">Edit layout</string>
     <string name="ona_overlay_menu_hide">Hide controls</string>
     <string name="ona_overlay_menu_show">Show controls</string>

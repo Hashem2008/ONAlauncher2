@@ -41,10 +41,6 @@ class AccessibilityTouchBackend : InputBackend {
 
     override fun status(): String = if (svc != null) "Touch ✓" else "Touch: accessibility off"
 
-    override fun key(key: OverlayKey, down: Boolean) {
-        if (down && key == OverlayKey.ESC) svc?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-    }
-
     override fun touch(pointer: Int, x: Float, y: Float, action: TouchAction) {
         when (action) {
             TouchAction.DOWN -> {
