@@ -399,7 +399,9 @@ ONA CONTROLS 1.2: SHIZUKU KEY INJECTION (2026-11-15)
   accessibility input method; if both fail it shows a toast once (ona_overlay_keys_fail).
   Permissions card got a Shizuku row (Get / Start / Allow). Manifest: ShizukuProvider + <queries>.
 - Commit 37ad06e: ona_controls.yml run 43660969335 SUCCESS, release ona-controls = 1.2.
-  NOT tested: ask the user to set up Shizuku and test G in Winlator. If it still fails, check logcat
+  CONFIRMED by the user: letter keys work in Winlator with Shizuku. User plays C&C Generals in Winlator
+  (may want a Generals profile next).
+  (old note) ask the user to set up Shizuku and test G in Winlator. If it still fails, check logcat
   tag OnaOverlay for "Shizuku injector connected: <probe>".
 
 STATUS / OPEN ITEMS (check these first)
