@@ -4,7 +4,7 @@
     <string name="ona_overlay_title">أزرار عائمة (فوق التطبيقات)</string>
     <string name="ona_overlay_open">أزرار عائمة فوق تطبيقات ثانية</string>
     <string name="ona_overlay_open_summary">أزرار وعصي وأسهم مثل Winlator فوق أي تطبيق بتختاره (محاكيات، ألعاب). بتظهر بس لما يكون التطبيق مفتوح.</string>
-    <string name="ona_overlay_summary">اختار التطبيقات واختار بروفايل لكل واحد، وبعدين افتح التطبيق: الأزرار بتظهر لحالها وبتختفي لما تطلع منه.</string>
+    <string name="ona_overlay_summary">أزرار ألعاب بتطفو فوق أي تطبيق بتختاره (Winlator، محاكيات، ألعاب). بتظهر لحالها لما تفتح اللعبة.</string>
     <string name="ona_overlay_perm_title">الصلاحيات</string>
     <string name="ona_overlay_perm_overlay">الظهور فوق التطبيقات (لازم)</string>
     <string name="ona_overlay_perm_a11y">إمكانية الوصول: ONA (الأفضل: كشف فوري للتطبيق + لمس)</string>
@@ -80,4 +80,36 @@
     <string name="ona_overlay_shizuku_get">نزّل</string>
     <string name="ona_overlay_shizuku_open">شغّل</string>
     <string name="ona_overlay_keys_fail">الأحرف ما بتوصل لهذا التطبيق. فعّل Shizuku من ONA Controls (الصلاحيات).</string>
+    <string name="ona_overlay_quick_start">البداية السريعة (اعمل الخطوات بالترتيب)</string>
+    <string name="ona_overlay_step_overlay">الظهور فوق التطبيقات</string>
+    <string name="ona_overlay_step_overlay_desc">لازم عشان الأزرار تنرسم فوق اللعبة.</string>
+    <string name="ona_overlay_step_a11y">إمكانية الوصول: ONA Controls</string>
+    <string name="ona_overlay_step_a11y_desc">بيعرف لما تكون لعبتك مفتوحة، فالأزرار بتظهر وبتختفي لحالها.</string>
+    <string name="ona_overlay_step_shizuku">Shizuku (الأحرف والماوس)</string>
+    <string name="ona_overlay_step_game">اختار لعبتك</string>
+    <string name="ona_overlay_step_game_desc">الأزرار بتظهر بس فوق التطبيقات اللي بتضيفها هون.</string>
+    <string name="ona_overlay_step_on">شغّل الأزرار</string>
+    <string name="ona_overlay_step_on_desc">وبعدين افتح لعبتك: الأزرار بتظهر لحالها.</string>
+    <string name="ona_overlay_uses_profile">بيستخدم البروفايل:</string>
+    <string name="ona_overlay_edit_hint">بالمحرر: اسحب الزر لتحركه، قرّب وبعّد بإصبعين لتكبره، ⚙ للأزرار واللون والعرض والطول.</string>
+    <string name="ona_overlay_mouse_title">الماوس</string>
+    <string name="ona_overlay_mouse_off">مطفي</string>
+    <string name="ona_overlay_mouse_off_desc">بدون ماوس أبداً (الأأمن).</string>
+    <string name="ona_overlay_mouse_swipe">Swipe Control (سحب)</string>
+    <string name="ona_overlay_mouse_swipe_desc">مؤشر عالشاشة ولوحة لمس صغيرة عائمة: اسحب لتحرك، ضغطة = كبسة يسار، إصبعين = كبسة يمين / عجلة، وأزرار L و R للمسك.</string>
+    <string name="ona_overlay_mouse_needs">الماوس بده Shizuku (الخطوة 3).</string>
+    <string name="ona_overlay_guide">طريقة الاستخدام</string>
+    <string name="ona_overlay_guide_1">زر ONA الأزرق: القائمة (تعديل الترتيب، تغيير البروفايل، تشغيل/إطفاء الماوس، إيقاف).</string>
+    <string name="ona_overlay_guide_2">زر العين اللي تحته: ضغطة بتخفي كل الأزرار عشان توصل للعبة تحتها، وضغطة كمان بترجعهم.</string>
+    <string name="ona_overlay_guide_3">تعديل الترتيب: اسحب الأزرار، كبّر بإصبعين، + بيضيف زر، ⚙ بيعدّل الزر المختار، ✓ بيحفظ.</string>
+    <string name="ona_overlay_guide_4">بـ ⚙ تبع أي زر: الأزرار (زرين = بينضغطوا مع بعض مثل CTRL+H)، اللون، الحجم، العرض، الطول، التثبيت.</string>
+    <string name="ona_overlay_guide_5">أزرار الماوس (يسار، يمين، نص، عجلة) بتنحط على أي زر لما يكون الماوس Swipe Control.</string>
+    <string name="ona_overlay_guide_6">اسحب زر ONA والعين ولوحة اللمس من طرفهم عشان تحطهم وين ما بدك.</string>
+    <string name="ona_overlay_advanced">متقدم</string>
+    <string name="ona_overlay_width">العرض</string>
+    <string name="ona_overlay_height">الطول</string>
+    <string name="ona_overlay_color">اللون</string>
+    <string name="ona_overlay_pad_hint">اسحب = تحريك · ضغطة = كبسة</string>
+    <string name="ona_overlay_menu_mouse_on">الماوس: شغّل (Swipe Control)</string>
+    <string name="ona_overlay_menu_mouse_off">الماوس: طفّي</string>
 </resources>

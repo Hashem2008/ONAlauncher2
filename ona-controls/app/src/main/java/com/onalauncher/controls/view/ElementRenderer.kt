@@ -41,7 +41,8 @@ object ElementGeometry {
             ElementType.STICK -> 130f to 130f
             ElementType.TRACKPAD -> 220f to 140f
         }
-        return w * el.scale to h * el.scale
+        // scale = overall size, width / height = stretch each side on its own
+        return w * el.scale * el.width.coerceIn(0.3f, 4f) to h * el.scale * el.height.coerceIn(0.3f, 4f)
     }
 
     /** Profiles are laid out for a 915 x 412 dp landscape phone; smaller screens shrink every control evenly. */
@@ -61,19 +62,34 @@ object ElementGeometry {
 }
 
 /**
- * Winlator-like look: thin light outlines, labels in the middle, pressed parts filled.
+ * Readable on any game picture: a dark see-through fill behind every control, an outline in the
+ * control's colour, white bold text with a dark shadow. Overlay opacity fades outline and fill; the
+ * text stays readable (never below 80 %). Pressed parts light up in the control's colour.
  * Draws into any rect so the same code paints play windows and the full-screen editor.
  */
 class ElementRenderer(private val density: Float) {
+    companion object {
+        const val DEFAULT_COLOR = 0xFFE6E6E6.toInt()
+
+        /** Colours offered in the editor (0 = default light grey). */
+        val PALETTE = intArrayOf(
+            0, 0xFFF44336.toInt(), 0xFFFF9800.toInt(), 0xFFFFEB3B.toInt(), 0xFF4CAF50.toInt(),
+            0xFF00BCD4.toInt(), 0xFF2196F3.toInt(), 0xFF9C27B0.toInt(), 0xFFE91E63.toInt(),
+            0xFF795548.toInt(), 0xFF9E9E9E.toInt(), 0xFF000000.toInt()
+        )
+    }
+
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 2f * density
+        strokeWidth = 2.5f * density
         strokeJoin = Paint.Join.ROUND
     }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val back = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val text = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        setShadowLayer(2.5f * density, 0f, 0f, Color.argb(230, 0, 0, 0))
     }
     private val select = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -85,10 +101,14 @@ class ElementRenderer(private val density: Float) {
     private val r = RectF()
 
     fun draw(c: Canvas, el: OverlayElement, bounds: RectF, state: ElementState?, opacity: Float, selected: Boolean = false) {
-        val a = (opacity.coerceIn(0.05f, 1f) * 255).toInt()
-        stroke.color = Color.argb(a, 230, 230, 230)
-        text.color = Color.argb(a, 235, 235, 235)
-        fill.color = Color.argb((a * 0.55f).toInt(), 200, 200, 200)
+        val o = opacity.coerceIn(0.05f, 1f)
+        val base = if (el.color == 0) DEFAULT_COLOR else el.color
+        val a = (o * 255).toInt()
+        stroke.color = Color.argb(a, Color.red(base), Color.green(base), Color.blue(base))
+        // dark backing so the outline and the text stand out over bright game pictures
+        back.color = Color.argb((o * 0.55f * 255).toInt().coerceIn(40, 170), 0, 0, 0)
+        fill.color = Color.argb((0.30f + o * 0.45f).coerceAtMost(0.8f).times(255).toInt(), Color.red(base), Color.green(base), Color.blue(base))
+        text.color = Color.argb(((o * 1.6f).coerceIn(0.8f, 1f) * 255).toInt(), 255, 255, 255)
         val inset = stroke.strokeWidth
         r.set(bounds.left + inset, bounds.top + inset, bounds.right - inset, bounds.bottom - inset)
 
@@ -99,28 +119,30 @@ class ElementRenderer(private val density: Float) {
             ElementType.STICK -> drawStick(c, state)
             ElementType.TRACKPAD -> {
                 val rad = 12f * density
+                c.drawRoundRect(r, rad, rad, back)
                 c.drawRoundRect(r, rad, rad, stroke)
-                label(c, "TOUCHPAD", r.centerX(), r.centerY(), r.width(), r.height() * 0.22f)
+                label(c, el.text.ifBlank { "TOUCHPAD" }, r.centerX(), r.centerY(), r.width() * 0.8f, r.height() * 0.2f)
             }
         }
         if (selected) c.drawRect(bounds, select)
     }
 
     private fun shapeRect(c: Canvas, shape: ButtonShape, rect: RectF, pressed: Boolean) {
-        val radius = when (shape) {
-            ButtonShape.CIRCLE -> min(rect.width(), rect.height()) / 2f
-            ButtonShape.PILL -> rect.height() / 2f
-            ButtonShape.SQUARE -> 10f * density
-            ButtonShape.RECT -> 3f * density
-        }
         if (shape == ButtonShape.CIRCLE) {
-            val rr = min(rect.width(), rect.height()) / 2f
-            if (pressed) c.drawCircle(rect.centerX(), rect.centerY(), rr, fill)
-            c.drawCircle(rect.centerX(), rect.centerY(), rr, stroke)
-        } else {
-            if (pressed) c.drawRoundRect(rect, radius, radius, fill)
-            c.drawRoundRect(rect, radius, radius, stroke)
+            // a circle stretched by width / height becomes an oval
+            c.drawOval(rect, back)
+            if (pressed) c.drawOval(rect, fill)
+            c.drawOval(rect, stroke)
+            return
         }
+        val radius = when (shape) {
+            ButtonShape.PILL -> min(rect.width(), rect.height()) / 2f
+            ButtonShape.SQUARE -> 10f * density
+            else -> 3f * density
+        }
+        c.drawRoundRect(rect, radius, radius, back)
+        if (pressed) c.drawRoundRect(rect, radius, radius, fill)
+        c.drawRoundRect(rect, radius, radius, stroke)
     }
 
     private fun drawButton(c: Canvas, el: OverlayElement, pressed: Boolean) {
@@ -130,16 +152,16 @@ class ElementRenderer(private val density: Float) {
         }
         val lines = t.split('\n')
         if (lines.size == 1) {
-            label(c, t, r.centerX(), r.centerY(), r.width() * 0.86f, r.height() * 0.36f)
+            label(c, t, r.centerX(), r.centerY(), r.width() * 0.86f, min(r.height() * 0.40f, 20f * density))
         } else {
             // several lines: the first one bigger (the key), the rest smaller (what it does)
-            val usable = r.height() * 0.78f
+            val usable = r.height() * 0.80f
             val first = usable * 0.55f
             val rest = (usable - first) / (lines.size - 1)
             var y = r.centerY() - usable / 2f
             lines.forEachIndexed { i, line ->
                 val h = if (i == 0) first else rest
-                label(c, line, r.centerX(), y + h / 2f, r.width() * 0.88f, h * 0.72f)
+                label(c, line, r.centerX(), y + h / 2f, r.width() * 0.88f, h * 0.76f)
                 y += h
             }
         }
@@ -150,6 +172,7 @@ class ElementRenderer(private val density: Float) {
         val cell = r.width() / n
         val rad = 8f * density
         val tmp = RectF()
+        c.drawRoundRect(r, rad, rad, back)
         for (i in 0 until n) {
             if (state?.pressed?.getOrNull(i) == true) {
                 tmp.set(r.left + i * cell, r.top, r.left + (i + 1) * cell, r.bottom)
@@ -157,7 +180,7 @@ class ElementRenderer(private val density: Float) {
             }
             if (i > 0) c.drawLine(r.left + i * cell, r.top, r.left + i * cell, r.bottom, stroke)
             val k = el.bindings.getOrNull(i) ?: OverlayKey.NONE
-            label(c, k.label, r.left + (i + 0.5f) * cell, r.centerY(), cell * 0.84f, r.height() * 0.42f)
+            label(c, k.label, r.left + (i + 0.5f) * cell, r.centerY(), cell * 0.84f, r.height() * 0.46f)
         }
         c.drawRoundRect(r, rad, rad, stroke)
     }
@@ -183,6 +206,7 @@ class ElementRenderer(private val density: Float) {
                 if (i == 0) path.moveTo(cx + rx * u, cy + ry * u) else path.lineTo(cx + rx * u, cy + ry * u)
             }
             path.close()
+            c.drawPath(path, back)
             if (state?.pressed?.getOrNull(dir) == true) c.drawPath(path, fill)
             c.drawPath(path, stroke)
         }
@@ -192,6 +216,7 @@ class ElementRenderer(private val density: Float) {
         val cx = r.centerX()
         val cy = r.centerY()
         val rad = min(r.width(), r.height()) / 2f
+        c.drawCircle(cx, cy, rad, back)
         c.drawCircle(cx, cy, rad, stroke)
         val travel = rad * 0.6f
         val tx = cx + (state?.stickX ?: 0f) * travel

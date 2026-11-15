@@ -40,7 +40,10 @@ import com.onalauncher.controls.input.InputBackend
 import com.onalauncher.controls.input.InputDispatcher
 import com.onalauncher.controls.input.RootShellBackend
 import com.onalauncher.controls.input.TcpBridgeBackend
+import com.onalauncher.controls.model.MouseMode
 import com.onalauncher.controls.model.OverlayElement
+import com.onalauncher.controls.view.CursorView
+import com.onalauncher.controls.view.TouchpadPanelView
 import com.onalauncher.controls.model.OverlayProfile
 import com.onalauncher.controls.monitor.ForegroundAppMonitor
 import com.onalauncher.controls.monitor.UsageStatsForegroundPoller
@@ -122,6 +125,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         running = true
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         dispatcher = InputDispatcher(backend, { profile ?: OverlayProfileManager.profileFor(this, null) }, ::screenSize)
+        dispatcher.onMouse = { moveCursorView() }
         startAsForeground()
         reloadBackend()
         poller = UsageStatsForegroundPoller(this, scope).also { it.start() }
@@ -181,7 +185,10 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         shownFor = pkg
         val p = OverlayProfileManager.profileFor(this, pkg)
         profile = p
-        if (!userHidden) addPlayViews(p)
+        if (!userHidden) {
+            addPlayViews(p)
+            addMouseUi(p)
+        }
         ensureBubble()
         eye?.invalidate() // open / crossed eye follows userHidden
         updateNotification()
@@ -248,7 +255,70 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
             runCatching { wm.removeViewImmediate(v) }
         }
         playViews.clear()
+        removeMouseUi()
         dispatcher.releaseAll()
+    }
+
+    // ------------------------------------------------------------------ mouse (mode SWIPE)
+
+    private var pad: TouchpadPanelView? = null
+    private var padLp: WindowManager.LayoutParams? = null
+    private var cursorView: View? = null
+    private var cursorLp: WindowManager.LayoutParams? = null
+    private var mouseWarned = false
+
+    /** Floating touchpad + drawn pointer, only when the profile's mouse mode is SWIPE. */
+    private fun addMouseUi(p: OverlayProfile) {
+        if (p.mouseMode != MouseMode.SWIPE || p.disableMouse) return
+        if (!backend.supports(InputBackend.Capability.MOUSE) && !mouseWarned) {
+            mouseWarned = true
+            Toast.makeText(this, R.string.ona_overlay_mouse_needs, Toast.LENGTH_LONG).show()
+        }
+        val (sw, sh) = screenSize()
+        val density = resources.displayMetrics.density
+        val w = (230 * density).toInt()
+        val h = (150 * density).toInt()
+        val lp = baseParams(w, h).apply {
+            val sx = OverlayPrefs.padX(this@OverlayControllerService)
+            val sy = OverlayPrefs.padY(this@OverlayControllerService)
+            x = if (sx >= 0) sx.coerceIn(0, (sw - w).coerceAtLeast(0)) else (sw - w - (16 * density).toInt()).coerceAtLeast(0)
+            y = if (sy >= 0) sy.coerceIn(0, (sh - h).coerceAtLeast(0)) else (sh * 0.30f).toInt()
+        }
+        val v = TouchpadPanelView(
+            this, dispatcher, OverlayPrefs.haptics(this), getString(R.string.ona_overlay_pad_hint),
+            onMovePanel = { dx, dy ->
+                lp.x = (lp.x + dx).coerceIn(0, (sw - w).coerceAtLeast(0))
+                lp.y = (lp.y + dy).coerceIn(0, (sh - h).coerceAtLeast(0))
+                pad?.let { runCatching { wm.updateViewLayout(it, lp) } }
+            },
+            onMovePanelEnd = { OverlayPrefs.setPad(this, lp.x, lp.y) }
+        )
+        runCatching { wm.addView(v, lp); pad = v; padLp = lp }
+            .onFailure { Log.w(TAG, "touchpad addView failed", it) }
+
+        // the pointer: last, so it is drawn above everything; never touchable
+        val cs = (26 * density).toInt()
+        val c = CursorView(this)
+        val clp = baseParams(cs, cs, touchable = false).apply { alpha = 0.8f }
+        runCatching { wm.addView(c, clp); cursorView = c; cursorLp = clp }
+        moveCursorView()
+    }
+
+    private fun moveCursorView() {
+        val v = cursorView ?: return
+        val lp = cursorLp ?: return
+        val (x, y) = backend.cursorPosition() ?: return
+        // 2 px right / below the hotspot: injected clicks must not land on this window
+        lp.x = x.toInt() + 2
+        lp.y = y.toInt() + 2
+        runCatching { wm.updateViewLayout(v, lp) }
+    }
+
+    private fun removeMouseUi() {
+        pad?.let { it.releaseAll(); runCatching { wm.removeViewImmediate(it) } }
+        pad = null; padLp = null
+        cursorView?.let { runCatching { wm.removeViewImmediate(it) } }
+        cursorView = null; cursorLp = null
     }
 
     // ------------------------------------------------------------------ bubble
@@ -372,10 +442,12 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
 
     private fun showBubbleMenu() {
         val pkg = shownFor ?: return
+        val mouseOn = profile?.mouseMode == MouseMode.SWIPE
         val items = arrayOf(
             getString(R.string.ona_overlay_menu_edit),
             getString(if (userHidden) R.string.ona_overlay_menu_show else R.string.ona_overlay_menu_hide),
             getString(R.string.ona_overlay_menu_profile),
+            getString(if (mouseOn) R.string.ona_overlay_menu_mouse_off else R.string.ona_overlay_menu_mouse_on),
             getString(R.string.ona_overlay_menu_stop)
         )
         overlayDialog(
@@ -391,7 +463,12 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
                         2 -> pickProfile { p ->
                             OverlayProfileManager.setAppProfile(this, pkg, p.id)
                         }
-                        3 -> {
+                        3 -> profile?.let { cur ->
+                            // mouse mode is saved in the profile; the save rebuilds the controls
+                            cur.mouseMode = if (mouseOn) MouseMode.OFF else MouseMode.SWIPE
+                            OverlayProfileManager.save(this, cur)
+                        }
+                        4 -> {
                             OverlayPrefs.setEnabled(this, false)
                             stopSelf()
                         }
@@ -507,7 +584,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         backend.stop()
         backend = when (OverlayPrefs.backend(this)) {
             BackendType.PC_BRIDGE -> TcpBridgeBackend(OverlayPrefs.host(this), OverlayPrefs.port(this))
-            BackendType.ACCESSIBILITY_TOUCH -> com.onalauncher.controls.input.NoRootBackend(this)
+            BackendType.ACCESSIBILITY_TOUCH -> com.onalauncher.controls.input.NoRootBackend(this, ::screenSize)
             BackendType.ROOT_SHELL -> RootShellBackend()
         }
         backend.start()

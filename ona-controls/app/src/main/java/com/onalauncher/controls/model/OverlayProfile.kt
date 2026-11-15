@@ -7,6 +7,9 @@ enum class ElementType { BUTTON, BUTTON_ROW, DPAD, STICK, TRACKPAD }
 
 enum class ButtonShape { CIRCLE, SQUARE, RECT, PILL }
 
+/** Mouse for a profile: OFF (no mouse at all) or SWIPE (cursor + floating touchpad, drag = move). */
+enum class MouseMode { OFF, SWIPE }
+
 /** What an analog stick produces. */
 enum class StickOutput {
     /** 8-way digital keys from [OverlayElement.bindings] = up, right, down, left (WASD by default). */
@@ -50,7 +53,12 @@ data class OverlayElement(
     var tapX: Float = 0.5f,
     var tapY: Float = 0.5f,
     /** TOUCH_DRAG radius as a fraction of the screen height. */
-    var dragRadius: Float = 0.12f
+    var dragRadius: Float = 0.12f,
+    /** Stretch: width and height multipliers on top of [scale] (1 = normal). */
+    var width: Float = 1f,
+    var height: Float = 1f,
+    /** Outline / pressed colour (ARGB), 0 = default light grey. */
+    var color: Int = 0
 )
 
 data class OverlayProfile(
@@ -62,6 +70,8 @@ data class OverlayProfile(
     var opacity: Float = 0.4f,
     /** Winlator "Disable Mouse Input": trackpads and mouse sticks send nothing. */
     var disableMouse: Boolean = false,
+    /** Mouse: OFF (default, nothing mouse related runs) or SWIPE (cursor + floating touchpad). */
+    var mouseMode: MouseMode = MouseMode.OFF,
     var elements: MutableList<OverlayElement> = mutableListOf()
 ) {
     fun deepCopy(newId: String = id, newName: String = name): OverlayProfile = copy(
@@ -83,6 +93,7 @@ fun OverlayElement.toJson(): org.json.JSONObject = org.json.JSONObject().apply {
     put("toggle", toggle); put("text", text); put("stickOutput", stickOutput.name)
     put("deadzone", deadzone.toDouble()); put("eightWay", eightWay)
     put("tapX", tapX.toDouble()); put("tapY", tapY.toDouble()); put("dragRadius", dragRadius.toDouble())
+    put("width", width.toDouble()); put("height", height.toDouble()); put("color", color)
 }
 
 fun elementFromJson(o: org.json.JSONObject): OverlayElement {
@@ -103,14 +114,17 @@ fun elementFromJson(o: org.json.JSONObject): OverlayElement {
         eightWay = o.optBoolean("eightWay", true),
         tapX = o.optDouble("tapX", 0.5).toFloat(),
         tapY = o.optDouble("tapY", 0.5).toFloat(),
-        dragRadius = o.optDouble("dragRadius", 0.12).toFloat()
+        dragRadius = o.optDouble("dragRadius", 0.12).toFloat(),
+        width = o.optDouble("width", 1.0).toFloat(),
+        height = o.optDouble("height", 1.0).toFloat(),
+        color = o.optInt("color", 0)
     )
 }
 
 fun OverlayProfile.toJson(): org.json.JSONObject = org.json.JSONObject().apply {
     put("format", "ona-controls-profile-1")
     put("id", id); put("name", name); put("cursorSpeed", cursorSpeed.toDouble())
-    put("opacity", opacity.toDouble()); put("disableMouse", disableMouse)
+    put("opacity", opacity.toDouble()); put("disableMouse", disableMouse); put("mouseMode", mouseMode.name)
     put("elements", org.json.JSONArray().apply { elements.forEach { put(it.toJson()) } })
 }
 
@@ -124,6 +138,7 @@ fun profileFromJson(text: String): OverlayProfile {
         cursorSpeed = o.optDouble("cursorSpeed", 1.0).toFloat(),
         opacity = o.optDouble("opacity", 0.4).toFloat(),
         disableMouse = o.optBoolean("disableMouse", false),
+        mouseMode = enumOr(o.optString("mouseMode"), MouseMode.OFF),
         elements = MutableList(arr.length()) { i -> elementFromJson(arr.getJSONObject(i)) }
     )
 }

@@ -172,9 +172,60 @@ object ElementDialogs {
             root.addView(label(R.string.ona_overlay_drag_radius)); root.addView(reach)
         }
 
-        // ---- size
+        // ---- size, width, height (each with its value shown)
+        fun valueLabel(res: Int, v: Float) = ctx.getString(res) + "  " + String.format(java.util.Locale.ROOT, "%.1f×", v)
         val size = SeekBar(ctx).apply { max = 26; progress = ((el.scale - 0.4f) * 10).toInt().coerceIn(0, 26) }
-        root.addView(label(R.string.ona_overlay_size)); root.addView(size)
+        val sizeLabel = label(R.string.ona_overlay_size).apply { text = valueLabel(R.string.ona_overlay_size, 0.4f + size.progress / 10f) }
+        root.addView(sizeLabel); root.addView(size)
+        val extras = ArrayList<() -> Unit>()
+        val widthBar = SeekBar(ctx).apply { max = 27; progress = ((el.width - 0.3f) * 10).toInt().coerceIn(0, 27) }
+        val widthLabel = label(R.string.ona_overlay_width).apply { text = valueLabel(R.string.ona_overlay_width, 0.3f + widthBar.progress / 10f) }
+        val heightBar = SeekBar(ctx).apply { max = 27; progress = ((el.height - 0.3f) * 10).toInt().coerceIn(0, 27) }
+        val heightLabel = label(R.string.ona_overlay_height).apply { text = valueLabel(R.string.ona_overlay_height, 0.3f + heightBar.progress / 10f) }
+        root.addView(widthLabel); root.addView(widthBar)
+        root.addView(heightLabel); root.addView(heightBar)
+        fun follow(bar: SeekBar, lbl: TextView, res: Int, min: Float) {
+            bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(s: SeekBar?, progress: Int, fromUser: Boolean) {
+                    lbl.text = valueLabel(res, min + progress / 10f)
+                }
+                override fun onStartTrackingTouch(s: SeekBar?) = Unit
+                override fun onStopTrackingTouch(s: SeekBar?) = Unit
+            })
+        }
+        follow(size, sizeLabel, R.string.ona_overlay_size, 0.4f)
+        follow(widthBar, widthLabel, R.string.ona_overlay_width, 0.3f)
+        follow(heightBar, heightLabel, R.string.ona_overlay_height, 0.3f)
+        extras.add {
+            el.width = 0.3f + widthBar.progress / 10f
+            el.height = 0.3f + heightBar.progress / 10f
+        }
+
+        // ---- colour: a row of round swatches, the chosen one has a thick white ring
+        var chosenColor = el.color
+        val swatches = ArrayList<android.view.View>()
+        val colorRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        fun paintSwatch(v: android.view.View, c: Int) {
+            v.background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(if (c == 0) com.onalauncher.controls.view.ElementRenderer.DEFAULT_COLOR else c)
+                setStroke(((if (c == chosenColor) 4 else 1) * d).toInt(), if (c == chosenColor) android.graphics.Color.WHITE else android.graphics.Color.GRAY)
+            }
+        }
+        for (c in com.onalauncher.controls.view.ElementRenderer.PALETTE) {
+            val v = android.view.View(ctx)
+            val sz = (30 * d).toInt()
+            colorRow.addView(v, LinearLayout.LayoutParams(sz, sz).apply { setMargins((3 * d).toInt(), (4 * d).toInt(), (3 * d).toInt(), (4 * d).toInt()) })
+            swatches.add(v)
+            v.setOnClickListener {
+                chosenColor = c
+                com.onalauncher.controls.view.ElementRenderer.PALETTE.forEachIndexed { i, pc -> paintSwatch(swatches[i], pc) }
+            }
+        }
+        com.onalauncher.controls.view.ElementRenderer.PALETTE.forEachIndexed { i, pc -> paintSwatch(swatches[i], pc) }
+        root.addView(label(R.string.ona_overlay_color))
+        root.addView(android.widget.HorizontalScrollView(ctx).apply { addView(colorRow) })
+        extras.add { el.color = chosenColor }
 
         // ---- touch point
         var dialog: AlertDialog? = null
@@ -182,6 +233,7 @@ object ElementDialogs {
             setText(R.string.ona_overlay_pick_point)
             setOnClickListener {
                 applyTo(el, textEdit, shapeSpinner, spinners, keys, toggle, eight, output, dead, reach, size)
+                extras.forEach { it() }
                 dialog?.dismiss()
                 onPickPoint()
             }
@@ -196,6 +248,7 @@ object ElementDialogs {
                 .setView(ScrollView(ctx).apply { addView(root) })
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     applyTo(el, textEdit, shapeSpinner, spinners, keys, toggle, eight, output, dead, reach, size)
+                    extras.forEach { it() }
                     onChanged()
                 }
                 .setNegativeButton(android.R.string.cancel, null)

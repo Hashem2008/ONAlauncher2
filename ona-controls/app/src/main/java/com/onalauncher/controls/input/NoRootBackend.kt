@@ -25,7 +25,10 @@ import com.onalauncher.controls.monitor.OnaAccessibilityService
  *  - TOUCH: delegated to [AccessibilityTouchBackend] (TAP buttons, TOUCH_DRAG sticks).
  * ESC falls back to the system Back action when no input connection is available.
  */
-class NoRootBackend(private val context: android.content.Context) : InputBackend {
+class NoRootBackend(
+    private val context: android.content.Context,
+    private val screenSize: () -> Pair<Int, Int>
+) : InputBackend {
     override val id = "noroot"
 
     private val toucher = AccessibilityTouchBackend()
@@ -39,6 +42,7 @@ class NoRootBackend(private val context: android.content.Context) : InputBackend
 
     override fun supports(category: InputBackend.Capability) =
         category == InputBackend.Capability.TOUCH ||
+            (category == InputBackend.Capability.MOUSE && com.onalauncher.controls.shizuku.ShizukuKeys.ready) ||
             (Build.VERSION.SDK_INT >= 33 && (category == InputBackend.Capability.KEYBOARD || category == InputBackend.Capability.GAMEPAD))
 
     override fun status(): String {
@@ -57,8 +61,12 @@ class NoRootBackend(private val context: android.content.Context) : InputBackend
         toucher.start()
     }
     override fun stop() {
-        // never leave a key stuck down in the game
+        // never leave a key or mouse button stuck down in the game
         downTimes.keys.toList().forEach { send(it, false) }
+        for (bit in intArrayOf(android.view.MotionEvent.BUTTON_PRIMARY, android.view.MotionEvent.BUTTON_SECONDARY, android.view.MotionEvent.BUTTON_TERTIARY)) {
+            if ((mouseHeld and bit) != 0) mouse(com.onalauncher.controls.shizuku.ShizukuKeys.MOUSE_RELEASE, bit)
+        }
+        mouseHeld = 0
         toucher.stop()
     }
 
@@ -73,6 +81,63 @@ class NoRootBackend(private val context: android.content.Context) : InputBackend
     }
 
     override fun gamepadButton(key: OverlayKey, down: Boolean) = this.key(key, down)
+
+    // ---------------------------------------------------------------- mouse (Shizuku only)
+
+    /** ONA's own cursor (screen px); starts in the middle of the screen. */
+    private var curX = -1f
+    private var curY = -1f
+    private var mouseHeld = 0
+
+    private fun cursor() {
+        if (curX < 0f) {
+            val (w, h) = screenSize()
+            curX = w / 2f; curY = h / 2f
+        }
+    }
+
+    private fun mouse(kind: Int, button: Int = 0, value: Float = 0f) {
+        cursor()
+        if (!com.onalauncher.controls.shizuku.ShizukuKeys.mouse(kind, curX, curY, button, value)) warnOnce()
+    }
+
+    override fun cursorPosition(): Pair<Float, Float> {
+        cursor()
+        return curX to curY
+    }
+
+    override fun mouseMove(dx: Float, dy: Float) {
+        cursor()
+        val (w, h) = screenSize()
+        curX = (curX + dx).coerceIn(0f, w - 1f)
+        curY = (curY + dy).coerceIn(0f, h - 1f)
+        mouse(com.onalauncher.controls.shizuku.ShizukuKeys.MOUSE_MOVE)
+    }
+
+    override fun mouseTo(x: Float, y: Float, screenW: Int, screenH: Int) {
+        curX = x.coerceIn(0f, screenW - 1f)
+        curY = y.coerceIn(0f, screenH - 1f)
+        mouse(com.onalauncher.controls.shizuku.ShizukuKeys.MOUSE_MOVE)
+    }
+
+    override fun mouseButton(key: OverlayKey, down: Boolean) {
+        val bit = when (key) {
+            OverlayKey.MLB -> android.view.MotionEvent.BUTTON_PRIMARY
+            OverlayKey.MRB -> android.view.MotionEvent.BUTTON_SECONDARY
+            OverlayKey.MMB -> android.view.MotionEvent.BUTTON_TERTIARY
+            OverlayKey.WHEEL_UP -> { if (down) mouseWheel(1); return }
+            OverlayKey.WHEEL_DOWN -> { if (down) mouseWheel(-1); return }
+            else -> return
+        }
+        if (!down && (mouseHeld and bit) == 0) return // never pressed: nothing to release
+        mouseHeld = if (down) mouseHeld or bit else mouseHeld and bit.inv()
+        mouse(
+            if (down) com.onalauncher.controls.shizuku.ShizukuKeys.MOUSE_PRESS else com.onalauncher.controls.shizuku.ShizukuKeys.MOUSE_RELEASE,
+            bit
+        )
+    }
+
+    override fun mouseWheel(steps: Int) = mouse(com.onalauncher.controls.shizuku.ShizukuKeys.MOUSE_WHEEL, value = steps.toFloat())
 
     private fun updateMeta(code: Int, down: Boolean) {
         val bits = when (code) {

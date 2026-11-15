@@ -16,6 +16,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.FilterChip
+import androidx.core.os.LocaleListCompat
+import com.onalauncher.controls.model.MouseMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -222,79 +228,84 @@ private fun OverlayScreen(resumeTick: Int) {
         }
     }
 
+    val shizuku = remember(key) { ShizukuKeys.state(ctx) }
+    var serviceOn by remember(key) { mutableStateOf(OverlayControllerService.running) }
+    var showAdvanced by remember { mutableStateOf(false) }
+
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Text(stringResource(R.string.ona_overlay_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Text(stringResource(R.string.ona_overlay_summary), style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.size(8.dp))
-
-        // ---------------- permissions
-        SectionCard(stringResource(R.string.ona_overlay_perm_title)) {
-            PermRow(stringResource(R.string.ona_overlay_perm_overlay), canOverlay) {
-                ctx.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${ctx.packageName}")))
-            }
-            PermRow(stringResource(R.string.ona_overlay_perm_a11y), a11y) {
-                ctx.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            }
-            PermRow(stringResource(R.string.ona_overlay_perm_usage), usage || a11y) {
-                ctx.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-            }
-            PermRow(stringResource(R.string.ona_overlay_perm_notify), notify) {
-                if (Build.VERSION.SDK_INT >= 33) notifyLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-            // Shizuku: letter keys into ANY app without root
-            val shizuku = remember(key) { ShizukuKeys.state(ctx) }
-            Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                val ok = shizuku == ShizukuKeys.State.READY
-                Text(if (ok) "✓" else "✗", color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                    modifier = Modifier.width(24.dp), fontWeight = FontWeight.Bold)
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.ona_overlay_perm_shizuku), style = MaterialTheme.typography.bodyMedium)
-                    if (!ok) Text(stringResource(R.string.ona_overlay_shizuku_help), style = MaterialTheme.typography.bodySmall)
-                }
-                when (shizuku) {
-                    ShizukuKeys.State.NOT_INSTALLED -> TextButton(onClick = {
-                        runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + ShizukuKeys.SHIZUKU_PACKAGE))) }
-                    }) { Text(stringResource(R.string.ona_overlay_shizuku_get)) }
-                    ShizukuKeys.State.NOT_RUNNING -> TextButton(onClick = {
-                        ctx.packageManager.getLaunchIntentForPackage(ShizukuKeys.SHIZUKU_PACKAGE)?.let { ctx.startActivity(it) }
-                    }) { Text(stringResource(R.string.ona_overlay_shizuku_open)) }
-                    ShizukuKeys.State.NO_PERMISSION -> TextButton(onClick = { ShizukuKeys.requestPermission() }) {
-                        Text(stringResource(R.string.ona_overlay_perm_grant))
-                    }
-                    ShizukuKeys.State.READY -> Unit
-                }
+        // ---------------- header + language
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.ona_overlay_summary), style = MaterialTheme.typography.bodyMedium)
             }
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+            val current = remember(key) { AppCompatDelegate.getApplicationLocales().toLanguageTags() }
+            FilterChip(selected = current.startsWith("en"), onClick = {
+                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
+            }, label = { Text("English") })
+            FilterChip(selected = current.startsWith("ar"), onClick = {
+                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("ar"))
+            }, label = { Text("عربي") })
+        }
+        Spacer(Modifier.size(6.dp))
 
-        // ---------------- service on / off
-        SectionCard(stringResource(R.string.ona_overlay_service)) {
-            var on by remember(key) { mutableStateOf(OverlayControllerService.running) }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.ona_overlay_service_summary), Modifier.weight(1f))
-                Switch(checked = on, enabled = canOverlay, onCheckedChange = {
-                    on = it
+        // ---------------- quick start: numbered steps, each with its state and one button
+        SectionCard(stringResource(R.string.ona_overlay_quick_start)) {
+            StepRow(1, stringResource(R.string.ona_overlay_step_overlay), stringResource(R.string.ona_overlay_step_overlay_desc), canOverlay,
+                stringResource(R.string.ona_overlay_perm_grant)) {
+                ctx.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${ctx.packageName}")))
+            }
+            StepRow(2, stringResource(R.string.ona_overlay_step_a11y), stringResource(R.string.ona_overlay_step_a11y_desc), a11y,
+                stringResource(R.string.ona_overlay_perm_grant)) {
+                ctx.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            }
+            StepRow(3, stringResource(R.string.ona_overlay_step_shizuku), stringResource(R.string.ona_overlay_shizuku_help),
+                shizuku == ShizukuKeys.State.READY,
+                stringResource(when (shizuku) {
+                    ShizukuKeys.State.NOT_INSTALLED -> R.string.ona_overlay_shizuku_get
+                    ShizukuKeys.State.NOT_RUNNING -> R.string.ona_overlay_shizuku_open
+                    else -> R.string.ona_overlay_perm_grant
+                })) {
+                when (shizuku) {
+                    ShizukuKeys.State.NOT_INSTALLED -> runCatching {
+                        ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + ShizukuKeys.SHIZUKU_PACKAGE)))
+                    }
+                    ShizukuKeys.State.NOT_RUNNING -> ctx.packageManager.getLaunchIntentForPackage(ShizukuKeys.SHIZUKU_PACKAGE)?.let { ctx.startActivity(it) }
+                    else -> ShizukuKeys.requestPermission()
+                }
+            }
+            StepRow(4, stringResource(R.string.ona_overlay_step_game), stringResource(R.string.ona_overlay_step_game_desc), apps.isNotEmpty(),
+                stringResource(R.string.ona_overlay_add_app)) { showPicker = true }
+            Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                StepNumber(5, serviceOn)
+                Column(Modifier.weight(1f).padding(horizontal = 10.dp)) {
+                    Text(stringResource(R.string.ona_overlay_step_on), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.ona_overlay_step_on_desc), style = MaterialTheme.typography.bodySmall)
+                }
+                Switch(checked = serviceOn, enabled = canOverlay, onCheckedChange = {
+                    serviceOn = it
                     OverlayPrefs.setEnabled(ctx, it)
                     if (it) OverlayControllerService.start(ctx) else OverlayControllerService.stop(ctx)
                 })
             }
-            Spacer(Modifier.size(6.dp))
-            Button(enabled = canOverlay, onClick = {
-                OverlayPrefs.setEnabled(ctx, true)
-                OverlayControllerService.start(ctx, OverlayControllerService.ACTION_EDIT, apps.keys.firstOrNull())
-            }) { Text(stringResource(R.string.ona_overlay_edit_now)) }
+            if (!notify) TextButton(onClick = {
+                if (Build.VERSION.SDK_INT >= 33) notifyLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }) { Text(stringResource(R.string.ona_overlay_perm_notify)) }
         }
 
-        // ---------------- target apps (whitelist) + per-app profile
+        // ---------------- your games + their profile
         SectionCard(stringResource(R.string.ona_overlay_apps)) {
             if (apps.isEmpty()) Text(stringResource(R.string.ona_overlay_apps_empty), style = MaterialTheme.typography.bodySmall)
             apps.forEach { (pkg, profileId) ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     AppIcon(pkg)
                     Column(Modifier.weight(1f).padding(horizontal = 10.dp)) {
-                        Text(remember(pkg) { appLabel(ctx, pkg) }, style = MaterialTheme.typography.bodyLarge)
-                        Text(pkg, style = MaterialTheme.typography.labelSmall)
+                        Text(remember(pkg) { appLabel(ctx, pkg) }, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
+                        Text(stringResource(R.string.ona_overlay_uses_profile), style = MaterialTheme.typography.labelSmall)
                     }
                     ProfileDropdown(
                         current = profiles.firstOrNull { it.id == profileId }?.name ?: "?",
@@ -309,7 +320,7 @@ private fun OverlayScreen(resumeTick: Int) {
             OutlinedButton(onClick = { showPicker = true }) { Text(stringResource(R.string.ona_overlay_add_app)) }
         }
 
-        // ---------------- profile (Winlator "Input Controls")
+        // ---------------- profile
         SectionCard(stringResource(R.string.ona_overlay_profile)) {
             if (selected != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -322,24 +333,38 @@ private fun OverlayScreen(resumeTick: Int) {
                         OverlayProfileManager.delete(ctx, selected.id); selectedId = null
                     }) { Icon(painterResource(R.drawable.ic_delete_outlined), null) }
                 }
-                var speed by remember(selected.id, key) { mutableStateOf(selected.cursorSpeed) }
-                Text(stringResource(R.string.ona_overlay_cursor_speed) + "  ${(speed * 100).toInt()}%")
-                Slider(value = speed, valueRange = 0.1f..3f, onValueChange = { speed = it }, onValueChangeFinished = {
-                    selected.cursorSpeed = speed; OverlayProfileManager.save(ctx, selected)
-                })
+                Button(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), enabled = canOverlay, onClick = {
+                    OverlayPrefs.setEnabled(ctx, true)
+                    OverlayControllerService.start(ctx, OverlayControllerService.ACTION_EDIT, apps.keys.firstOrNull())
+                }) { Text(stringResource(R.string.ona_overlay_edit_now)) }
+                Text(stringResource(R.string.ona_overlay_edit_hint), style = MaterialTheme.typography.bodySmall)
+
                 var opacity by remember(selected.id, key) { mutableStateOf(selected.opacity) }
-                Text(stringResource(R.string.ona_overlay_opacity) + "  ${(opacity * 100).toInt()}%")
+                Text(stringResource(R.string.ona_overlay_opacity) + "  ${(opacity * 100).toInt()}%", modifier = Modifier.padding(top = 8.dp))
                 Slider(value = opacity, valueRange = 0.05f..1f, onValueChange = { opacity = it }, onValueChangeFinished = {
                     selected.opacity = opacity; OverlayProfileManager.save(ctx, selected)
                 })
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
-                    selected.disableMouse = !selected.disableMouse; OverlayProfileManager.save(ctx, selected)
-                }) {
-                    Checkbox(checked = selected.disableMouse, onCheckedChange = {
-                        selected.disableMouse = it; OverlayProfileManager.save(ctx, selected)
-                    })
-                    Text(stringResource(R.string.ona_overlay_disable_mouse))
+
+                // mouse: two modes
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                Text(stringResource(R.string.ona_overlay_mouse_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                ChoiceRow(selected.mouseMode == MouseMode.OFF, stringResource(R.string.ona_overlay_mouse_off), stringResource(R.string.ona_overlay_mouse_off_desc)) {
+                    selected.mouseMode = MouseMode.OFF; OverlayProfileManager.save(ctx, selected)
                 }
+                ChoiceRow(selected.mouseMode == MouseMode.SWIPE, stringResource(R.string.ona_overlay_mouse_swipe), stringResource(R.string.ona_overlay_mouse_swipe_desc)) {
+                    selected.mouseMode = MouseMode.SWIPE; OverlayProfileManager.save(ctx, selected)
+                }
+                if (selected.mouseMode == MouseMode.SWIPE) {
+                    var speed by remember(selected.id, key) { mutableStateOf(selected.cursorSpeed) }
+                    Text(stringResource(R.string.ona_overlay_cursor_speed) + "  ${(speed * 100).toInt()}%")
+                    Slider(value = speed, valueRange = 0.1f..3f, onValueChange = { speed = it }, onValueChangeFinished = {
+                        selected.cursorSpeed = speed; OverlayProfileManager.save(ctx, selected)
+                    })
+                    if (shizuku != ShizukuKeys.State.READY) {
+                        Text(stringResource(R.string.ona_overlay_mouse_needs), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(modifier = Modifier.weight(1f), onClick = { importer.launch(arrayOf("application/json", "text/*", "*/*")) }) {
@@ -352,42 +377,64 @@ private fun OverlayScreen(resumeTick: Int) {
             }
         }
 
-        // ---------------- output backend
-        SectionCard(stringResource(R.string.ona_overlay_output)) {
-            var backend by remember(key) { mutableStateOf(OverlayPrefs.backend(ctx)) }
-            fun pick(b: BackendType) {
-                backend = b
-                OverlayPrefs.setBackend(ctx, b)
-                if (OverlayControllerService.running) OverlayControllerService.start(ctx, OverlayControllerService.ACTION_RELOAD)
-            }
-            BackendRow(backend == BackendType.ACCESSIBILITY_TOUCH, R.string.ona_overlay_backend_touch, R.string.ona_overlay_backend_touch_summary) { pick(BackendType.ACCESSIBILITY_TOUCH) }
-            BackendRow(backend == BackendType.PC_BRIDGE, R.string.ona_overlay_backend_pc, R.string.ona_overlay_backend_pc_summary) { pick(BackendType.PC_BRIDGE) }
-            if (backend == BackendType.PC_BRIDGE) {
-                var host by remember { mutableStateOf(OverlayPrefs.host(ctx)) }
-                var port by remember { mutableStateOf(OverlayPrefs.port(ctx).toString()) }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(start = 40.dp)) {
-                    OutlinedTextField(host, { host = it; OverlayPrefs.setHost(ctx, it) }, Modifier.weight(2f),
-                        label = { Text(stringResource(R.string.ona_overlay_host)) }, singleLine = true)
-                    OutlinedTextField(port, { v ->
-                        port = v.filter(Char::isDigit).take(5)
-                        port.toIntOrNull()?.let { OverlayPrefs.setPort(ctx, it) }
-                    }, Modifier.weight(1f), label = { Text(stringResource(R.string.ona_overlay_port)) }, singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                }
-                TextButton(modifier = Modifier.padding(start = 32.dp), onClick = {
-                    if (OverlayControllerService.running) OverlayControllerService.start(ctx, OverlayControllerService.ACTION_RELOAD)
-                }) { Text(stringResource(R.string.ona_overlay_reconnect)) }
-            }
-            BackendRow(backend == BackendType.ROOT_SHELL, R.string.ona_overlay_backend_root, R.string.ona_overlay_backend_root_summary) { pick(BackendType.ROOT_SHELL) }
-            var haptics by remember { mutableStateOf(OverlayPrefs.haptics(ctx)) }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.ona_overlay_haptics), Modifier.weight(1f))
-                Switch(checked = haptics, onCheckedChange = { haptics = it; OverlayPrefs.setHaptics(ctx, it) })
+        // ---------------- how to use
+        SectionCard(stringResource(R.string.ona_overlay_guide)) {
+            listOf(
+                R.string.ona_overlay_guide_1, R.string.ona_overlay_guide_2, R.string.ona_overlay_guide_3,
+                R.string.ona_overlay_guide_4, R.string.ona_overlay_guide_5, R.string.ona_overlay_guide_6
+            ).forEach { res ->
+                Text("•  " + stringResource(res), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 3.dp))
             }
         }
 
-        SectionCard(stringResource(R.string.ona_overlay_how)) {
-            Text(stringResource(R.string.ona_overlay_how_text), style = MaterialTheme.typography.bodySmall)
+        // ---------------- advanced (folded)
+        Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+            Column(Modifier.padding(14.dp)) {
+                Row(Modifier.fillMaxWidth().clickable { showAdvanced = !showAdvanced }, verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.ona_overlay_advanced), style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text(if (showAdvanced) "▲" else "▼")
+                }
+                if (showAdvanced) {
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.ona_overlay_output), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    var backend by remember(key) { mutableStateOf(OverlayPrefs.backend(ctx)) }
+                    fun pick(b: BackendType) {
+                        backend = b
+                        OverlayPrefs.setBackend(ctx, b)
+                        if (OverlayControllerService.running) OverlayControllerService.start(ctx, OverlayControllerService.ACTION_RELOAD)
+                    }
+                    BackendRow(backend == BackendType.ACCESSIBILITY_TOUCH, R.string.ona_overlay_backend_touch, R.string.ona_overlay_backend_touch_summary) { pick(BackendType.ACCESSIBILITY_TOUCH) }
+                    BackendRow(backend == BackendType.PC_BRIDGE, R.string.ona_overlay_backend_pc, R.string.ona_overlay_backend_pc_summary) { pick(BackendType.PC_BRIDGE) }
+                    if (backend == BackendType.PC_BRIDGE) {
+                        var host by remember { mutableStateOf(OverlayPrefs.host(ctx)) }
+                        var port by remember { mutableStateOf(OverlayPrefs.port(ctx).toString()) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(start = 40.dp)) {
+                            OutlinedTextField(host, { host = it; OverlayPrefs.setHost(ctx, it) }, Modifier.weight(2f),
+                                label = { Text(stringResource(R.string.ona_overlay_host)) }, singleLine = true)
+                            OutlinedTextField(port, { v ->
+                                port = v.filter(Char::isDigit).take(5)
+                                port.toIntOrNull()?.let { OverlayPrefs.setPort(ctx, it) }
+                            }, Modifier.weight(1f), label = { Text(stringResource(R.string.ona_overlay_port)) }, singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        }
+                        TextButton(modifier = Modifier.padding(start = 32.dp), onClick = {
+                            if (OverlayControllerService.running) OverlayControllerService.start(ctx, OverlayControllerService.ACTION_RELOAD)
+                        }) { Text(stringResource(R.string.ona_overlay_reconnect)) }
+                    }
+                    BackendRow(backend == BackendType.ROOT_SHELL, R.string.ona_overlay_backend_root, R.string.ona_overlay_backend_root_summary) { pick(BackendType.ROOT_SHELL) }
+                    var haptics by remember { mutableStateOf(OverlayPrefs.haptics(ctx)) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.ona_overlay_haptics), Modifier.weight(1f))
+                        Switch(checked = haptics, onCheckedChange = { haptics = it; OverlayPrefs.setHaptics(ctx, it) })
+                    }
+                    PermRow(stringResource(R.string.ona_overlay_perm_usage), usage || a11y) {
+                        ctx.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                    }
+                    Spacer(Modifier.size(6.dp))
+                    Text(stringResource(R.string.ona_overlay_how_text), style = MaterialTheme.typography.bodySmall)
+                }
+            }
         }
     }
 
@@ -423,6 +470,43 @@ private fun OverlayScreen(resumeTick: Int) {
             },
             dismissButton = { TextButton(onClick = { renameDialog = null }) { Text(stringResource(android.R.string.cancel)) } }
         )
+    }
+}
+
+@Composable
+private fun StepNumber(n: Int, done: Boolean) {
+    Box(
+        Modifier.size(30.dp).background(
+            if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, CircleShape
+        ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(if (done) "✓" else n.toString(), fontWeight = FontWeight.Bold,
+            color = if (done) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** One quick-start step: number (or ✓), title, short help, and its button while not done. */
+@Composable
+private fun StepRow(n: Int, title: String, desc: String, done: Boolean, action: String, onAction: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        StepNumber(n, done)
+        Column(Modifier.weight(1f).padding(horizontal = 10.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(desc, style = MaterialTheme.typography.bodySmall)
+        }
+        if (!done) Button(onClick = onAction) { Text(action, maxLines = 1) }
+    }
+}
+
+@Composable
+private fun ChoiceRow(selected: Boolean, title: String, desc: String, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(selected = selected, onClick = onClick)
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(desc, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 

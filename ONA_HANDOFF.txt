@@ -463,6 +463,29 @@ ONA CONTROLS 1.6: ONE-TAP HIDE / SHOW BUTTON (2026-11-15)
   Blue open eye = shown, grey crossed eye = hidden. Added/removed together with the bubble.
 - Commit 51aa8ea: ona_controls.yml run 43695438216 SUCCESS, release ona-controls = 1.6. NOT tested on a device.
 
+ONA CONTROLS 1.7: READABLE BUTTONS, COLOUR / WIDTH / HEIGHT, MOUSE (OFF / SWIPE), NEW UI (2026-11-15)
+- User: buttons hard to read while playing; wants a colour per button, width and height; a mouse
+  pointer with two modes (Swipe Control / off) and all mouse controls; an easier UI with Arabic and
+  English help.
+- ElementRenderer: dark see-through backing behind every control, 2.5 dp outline in the control's
+  colour, bold white text with a black shadow (text alpha >= 80 % whatever the opacity), pressed =
+  filled with the colour. CIRCLE stretched = oval. OverlayElement.width / height / color (JSON),
+  ElementGeometry.sizeDp multiplies them. ElementDialogs: Size / Width / Height sliders with values,
+  12 colour swatches.
+- Mouse: OverlayProfile.mouseMode OFF (default, nothing mouse related runs) / SWIPE. Shizuku mouse
+  injection = the 1.3 files (IInjector.mouse, InjectorService, ShizukuKeys, NoRootBackend mouse part,
+  InputBackend.mouseTo, Tcp "P"), user service version 3. InputDispatcher.mouseEnabled() gates all
+  mouse calls; onMouse moves the pointer. Service: addMouseUi() (only SWIPE) = view/TouchpadPanelView
+  (floating pad, own window, drag bar, pad drag = move, tap = left, 2-finger tap = right, 2-finger drag
+  = wheel, L / R hold) + CursorView (untouchable window 2 px right/below the hotspot, alpha 0.8, so
+  injected clicks hit the game). NO full-screen layer (1.3's R-CLICK layer is the main suspect for
+  "broke everything"). ONA menu: "Mouse: turn on / off". Pad position OverlayPrefs.padX/padY.
+- UI (OverlayControlsActivity): English / عربي chips (AppCompatDelegate.setApplicationLocales,
+  res/xml/locales_config.xml + AppLocalesMetadataHolderService), numbered quick start (overlay,
+  accessibility, Shizuku, game, switch), games, profile (edit layout, opacity, mouse Off / Swipe +
+  cursor speed, import/export), "How to use" guide, folded "Advanced" (backends, haptics, usage access).
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
