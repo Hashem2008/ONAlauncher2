@@ -7,7 +7,7 @@ package com.onalauncher.controls.model
 import android.view.KeyEvent
 
 /** What an overlay key talks to. The dispatcher routes each category to the active backend. */
-enum class KeyCategory { NONE, KEYBOARD, MOUSE, GAMEPAD, TOUCH }
+enum class KeyCategory { NONE, KEYBOARD, MOUSE, GAMEPAD, TOUCH, MODE }
 
 /**
  * Every bindable output. The enum NAME is the wire id sent to the PC bridge (stable, do not rename),
@@ -124,7 +124,11 @@ enum class OverlayKey(
     GP_DPAD_LEFT("←", KeyCategory.GAMEPAD, KeyEvent.KEYCODE_DPAD_LEFT),
 
     // ---- touch on the target app (the element's own tap point) ----
-    TOUCH_TAP("TAP", KeyCategory.TOUCH);
+    TOUCH_TAP("TAP", KeyCategory.TOUCH),
+
+    // ---- overlay modes (handled by the overlay itself) ----
+    /** While on (hold, or a toggle button), every tap on the game is a RIGHT click at that spot. */
+    RIGHT_TAP_MODE("R-CLICK", KeyCategory.MODE);
 
     companion object {
         /** Lenient lookup used by JSON import (unknown names become NONE instead of failing). */

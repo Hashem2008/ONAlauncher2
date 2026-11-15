@@ -47,12 +47,24 @@ object OverlayProfileManager {
                 .onSuccess { map[it.id] = it }
                 .onFailure { Log.w(TAG, "Bad profile ${f.name}", it) }
         }
-        if (map.isEmpty()) {
-            DefaultProfiles.all().forEach { p ->
-                map[p.id] = p
-                writeProfile(ctx, p)
+        // Built-in profiles: each one is added once (also to users who already have profiles, so
+        // new presets like Generals appear after an update); a deleted built-in is not re-added.
+        val offeredFile = File(root(ctx), "builtins.txt")
+        val offered = HashSet<String>()
+        if (offeredFile.isFile) offered.addAll(offeredFile.readLines().map { it.trim() }.filter { it.isNotEmpty() })
+        else if (map.isNotEmpty()) offered.addAll(listOf(DefaultProfiles.RTS, DefaultProfiles.TEMPLATE, DefaultProfiles.FPS, DefaultProfiles.GAMEPAD))
+        var changed = false
+        DefaultProfiles.all().forEach { p ->
+            if (p.id !in offered) {
+                if (p.id !in map) {
+                    map[p.id] = p
+                    writeProfile(ctx, p)
+                }
+                offered.add(p.id)
+                changed = true
             }
         }
+        if (changed || !offeredFile.isFile) runCatching { offeredFile.writeText(offered.joinToString("\n")) }
         cache = map
         map
     }

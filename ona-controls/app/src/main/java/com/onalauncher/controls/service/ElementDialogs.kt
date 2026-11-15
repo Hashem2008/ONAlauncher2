@@ -23,7 +23,9 @@ import com.onalauncher.controls.model.ElementType
 import com.onalauncher.controls.model.KeyCategory
 import com.onalauncher.controls.model.OverlayElement
 import com.onalauncher.controls.model.OverlayKey
+import com.onalauncher.controls.model.MouseMode
 import com.onalauncher.controls.model.StickOutput
+import com.onalauncher.controls.view.ControlIcons
 import java.util.UUID
 
 /** Plain-View dialogs for the overlay editor (Compose needs an activity; these run from the service). */
@@ -37,6 +39,7 @@ object ElementDialogs {
         KeyCategory.MOUSE -> "Mouse ${k.label}"
         KeyCategory.GAMEPAD -> "Pad ${k.label}"
         KeyCategory.TOUCH -> "Touch tap (point)"
+        KeyCategory.MODE -> "Mode: right-click taps (R-CLICK)"
     }
 
     fun chooseNewElement(ctx: Context, show: (AlertDialog.Builder) -> AlertDialog, onCreated: (OverlayElement) -> Unit) {
@@ -78,9 +81,14 @@ object ElementDialogs {
         el: OverlayElement,
         show: (AlertDialog.Builder) -> AlertDialog,
         onChanged: () -> Unit,
-        onPickPoint: () -> Unit
+        onPickPoint: () -> Unit,
+        onPickImage: () -> Unit
     ) {
         val d = ctx.resources.displayMetrics.density
+        /** Writes every field of the dialog into [el]; set once all views exist. */
+        lateinit var applyAll: () -> Unit
+        val extras = ArrayList<() -> Unit>()
+        var dialog: AlertDialog? = null
         val root = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             val p = (16 * d).toInt()
@@ -108,6 +116,40 @@ object ElementDialogs {
             setSelection(el.shape.ordinal)
         }
         if (el.type == ElementType.BUTTON) { root.addView(label(R.string.ona_overlay_shape)); root.addView(shapeSpinner) }
+
+        // ---- picture (buttons): built-in icon or own image from the gallery
+        if (el.type == ElementType.BUTTON) {
+            val iconIds = listOf("") + ControlIcons.all.map { it.first }
+            val iconNames = listOf(ctx.getString(R.string.ona_overlay_icon_none)) + ControlIcons.all.map { it.third }
+            val iconSpinner = Spinner(ctx).apply {
+                adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, iconNames)
+                setSelection(iconIds.indexOf(el.icon).coerceAtLeast(0))
+            }
+            var imagePath = el.imagePath
+            val imageInfo = TextView(ctx)
+            fun refreshImageInfo() {
+                imageInfo.setText(if (imagePath.isBlank()) R.string.ona_overlay_image_none else R.string.ona_overlay_image_set)
+            }
+            refreshImageInfo()
+            val imageRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+            imageRow.addView(Button(ctx).apply {
+                setText(R.string.ona_overlay_image_pick)
+                setOnClickListener { applyAll(); dialog?.dismiss(); onPickImage() }
+            })
+            imageRow.addView(Button(ctx).apply {
+                setText(R.string.ona_overlay_image_remove)
+                setOnClickListener { imagePath = ""; refreshImageInfo() }
+            })
+            val showLabel = CheckBox(ctx).apply { setText(R.string.ona_overlay_show_label); isChecked = el.showLabel }
+            root.addView(label(R.string.ona_overlay_icon)); root.addView(iconSpinner)
+            root.addView(label(R.string.ona_overlay_image)); root.addView(imageInfo); root.addView(imageRow)
+            root.addView(showLabel)
+            extras.add {
+                el.icon = iconIds[iconSpinner.selectedItemPosition.coerceAtLeast(0)]
+                el.imagePath = imagePath
+                el.showLabel = showLabel.isChecked
+            }
+        }
 
         // ---- bindings
         val bindingBox = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
@@ -154,7 +196,32 @@ object ElementDialogs {
 
         // ---- toggle / 8-way
         val toggle = CheckBox(ctx).apply { setText(R.string.ona_overlay_toggle); isChecked = el.toggle }
-        if (el.type == ElementType.BUTTON) root.addView(toggle)
+        if (el.type == ElementType.BUTTON) {
+            root.addView(label(R.string.ona_overlay_click_event))
+            root.addView(toggle)
+            val swipe = CheckBox(ctx).apply { setText(R.string.ona_overlay_swipe_trigger); isChecked = el.swipeTrigger }
+            val moveMouse = CheckBox(ctx).apply { setText(R.string.ona_overlay_move_with_mouse); isChecked = el.moveWithMouse }
+            root.addView(swipe)
+            root.addView(TextView(ctx).apply { setText(R.string.ona_overlay_swipe_trigger_hint); textSize = 12f })
+            root.addView(moveMouse)
+            root.addView(TextView(ctx).apply { setText(R.string.ona_overlay_move_with_mouse_hint); textSize = 12f })
+            extras.add {
+                el.swipeTrigger = swipe.isChecked
+                el.moveWithMouse = moveMouse.isChecked
+            }
+        }
+        if (el.type == ElementType.TRACKPAD) {
+            val modes = MouseMode.entries
+            val modeSpinner = Spinner(ctx).apply {
+                adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, listOf(
+                    ctx.getString(R.string.ona_overlay_mouse_swipe), ctx.getString(R.string.ona_overlay_mouse_tap)
+                ))
+                setSelection(el.mouseMode.ordinal)
+            }
+            root.addView(label(R.string.ona_overlay_mouse_mode)); root.addView(modeSpinner)
+            root.addView(TextView(ctx).apply { setText(R.string.ona_overlay_mouse_mode_hint); textSize = 12f })
+            extras.add { el.mouseMode = modes[modeSpinner.selectedItemPosition.coerceIn(0, modes.size - 1)] }
+        }
         val eight = CheckBox(ctx).apply { setText(R.string.ona_overlay_eight_way); isChecked = el.eightWay }
         if (el.type == ElementType.DPAD) root.addView(eight)
 
@@ -176,12 +243,16 @@ object ElementDialogs {
         val size = SeekBar(ctx).apply { max = 26; progress = ((el.scale - 0.4f) * 10).toInt().coerceIn(0, 26) }
         root.addView(label(R.string.ona_overlay_size)); root.addView(size)
 
+        applyAll = {
+            applyTo(el, textEdit, shapeSpinner, spinners, keys, toggle, eight, output, dead, reach, size)
+            extras.forEach { it() }
+        }
+
         // ---- touch point
-        var dialog: AlertDialog? = null
         val pickBtn = Button(ctx).apply {
             setText(R.string.ona_overlay_pick_point)
             setOnClickListener {
-                applyTo(el, textEdit, shapeSpinner, spinners, keys, toggle, eight, output, dead, reach, size)
+                applyAll()
                 dialog?.dismiss()
                 onPickPoint()
             }
@@ -195,7 +266,7 @@ object ElementDialogs {
                 .setTitle(R.string.ona_overlay_element_settings)
                 .setView(ScrollView(ctx).apply { addView(root) })
                 .setPositiveButton(android.R.string.ok) { _, _ ->
-                    applyTo(el, textEdit, shapeSpinner, spinners, keys, toggle, eight, output, dead, reach, size)
+                    applyAll()
                     onChanged()
                 }
                 .setNegativeButton(android.R.string.cancel, null)

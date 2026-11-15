@@ -27,6 +27,8 @@ interface InputBackend {
     fun key(key: OverlayKey, down: Boolean) {}
     fun mouseButton(key: OverlayKey, down: Boolean) {}
     fun mouseMove(dx: Float, dy: Float) {}
+    /** Puts the cursor at an absolute screen point (px); screen size given for backends that need fractions. */
+    fun mouseTo(x: Float, y: Float, screenW: Int, screenH: Int) {}
     fun mouseWheel(steps: Int) {}
     fun gamepadButton(key: OverlayKey, down: Boolean) {}
     fun gamepadAxis(axis: GamepadAxis, value: Float) {}

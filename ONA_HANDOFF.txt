@@ -404,6 +404,30 @@ ONA CONTROLS 1.2: SHIZUKU KEY INJECTION (2026-11-15)
   (old note) ask the user to set up Shizuku and test G in Winlator. If it still fails, check logcat
   tag OnaOverlay for "Shizuku injector connected: <probe>".
 
+ONA CONTROLS 1.3: GENERALS ZERO HOUR PROFILE, PICTURES, MOUSE (2026-11-15)
+- User asked: a professional Generals Zero Hour profile (all basic hotkeys), a picture on every control
+  (e.g. a dozer), the launcher options from his screenshots (Swipe Trigger, Move with Mouse,
+  Toggleable, Mouse Control Mode Swipe/Tap), right click and mouse control, no bugs/inconsistency.
+- Pictures: res/drawable/ctl_*.xml (25 white vectors: own drawings like dozer/tank/radar + Material
+  icons, Apache-2.0), view/ControlIcons.kt; element.icon / element.imagePath (own image from the
+  gallery via ui/ImagePickActivity.kt, copied to files/ona_overlay/images/) / showLabel. EA game art
+  is NOT shipped (copyright); the user can pick any image himself.
+- Mouse via Shizuku: IInjector.mouse (hover/move/press/release/wheel, SOURCE_MOUSE, setActionButton
+  like scrcpy), user service version 2. NoRootBackend keeps ONA's own cursor (starts mid screen).
+- Options per control: swipeTrigger (service SlideHub across the per-control windows),
+  moveWithMouse (held button drags the mouse), toggle; TRACKPAD mouseMode SWIPE / TAP (pad = map of
+  the screen). OverlayKey.RIGHT_TAP_MODE (category MODE, "R-CLICK"): a full-screen layer UNDER the
+  controls (alpha 0.6, untouchable) becomes touchable; a tap turns it off, waits 80 ms, injects a right
+  click there, turns it back on after 120 ms (an injected mouse event must not land on our own window).
+- ElementGeometry.fit(): profiles are laid out for 915x412 dp; smaller screens shrink controls evenly
+  (checked: no overlaps 640x360 .. 1280x800, Generals controls stay above the game's command bar).
+- DefaultProfiles.generals(): groups 1-6, HOME H, EVENT Space, MENU Esc, CTRL/SHIFT toggles, arrow
+  D-pad, ZOOM +/- (wheel), touchpad, DOZER D, ALL Q, SAME E, AIR W, SCROLL (MRB move-with-mouse),
+  ATK A, STOP S, SCAT X, R-CLICK. Built-ins are now added once per id (files/ona_overlay/builtins.txt),
+  so existing users get Generals too. Hotkeys I am least sure of: E (same type), D (dozer) - editable.
+- pc-bridge: "P fx fy" absolute cursor.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".

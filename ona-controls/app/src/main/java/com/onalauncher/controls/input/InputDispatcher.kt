@@ -19,7 +19,9 @@ import com.onalauncher.controls.model.OverlayProfile
 class InputDispatcher(
     @Volatile var backend: InputBackend,
     private val profile: () -> OverlayProfile,
-    private val screenSize: () -> Pair<Int, Int>
+    private val screenSize: () -> Pair<Int, Int>,
+    /** Overlay modes (KeyCategory.MODE), e.g. R-CLICK; called after ref counting. */
+    private val onMode: (OverlayKey, Boolean) -> Unit = { _, _ -> }
 ) {
     private val held = HashMap<OverlayKey, Int>()
     private var nextPointer = 1
@@ -47,8 +49,29 @@ class InputDispatcher(
             KeyCategory.KEYBOARD -> backend.key(key, down)
             KeyCategory.MOUSE -> if (!profile().disableMouse) backend.mouseButton(key, down)
             KeyCategory.GAMEPAD -> backend.gamepadButton(key, down)
+            KeyCategory.MODE -> onMode(key, down)
             else -> Unit
         }
+    }
+
+    /** Cursor to a point given as screen fractions (touchpad Tap Control). */
+    fun mouseToFrac(fx: Float, fy: Float) {
+        if (profile().disableMouse) return
+        val (w, h) = screenSize()
+        backend.mouseTo(fx * w, fy * h, w, h)
+    }
+
+    fun wheel(steps: Int) {
+        if (!profile().disableMouse) backend.mouseWheel(steps)
+    }
+
+    /** Moves the cursor to (x, y) px and clicks [button] there (R-CLICK mode). */
+    fun clickAt(button: OverlayKey, x: Float, y: Float) {
+        if (profile().disableMouse) return
+        val (w, h) = screenSize()
+        backend.mouseTo(x, y, w, h)
+        backend.mouseButton(button, true)
+        backend.mouseButton(button, false)
     }
 
     fun mouseMove(dx: Float, dy: Float) {
@@ -73,6 +96,7 @@ class InputDispatcher(
                 KeyCategory.KEYBOARD -> backend.key(k, false)
                 KeyCategory.MOUSE -> backend.mouseButton(k, false)
                 KeyCategory.GAMEPAD -> backend.gamepadButton(k, false)
+                KeyCategory.MODE -> onMode(k, false)
                 else -> Unit
             }
         }

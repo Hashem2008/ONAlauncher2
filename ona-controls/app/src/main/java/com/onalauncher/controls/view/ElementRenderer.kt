@@ -3,7 +3,13 @@
  */
 package com.onalauncher.controls.view
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.drawable.Drawable
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
@@ -44,9 +50,19 @@ object ElementGeometry {
         return w * el.scale to h * el.scale
     }
 
-    fun sizePx(el: OverlayElement, density: Float): Pair<Int, Int> {
+    /** Profiles are laid out for a 915 x 412 dp landscape phone; smaller screens shrink every control evenly. */
+    private const val REF_W_DP = 915f
+    private const val REF_H_DP = 412f
+
+    fun fit(screenW: Int, screenH: Int, density: Float): Float {
+        if (screenW <= 0 || screenH <= 0) return 1f
+        return minOf(1f, screenW / density / REF_W_DP, screenH / density / REF_H_DP)
+    }
+
+    fun sizePx(el: OverlayElement, density: Float, screenW: Int, screenH: Int): Pair<Int, Int> {
         val (w, h) = sizeDp(el)
-        return (w * density).toInt().coerceAtLeast(8) to (h * density).toInt().coerceAtLeast(8)
+        val k = density * fit(screenW, screenH, density)
+        return (w * k).toInt().coerceAtLeast(8) to (h * k).toInt().coerceAtLeast(8)
     }
 }
 
@@ -54,7 +70,29 @@ object ElementGeometry {
  * Winlator-like look: thin light outlines, labels in the middle, pressed parts filled.
  * Draws into any rect so the same code paints play windows and the full-screen editor.
  */
-class ElementRenderer(private val density: Float) {
+class ElementRenderer(private val context: Context) {
+    private val density = context.resources.displayMetrics.density
+
+    private companion object {
+        /** Decoded gallery pictures, shared by all controls (small: max 256 px). */
+        val bitmaps = HashMap<String, Bitmap?>()
+
+        fun loadBitmap(path: String): Bitmap? = synchronized(bitmaps) {
+            bitmaps.getOrPut(path) {
+                runCatching {
+                    val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeFile(path, o)
+                    var sample = 1
+                    while (o.outWidth / sample > 256 || o.outHeight / sample > 256) sample *= 2
+                    BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = sample })
+                }.getOrNull()
+            }
+        }
+    }
+
+    private val drawables = HashMap<String, Drawable?>()
+    private val bmpPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val pic = RectF()
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = 2f * density
@@ -118,7 +156,46 @@ class ElementRenderer(private val density: Float) {
         val t = el.text.ifBlank {
             el.bindings.filter { it != OverlayKey.NONE }.joinToString("+") { it.label }.ifBlank { "NONE" }
         }
-        label(c, t, r.centerX(), r.centerY(), r.width() * 0.86f, r.height() * 0.36f)
+        val hasPicture = el.imagePath.isNotBlank() || el.icon.isNotBlank()
+        if (!hasPicture) {
+            label(c, t, r.centerX(), r.centerY(), r.width() * 0.86f, r.height() * 0.36f)
+            return
+        }
+        // picture in the middle; with a label it moves up and the text sits underneath
+        val inner = if (el.shape == ButtonShape.CIRCLE) 0.62f else 0.70f
+        val side = min(r.width(), r.height()) * inner
+        if (el.showLabel && t.isNotBlank()) {
+            val picSide = side * 0.78f
+            val top = r.centerY() - (picSide + r.height() * 0.2f) / 2f
+            pic.set(r.centerX() - picSide / 2f, top, r.centerX() + picSide / 2f, top + picSide)
+            drawPicture(c, el, pic)
+            label(c, t, r.centerX(), pic.bottom + r.height() * 0.11f, r.width() * 0.84f, r.height() * 0.17f)
+        } else {
+            pic.set(r.centerX() - side / 2f, r.centerY() - side / 2f, r.centerX() + side / 2f, r.centerY() + side / 2f)
+            drawPicture(c, el, pic)
+        }
+    }
+
+    private fun drawPicture(c: Canvas, el: OverlayElement, dst: RectF) {
+        if (el.imagePath.isNotBlank()) {
+            val b = loadBitmap(el.imagePath)
+            if (b != null) {
+                // keep the aspect ratio inside dst
+                val s = min(dst.width() / b.width, dst.height() / b.height)
+                val w = b.width * s
+                val h = b.height * s
+                val tmp = RectF(dst.centerX() - w / 2f, dst.centerY() - h / 2f, dst.centerX() + w / 2f, dst.centerY() + h / 2f)
+                bmpPaint.alpha = text.alpha
+                c.drawBitmap(b, null, tmp, bmpPaint)
+                return
+            }
+        }
+        val d = drawables.getOrPut(el.icon) {
+            ControlIcons.res(el.icon)?.let { context.getDrawable(it)?.mutate() }
+        } ?: return
+        d.setBounds(dst.left.toInt(), dst.top.toInt(), dst.right.toInt(), dst.bottom.toInt())
+        d.colorFilter = PorterDuffColorFilter(text.color, PorterDuff.Mode.SRC_IN)
+        d.draw(c)
     }
 
     private fun drawRow(c: Canvas, el: OverlayElement, state: ElementState?) {

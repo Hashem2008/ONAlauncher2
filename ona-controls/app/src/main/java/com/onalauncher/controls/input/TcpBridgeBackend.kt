@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit
  *   M <MLB|MRB|MMB> <1|0>           mouse button
  *   W <steps>                       wheel, +up / -down
  *   R <dx> <dy>                     relative mouse move in pixels (coalesced, at most ~120/s)
+ *   P <fx> <fy>                     absolute cursor, fractions of the screen 0..1
  *   G <GP_*> <1|0>                  gamepad button
  *   A <LX|LY|RX|RY|LT|RT> <value>   gamepad axis, -1..1 (triggers 0..1)
  *
@@ -73,6 +74,10 @@ class TcpBridgeBackend(private val host: String, private val port: Int) : InputB
     override fun gamepadButton(key: OverlayKey, down: Boolean) = send("G ${key.name} ${if (down) 1 else 0}")
     override fun gamepadAxis(axis: GamepadAxis, value: Float) =
         send(String.format(Locale.ROOT, "A %s %.3f", axis.name, value))
+
+    /** Absolute cursor as screen fractions; the PC maps them to its own screen. */
+    override fun mouseTo(x: Float, y: Float, screenW: Int, screenH: Int) =
+        send(String.format(Locale.ROOT, "P %.4f %.4f", x / screenW.coerceAtLeast(1), y / screenH.coerceAtLeast(1)))
 
     override fun mouseMove(dx: Float, dy: Float) {
         if (!connected) return
