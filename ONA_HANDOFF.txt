@@ -426,7 +426,8 @@ ONA CONTROLS 1.3: GENERALS ZERO HOUR PROFILE, PICTURES, MOUSE (2026-11-15)
   ATK A, STOP S, SCAT X, R-CLICK. Built-ins are now added once per id (files/ona_overlay/builtins.txt),
   so existing users get Generals too. Hotkeys I am least sure of: E (same type), D (dozer) - editable.
 - pc-bridge: "P fx fy" absolute cursor.
-- CI result: (filled after the build)
+- Commit 34fb2ed: ona_controls.yml run 43673155387 SUCCESS, release ona-controls = 1.3.
+  NOT tested on a device: ask about mouse (R-CLICK, SCROLL, touchpad), pictures and Swipe Trigger in Generals.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
