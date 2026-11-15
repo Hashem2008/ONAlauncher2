@@ -398,7 +398,9 @@ ONA CONTROLS 1.2: SHIZUKU KEY INJECTION (2026-11-15)
   NO_PERMISSION / READY, binds the service). NoRootBackend tries Shizuku first, then the
   accessibility input method; if both fail it shows a toast once (ona_overlay_keys_fail).
   Permissions card got a Shizuku row (Get / Start / Allow). Manifest: ShizukuProvider + <queries>.
-- CI result: (filled after the build)
+- Commit 37ad06e: ona_controls.yml run 43660969335 SUCCESS, release ona-controls = 1.2.
+  NOT tested: ask the user to set up Shizuku and test G in Winlator. If it still fails, check logcat
+  tag OnaOverlay for "Shizuku injector connected: <probe>".
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
