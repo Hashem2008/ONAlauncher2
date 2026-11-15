@@ -322,6 +322,39 @@ RUST (HORIZON) HOME + TOUCH CONTROLS (2026-11-05, on main)
   Logs (export + share), Launcher settings, About. EngineSwitch at the bottom goes back to Java.
 - NEXT: ask the user for the Horizon log (Rust page -> Logs) after entering a world; check the
   "touch controls" line and whether draw_touch runs.
+FLOATING OVERLAY CONTROLS OVER OTHER APPS (2026-11-15, branch ccr-3291e893-ej006h)
+- User sent Winlator "Input Controls" screenshots (profiles RTS / Template 12 / FPS / Virtual Gamepad,
+  cursor speed, opacity, disable mouse, import/export, controls editor) and asked for a floating
+  overlay like it over ANY app, with an app picker and auto show/hide when that app is in front.
+- Code: java/com/movtery/zalithlauncher/overlay/
+  model/OverlayKey.kt (keys, mouse, XInput pad, TOUCH_TAP; enum name = wire id), model/OverlayProfile.kt
+  (elements: BUTTON, BUTTON_ROW, DPAD, STICK, TRACKPAD; x/y = centre as screen fractions; JSON via
+  kotlinx.serialization), profile/DefaultProfiles.kt (the 4 Winlator-like layouts), profile/
+  OverlayProfileManager.kt (files/ona_overlay/profiles/<id>.json + apps.json = whitelist pkg->profile),
+  OverlayPrefs.kt (backend, host/port, haptics, bubble pos).
+  monitor/OnaAccessibilityService.kt (TYPE_WINDOW_STATE_CHANGED only, ignores systemui/IME/non-activity
+  windows, also gesture injection), monitor/UsageStatsForegroundPoller.kt (fallback, 1 s, only screen on),
+  monitor/ForegroundAppMonitor.kt (StateFlow of the front package).
+  service/OverlayControllerService.kt (FGS specialUse): auto show when a whitelisted app is in front,
+  hide after 350 ms debounce; play mode = one TYPE_APPLICATION_OVERLAY window PER control (rest of
+  the screen goes to the app); edit mode = full-screen OverlayEditorView (grid, drag + snap, pinch
+  resize, toolbar: move, profile name, add, delete, settings, save, discard); "ONA" bubble menu
+  (edit, hide/show, switch profile, stop). service/ElementDialogs.kt (plain-View dialogs, overlay type).
+  view/ElementRenderer.kt + view/OverlayElementView.kt (button/row/dpad 4-8 way/stick with polar maths,
+  deadzone, critically damped spring return, outputs KEYS/GAMEPAD_LEFT/RIGHT/MOUSE/TOUCH_DRAG; trackpad).
+  input/: InputBackend, InputDispatcher (ref-counted keys), TcpBridgeBackend (text protocol, coalesced
+  mouse, NODELAY), AccessibilityTouchBackend (dispatchGesture + continueStroke, one finger), RootShellBackend
+  (persistent su, input keyevent/tap/swipe). PC side: tools/ona-overlay-bridge/ona_bridge.py (pynput +
+  optional vgamepad).
+  ui/OverlayControlsActivity.kt (Compose): permissions, service switch, edit now, target apps + App
+  Picker (launchable apps, search, icons), per-app profile, Winlator profile options, backend choice.
+  Entry: first card of Settings -> Controls ("Floating controls over other apps").
+- Manifest: SYSTEM_ALERT_WINDOW, PACKAGE_USAGE_STATS, activity, FGS, accessibility service
+  (res/xml/ona_overlay_accessibility.xml). Strings ona_overlay_* EN + AR.
+- LIMITS (told the user): without root or a PC there is no way to inject KEYBOARD keys into another
+  app (Android blocks it); the no-root mode can only touch the app (TAP buttons, TOUCH_DRAG stick).
+- CI result: (see next line, filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".

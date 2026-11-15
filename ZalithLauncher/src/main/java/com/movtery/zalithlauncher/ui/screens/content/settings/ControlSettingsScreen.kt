@@ -120,6 +120,34 @@ fun ControlSettingsScreen(
                 .padding(all = 12.dp),
             isVisible = isVisible
         ) {
+            // ONA: floating Winlator-style controls over other apps
+            AnimatedItem { ctx ->
+                val context = LocalContext.current
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    SettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Single,
+                        onClick = {
+                            context.startActivity(
+                                android.content.Intent(context, com.movtery.zalithlauncher.overlay.ui.OverlayControlsActivity::class.java)
+                            )
+                        }
+                    ) {
+                        TitleAndSummary(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(all = 16.dp),
+                            title = stringResource(R.string.ona_overlay_open),
+                            summary = stringResource(R.string.ona_overlay_open_summary)
+                        )
+                    }
+                }
+            }
+
             AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier

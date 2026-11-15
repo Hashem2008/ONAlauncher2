@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ONA floating overlay controls: only window changes (foreground app) + gesture injection.
+     No content is read (canRetrieveWindowContent=false), events are batched by the system. -->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="false"
+    android:description="@string/ona_overlay_a11y_description"
+    android:notificationTimeout="100" />

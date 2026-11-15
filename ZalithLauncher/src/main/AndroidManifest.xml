@@ -28,6 +28,10 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <!-- ONA floating overlay controls (Winlator-style controls over other apps) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
     <application
         android:name=".ZLApplication"
@@ -142,6 +146,12 @@
             android:theme="@style/OnaHorizon">
             <meta-data android:name="android.app.lib_name" android:value="horizon" />
         </activity>
+        <!-- ONA floating overlay controls -->
+        <activity
+            android:name=".overlay.ui.OverlayControlsActivity"
+            android:exported="false"
+            android:label="@string/ona_overlay_title"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation" />
         <activity android:name=".ui.activities.ErrorActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
             android:screenOrientation="sensorLandscape" />
@@ -186,6 +196,29 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_TYPE"
                 android:value="Run Java Virtual Machine for game or server tasks" />
+        </service>
+
+        <service
+            android:name=".overlay.service.OverlayControllerService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_TYPE"
+                android:value="Floating on-screen game controls drawn over the app the user picked, shown and hidden when that app comes to the front" />
+        </service>
+
+        <service
+            android:name=".overlay.monitor.OnaAccessibilityService"
+            android:exported="true"
+            android:label="@string/ona_overlay_a11y_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/ona_overlay_accessibility" />
         </service>
 
         <service
