@@ -78,6 +78,8 @@ import com.onalauncher.controls.OverlayPrefs
 import com.onalauncher.controls.monitor.ForegroundAppMonitor
 import com.onalauncher.controls.profile.OverlayProfileManager
 import com.onalauncher.controls.service.OverlayControllerService
+import com.onalauncher.controls.shizuku.ShizukuKeys
+import rikka.shizuku.Shizuku
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -103,6 +105,26 @@ class OverlayControlsActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private val shizukuResult = Shizuku.OnRequestPermissionResultListener { _, _ ->
+        resumeTick.intValue++
+        ShizukuKeys.ensureBound()
+        if (OverlayControllerService.running) OverlayControllerService.start(this, OverlayControllerService.ACTION_RELOAD)
+    }
+    private val shizukuBinder = Shizuku.OnBinderReceivedListener { runOnUiThread { resumeTick.intValue++ } }
+
+    override fun onStart() {
+        super.onStart()
+        ShizukuKeys.init(this)
+        Shizuku.addRequestPermissionResultListener(shizukuResult)
+        Shizuku.addBinderReceivedListenerSticky(shizukuBinder)
+    }
+
+    override fun onStop() {
+        Shizuku.removeRequestPermissionResultListener(shizukuResult)
+        Shizuku.removeBinderReceivedListener(shizukuBinder)
+        super.onStop()
     }
 
     override fun onResume() {
@@ -220,6 +242,29 @@ private fun OverlayScreen(resumeTick: Int) {
             }
             PermRow(stringResource(R.string.ona_overlay_perm_notify), notify) {
                 if (Build.VERSION.SDK_INT >= 33) notifyLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            // Shizuku: letter keys into ANY app without root
+            val shizuku = remember(key) { ShizukuKeys.state(ctx) }
+            Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                val ok = shizuku == ShizukuKeys.State.READY
+                Text(if (ok) "✓" else "✗", color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    modifier = Modifier.width(24.dp), fontWeight = FontWeight.Bold)
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.ona_overlay_perm_shizuku), style = MaterialTheme.typography.bodyMedium)
+                    if (!ok) Text(stringResource(R.string.ona_overlay_shizuku_help), style = MaterialTheme.typography.bodySmall)
+                }
+                when (shizuku) {
+                    ShizukuKeys.State.NOT_INSTALLED -> TextButton(onClick = {
+                        runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + ShizukuKeys.SHIZUKU_PACKAGE))) }
+                    }) { Text(stringResource(R.string.ona_overlay_shizuku_get)) }
+                    ShizukuKeys.State.NOT_RUNNING -> TextButton(onClick = {
+                        ctx.packageManager.getLaunchIntentForPackage(ShizukuKeys.SHIZUKU_PACKAGE)?.let { ctx.startActivity(it) }
+                    }) { Text(stringResource(R.string.ona_overlay_shizuku_open)) }
+                    ShizukuKeys.State.NO_PERMISSION -> TextButton(onClick = { ShizukuKeys.requestPermission() }) {
+                        Text(stringResource(R.string.ona_overlay_perm_grant))
+                    }
+                    ShizukuKeys.State.READY -> Unit
+                }
             }
         }
 

@@ -75,4 +75,9 @@
     <string name="ona_overlay_pick_point">اختار النقطة عالشاشة</string>
     <string name="ona_overlay_touch_point">نقطة اللمس (لـ TAP / TOUCH_DRAG)</string>
     <string name="ona_overlay_element_settings">إعدادات الزر</string>
+    <string name="ona_overlay_perm_shizuku">Shizuku: الأحرف لأي تطبيق (بدون روت)</string>
+    <string name="ona_overlay_shizuku_help">نزّل Shizuku وشغّله عن طريق Wireless debugging، وبعدين اسمح لـ ONA Controls من هون.</string>
+    <string name="ona_overlay_shizuku_get">نزّل</string>
+    <string name="ona_overlay_shizuku_open">شغّل</string>
+    <string name="ona_overlay_keys_fail">الأحرف ما بتوصل لهذا التطبيق. فعّل Shizuku من ONA Controls (الصلاحيات).</string>
 </resources>

@@ -15,7 +15,9 @@ import com.onalauncher.controls.monitor.OnaAccessibilityService
 
 /**
  * No root, no PC:
- *  - KEYS: Android 13+ lets an accessibility service act as an input method
+ *  - KEYS, best: Shizuku (shell rights, InputManager.injectInputEvent) reaches ANY app, see
+ *    shizuku/ShizukuKeys.kt. Used whenever Shizuku is running and allowed.
+ *  - KEYS, fallback: Android 13+ lets an accessibility service act as an input method
  *    (FLAG_INPUT_METHOD_EDITOR, see res/xml/ona_overlay_accessibility.xml). Its input connection
  *    belongs to the app in front, so sendKeyEvent() reaches that app like a keyboard key, with real
  *    down / up (holding works). The app must have a focused view that accepts input; Winlator and
@@ -23,7 +25,7 @@ import com.onalauncher.controls.monitor.OnaAccessibilityService
  *  - TOUCH: delegated to [AccessibilityTouchBackend] (TAP buttons, TOUCH_DRAG sticks).
  * ESC falls back to the system Back action when no input connection is available.
  */
-class NoRootBackend : InputBackend {
+class NoRootBackend(private val context: android.content.Context) : InputBackend {
     override val id = "noroot"
 
     private val toucher = AccessibilityTouchBackend()
@@ -33,6 +35,7 @@ class NoRootBackend : InputBackend {
     private val downTimes = HashMap<Int, Long>()
     private var meta = 0
     @Volatile private var lastKeyOk: Boolean? = null
+    private var warned = false
 
     override fun supports(category: InputBackend.Capability) =
         category == InputBackend.Capability.TOUCH ||
@@ -40,6 +43,7 @@ class NoRootBackend : InputBackend {
 
     override fun status(): String {
         val keys = when {
+            com.onalauncher.controls.shizuku.ShizukuKeys.ready -> "Keys ✓ (Shizuku)"
             Build.VERSION.SDK_INT < 33 -> "Keys: Android 13+"
             svc == null -> "Keys: accessibility off"
             lastKeyOk == false -> "Keys: app has no input focus"
@@ -48,7 +52,10 @@ class NoRootBackend : InputBackend {
         return "$keys · ${toucher.status()}"
     }
 
-    override fun start() = toucher.start()
+    override fun start() {
+        com.onalauncher.controls.shizuku.ShizukuKeys.init(context)
+        toucher.start()
+    }
     override fun stop() {
         // never leave a key stuck down in the game
         downTimes.keys.toList().forEach { send(it, false) }
@@ -82,9 +89,13 @@ class NoRootBackend : InputBackend {
 
     /** Returns true if the key reached an input connection. */
     private fun send(code: Int, down: Boolean): Boolean {
-        if (Build.VERSION.SDK_INT < 33) return false
         val now = SystemClock.uptimeMillis()
         val downTime = if (down) now.also { downTimes[code] = it } else (downTimes.remove(code) ?: now)
+        if (com.onalauncher.controls.shizuku.ShizukuKeys.key(code, down, meta, downTime)) {
+            lastKeyOk = true
+            return true
+        }
+        if (Build.VERSION.SDK_INT < 33) { warnOnce(); return false }
         val ev = KeyEvent(
             downTime, now,
             if (down) KeyEvent.ACTION_DOWN else KeyEvent.ACTION_UP,
@@ -97,10 +108,18 @@ class NoRootBackend : InputBackend {
         if (ic == null) {
             if (lastKeyOk != false) Log.w("OnaOverlay", "No input connection: the app in front has no focused input view")
             lastKeyOk = false
+            warnOnce()
             return false
         }
         ic.sendKeyEvent(ev)
         lastKeyOk = true
         return true
+    }
+
+    /** Tell the user once per session why keys do nothing (instead of silence). */
+    private fun warnOnce() {
+        if (warned) return
+        warned = true
+        android.widget.Toast.makeText(context, com.onalauncher.controls.R.string.ona_overlay_keys_fail, android.widget.Toast.LENGTH_LONG).show()
     }
 }

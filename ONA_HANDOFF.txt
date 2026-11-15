@@ -389,6 +389,17 @@ ONA CONTROLS 1.1: LETTER KEYS WITHOUT ROOT (2026-11-15)
 - Commit 4eabef7: ona_controls.yml run 43659883177 SUCCESS, release ona-controls updated (1.1).
   NOT tested on a device: ask the user if letters work in Winlator now.
 
+ONA CONTROLS 1.2: SHIZUKU KEY INJECTION (2026-11-15)
+- User: 1.1 letters still do nothing in Winlator (after toggling accessibility). Likely Winlator's view
+  has no InputConnection, so the accessibility input method has nowhere to send keys.
+- Added Shizuku (dev.rikka.shizuku api/provider 13.1.5, AIDL on): aidl/.../IInjector.aidl,
+  shizuku/InjectorService.kt (Shizuku user service, shell uid, InputManagerGlobal/InputManager
+  .injectInputEvent like scrcpy), shizuku/ShizukuKeys.kt (states NOT_INSTALLED / NOT_RUNNING /
+  NO_PERMISSION / READY, binds the service). NoRootBackend tries Shizuku first, then the
+  accessibility input method; if both fail it shows a toast once (ona_overlay_keys_fail).
+  Permissions card got a Shizuku row (Get / Start / Allow). Manifest: ShizukuProvider + <queries>.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".

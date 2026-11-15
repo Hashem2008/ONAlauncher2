@@ -13,6 +13,7 @@
 
     <!-- App picker: list every launchable app -->
     <queries>
+        <package android:name="moe.shizuku.privileged.api" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
@@ -57,5 +58,13 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/ona_overlay_accessibility" />
         </service>
+        <!-- Shizuku: hands this app its binder; the key injector runs as a Shizuku user service -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
 </manifest>
