@@ -158,7 +158,7 @@ class OverlayEditorView(
     }
 
     private inner class EditCanvas(ctx: Context) : View(ctx) {
-        private val renderer = ElementRenderer(context)
+        private val renderer = ElementRenderer(density)
         private val gridPaint = Paint().apply { color = Color.argb(45, 255, 255, 255); strokeWidth = 1f }
         private val border = Paint().apply { color = Color.rgb(160, 30, 30); style = Paint.Style.STROKE; strokeWidth = 2f }
         private val rect = RectF()
@@ -172,7 +172,7 @@ class OverlayEditorView(
         private var scaleStart = 1f
 
         fun boundsOf(el: OverlayElement, out: RectF) {
-            val (w, h) = ElementGeometry.sizePx(el, density, width, height)
+            val (w, h) = ElementGeometry.sizePx(el, density)
             val cx = el.x * width
             val cy = el.y * height
             out.set(cx - w / 2f, cy - h / 2f, cx + w / 2f, cy + h / 2f)

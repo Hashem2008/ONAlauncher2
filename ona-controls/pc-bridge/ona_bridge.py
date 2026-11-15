@@ -36,19 +36,6 @@ SPECIAL = {
 SPECIAL.update({f"F{i}": getattr(Key, f"f{i}") for i in range(1, 13)})
 SPECIAL.update({f"K{i}": str(i) for i in range(10)})
 BUTTONS = {"MLB": Button.left, "MRB": Button.right, "MMB": Button.middle}
-SCREEN = None  # (width, height) of the PC screen, for absolute cursor moves ("P")
-
-
-def screen_size():
-    global SCREEN
-    if SCREEN is None:
-        try:
-            import tkinter
-            t = tkinter.Tk(); t.withdraw()
-            SCREEN = (t.winfo_screenwidth(), t.winfo_screenheight()); t.destroy()
-        except Exception:
-            SCREEN = (1920, 1080)
-    return SCREEN
 
 
 def key_of(name):
@@ -126,9 +113,6 @@ def handle(conn, addr):
                         ms.scroll(0, int(p[1]))
                     elif p[0] == "R":
                         ms.move(int(p[1]), int(p[2]))
-                    elif p[0] == "P":
-                        w, h = screen_size()
-                        ms.position = (int(float(p[1]) * w), int(float(p[2]) * h))
                     elif p[0] == "G":
                         pad.button(p[1], p[2] == "1")
                     elif p[0] == "A":
@@ -146,12 +130,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=7788)
-    ap.add_argument("--screen", default=None, help="PC screen size for absolute moves, e.g. 1920x1080")
     a = ap.parse_args()
-    if a.screen:
-        global SCREEN
-        w, h = a.screen.lower().split("x")
-        SCREEN = (int(w), int(h))
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((a.host, a.port))

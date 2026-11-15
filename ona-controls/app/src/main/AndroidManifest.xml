@@ -37,13 +37,6 @@
             </intent-filter>
         </activity>
 
-        <!-- invisible: opens the photo picker for a control's own picture -->
-        <activity
-            android:name=".ui.ImagePickActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-
         <service
             android:name=".service.OverlayControllerService"
             android:exported="false"

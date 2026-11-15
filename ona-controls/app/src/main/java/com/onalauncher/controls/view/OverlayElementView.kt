@@ -45,18 +45,7 @@ class OverlayElementView(
     private val haptics: Boolean
 ) : View(context) {
 
-    /**
-     * Connects the separate control windows for Swipe Trigger: a finger that started on one control
-     * and slides over another (swipe-trigger) control presses it. Implemented by the service.
-     */
-    interface SlideHub {
-        fun slide(source: OverlayElementView, key: Long, rawX: Float, rawY: Float)
-        fun lift(source: OverlayElementView, key: Long)
-    }
-
-    var slideHub: SlideHub? = null
-
-    private val renderer = ElementRenderer(context)
+    private val renderer = ElementRenderer(resources.displayMetrics.density)
     private val state = ElementState().apply { ensure(element.bindings.size + 4) }
     private val bounds = RectF()
 
@@ -80,12 +69,7 @@ class OverlayElementView(
     /** Called when the overlay hides: let go of whatever this control holds. */
     fun releaseAll() {
         when (element.type) {
-            ElementType.BUTTON -> {
-                ownDown = false
-                external.clear()
-                slideHub?.lift(this, slideKey)
-                if (state.pressed[0]) setButton(false)
-            }
+            ElementType.BUTTON -> if (state.pressed[0]) setButton(false)
             ElementType.BUTTON_ROW -> rowPointers.keys.toList().forEach { releaseRowPointer(it) }
             ElementType.DPAD -> applyDirs(BooleanArray(4))
             ElementType.STICK -> stickRelease(immediate = true)
@@ -110,62 +94,10 @@ class OverlayElementView(
         invalidate()
     }
 
-    /** A finger that started on THIS button is down. */
-    private var ownDown = false
-    /** Fingers from other controls that slid onto this button (Swipe Trigger). */
-    private val external = HashSet<Long>()
-    private var lastRawX = 0f
-    private var lastRawY = 0f
-    private val slideKey: Long get() = System.identityHashCode(this).toLong() shl 32
-
-    /** Non-toggle buttons are down while any finger (own or slid-in) holds them. */
-    private fun refreshButton() {
-        if (!element.toggle) setButton(ownDown || external.isNotEmpty())
-    }
-
-    fun externalPress(key: Long) {
-        if (element.type != ElementType.BUTTON || !external.add(key)) return
-        if (element.toggle) setButton(!state.pressed[0]) else refreshButton()
-    }
-
-    fun externalRelease(key: Long) {
-        if (external.remove(key)) refreshButton()
-    }
-
-    /** Is this screen point (raw px) inside this control's window? */
-    fun containsRaw(x: Float, y: Float): Boolean {
-        val loc = IntArray(2)
-        getLocationOnScreen(loc)
-        return x >= loc[0] && x < loc[0] + width && y >= loc[1] && y < loc[1] + height
-    }
-
     private fun onButton(e: MotionEvent) {
         when (e.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                ownDown = true
-                lastRawX = e.rawX; lastRawY = e.rawY
-                if (element.toggle) setButton(!state.pressed[0]) else refreshButton()
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (element.moveWithMouse) {
-                    // Move with Mouse: the held button drags the mouse (e.g. right button = scroll the map)
-                    dispatcher.mouseMove(e.rawX - lastRawX, e.rawY - lastRawY)
-                    lastRawX = e.rawX; lastRawY = e.rawY
-                    return
-                }
-                val inside = e.x >= 0f && e.y >= 0f && e.x < width && e.y < height
-                // a swipe-trigger button lets go when the finger slides off it (like a keyboard key)
-                if (element.swipeTrigger && !element.toggle && ownDown != inside) {
-                    ownDown = inside
-                    refreshButton()
-                }
-                if (inside) slideHub?.lift(this, slideKey) else slideHub?.slide(this, slideKey, e.rawX, e.rawY)
-            }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                ownDown = false
-                slideHub?.lift(this, slideKey)
-                refreshButton()
-            }
+            MotionEvent.ACTION_DOWN -> if (element.toggle) setButton(!state.pressed[0]) else setButton(true)
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> if (!element.toggle) setButton(false)
         }
     }
 
@@ -445,13 +377,10 @@ class OverlayElementView(
     private var scrollAcc = 0f
 
     private fun onTrackpad(e: MotionEvent) {
-        val tap = element.mouseMode == com.onalauncher.controls.model.MouseMode.TAP
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 lastX = e.x; lastY = e.y; moved = 0f; maxPointers = 1; scrollAcc = 0f
                 downTime = SystemClock.uptimeMillis()
-                // Tap Control: the pad is a small map of the whole screen, the cursor jumps there
-                if (tap) dispatcher.mouseToFrac((e.x / width).coerceIn(0f, 1f), (e.y / height).coerceIn(0f, 1f))
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
                 maxPointers = maxOf(maxPointers, e.pointerCount)
@@ -467,20 +396,16 @@ class OverlayElementView(
                     scrollAcc += dy
                     val step = 24f * resources.displayMetrics.density
                     while (abs(scrollAcc) >= step) {
-                        dispatcher.wheel(if (scrollAcc > 0) -1 else 1)
+                        dispatcher.backend.mouseWheel(if (scrollAcc > 0) -1 else 1)
                         scrollAcc -= step * (if (scrollAcc > 0) 1 else -1)
                     }
-                } else if (tap) {
-                    dispatcher.mouseToFrac((e.getX(0) / width).coerceIn(0f, 1f), (e.getY(0) / height).coerceIn(0f, 1f))
                 } else {
-                    // Swipe Control: relative, like a laptop touchpad
                     dispatcher.mouseMove(dx * 1.6f, dy * 1.6f)
                 }
             }
             MotionEvent.ACTION_UP -> {
-                val quick = SystemClock.uptimeMillis() - downTime < 250
+                val quick = SystemClock.uptimeMillis() - downTime < 220
                 if (quick && moved < 12f * resources.displayMetrics.density) {
-                    // tap = left click, two-finger tap = right click (at the cursor)
                     val btn = if (maxPointers >= 2) OverlayKey.MRB else OverlayKey.MLB
                     buzz()
                     dispatcher.press(btn, true)

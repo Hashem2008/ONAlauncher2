@@ -40,9 +40,7 @@ import com.onalauncher.controls.input.InputBackend
 import com.onalauncher.controls.input.InputDispatcher
 import com.onalauncher.controls.input.RootShellBackend
 import com.onalauncher.controls.input.TcpBridgeBackend
-import com.onalauncher.controls.model.ElementType
 import com.onalauncher.controls.model.OverlayElement
-import com.onalauncher.controls.model.OverlayKey
 import com.onalauncher.controls.model.OverlayProfile
 import com.onalauncher.controls.monitor.ForegroundAppMonitor
 import com.onalauncher.controls.monitor.UsageStatsForegroundPoller
@@ -121,12 +119,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         super.onCreate()
         running = true
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        dispatcher = InputDispatcher(
-            backend,
-            { profile ?: OverlayProfileManager.profileFor(this, null) },
-            ::screenSize,
-            onMode = { key, down -> if (key == OverlayKey.RIGHT_TAP_MODE) setRightTap(down) }
-        )
+        dispatcher = InputDispatcher(backend, { profile ?: OverlayProfileManager.profileFor(this, null) }, ::screenSize)
         startAsForeground()
         reloadBackend()
         poller = UsageStatsForegroundPoller(this, scope).also { it.start() }
@@ -187,7 +180,6 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         val p = OverlayProfileManager.profileFor(this, pkg)
         profile = p
         if (!userHidden) addPlayViews(p)
-        if (capture != null) removeBubble() // keep the bubble above the R-CLICK layer
         ensureBubble()
         updateNotification()
     }
@@ -231,12 +223,9 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         val (sw, sh) = screenSize()
         val density = resources.displayMetrics.density
         val haptics = OverlayPrefs.haptics(this)
-        // the R-CLICK layer goes in FIRST, so every control window stays above it
-        if (p.elements.any { it.bindings.contains(OverlayKey.RIGHT_TAP_MODE) }) addCapture(sw, sh)
         for (el in p.elements) {
-            val (w, h) = ElementGeometry.sizePx(el, density, sw, sh)
+            val (w, h) = ElementGeometry.sizePx(el, density)
             val v = OverlayElementView(this, el, { profile ?: p }, dispatcher, haptics)
-            v.slideHub = slideHub
             val lp = baseParams(w, h).apply {
                 x = (el.x * sw - w / 2f).toInt()
                 y = (el.y * sh - h / 2f).toInt()
@@ -256,136 +245,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
             runCatching { wm.removeViewImmediate(v) }
         }
         playViews.clear()
-        slideTargets.clear()
         dispatcher.releaseAll()
-        removeCapture()
-    }
-
-    // ------------------------------------------------------------------ Swipe Trigger
-
-    /** finger key -> swipe-trigger button it is currently over. */
-    private val slideTargets = HashMap<Long, OverlayElementView>()
-
-    private val slideHub = object : OverlayElementView.SlideHub {
-        override fun slide(source: OverlayElementView, key: Long, rawX: Float, rawY: Float) {
-            val target = playViews.firstOrNull {
-                it !== source && it.element.type == ElementType.BUTTON && it.element.swipeTrigger && it.containsRaw(rawX, rawY)
-            }
-            val current = slideTargets[key]
-            if (current === target) return
-            current?.externalRelease(key)
-            if (target != null) {
-                slideTargets[key] = target
-                target.externalPress(key)
-            } else {
-                slideTargets.remove(key)
-            }
-        }
-
-        override fun lift(source: OverlayElementView, key: Long) {
-            slideTargets.remove(key)?.externalRelease(key)
-        }
-    }
-
-    // ------------------------------------------------------------------ R-CLICK mode
-
-    /**
-     * Full-screen layer UNDER the controls. Normally not touchable (taps go to the game). While
-     * R-CLICK is on it catches a tap, turns itself off for a moment and injects a RIGHT click at
-     * that spot (the injected mouse event must not land on this layer), then catches the next one.
-     */
-    private var capture: View? = null
-    private var captureLp: WindowManager.LayoutParams? = null
-    private var rightTapOn = false
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun addCapture(sw: Int, sh: Int) {
-        if (capture != null) return
-        val density = resources.displayMetrics.density
-        val v = object : View(this) {
-            private val paint = android.graphics.Paint().apply {
-                style = android.graphics.Paint.Style.STROKE
-                strokeWidth = 4f * density
-                color = Color.rgb(229, 57, 53)
-            }
-
-            override fun onDraw(c: android.graphics.Canvas) {
-                if (rightTapOn) c.drawRect(2f * density, 2f * density, width - 2f * density, height - 2f * density, paint)
-            }
-        }
-        v.setOnTouchListener { _, e ->
-            if (e.actionMasked == MotionEvent.ACTION_UP) rightTapAt(e.rawX, e.rawY)
-            true
-        }
-        // alpha <= 0.8: Android lets touches pass through an untouchable overlay only below that opacity
-        val lp = baseParams(sw, sh, touchable = false).apply { x = 0; y = 0; alpha = 0.6f }
-        runCatching { wm.addView(v, lp); capture = v; captureLp = lp }
-            .onFailure { Log.w(TAG, "capture addView failed", it) }
-    }
-
-    private fun removeCapture() {
-        rightTapOn = false
-        capture?.let { runCatching { wm.removeViewImmediate(it) } }
-        capture = null
-        captureLp = null
-    }
-
-    private fun setCaptureTouchable(touchable: Boolean) {
-        val v = capture ?: return
-        val lp = captureLp ?: return
-        val f = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        lp.flags = if (touchable) lp.flags and f.inv() else lp.flags or f
-        runCatching { wm.updateViewLayout(v, lp) }
-    }
-
-    private fun setRightTap(on: Boolean) {
-        if (on && !backend.supports(InputBackend.Capability.MOUSE)) {
-            Toast.makeText(this, R.string.ona_overlay_rclick_needs, Toast.LENGTH_LONG).show()
-        }
-        rightTapOn = on
-        setCaptureTouchable(on)
-        capture?.invalidate()
-    }
-
-    private fun rightTapAt(x: Float, y: Float) {
-        setCaptureTouchable(false)
-        main.postDelayed({
-            dispatcher.clickAt(OverlayKey.MRB, x, y)
-            main.postDelayed({ if (rightTapOn) setCaptureTouchable(true) }, 120)
-        }, 80)
-    }
-
-    // ------------------------------------------------------------------ own image for a control
-
-    private fun pickImage(element: OverlayElement) {
-        val ed = editor ?: return
-        com.onalauncher.controls.ui.ImagePickActivity.callback = { path ->
-            com.onalauncher.controls.ui.ImagePickActivity.callback = null
-            setEditorHidden(false)
-            if (path != null && editor === ed) {
-                element.imagePath = path
-                ed.refresh()
-            }
-        }
-        try {
-            startActivity(
-                Intent(this, com.onalauncher.controls.ui.ImagePickActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
-            setEditorHidden(true)
-        } catch (t: Throwable) {
-            com.onalauncher.controls.ui.ImagePickActivity.callback = null
-            Log.w(TAG, "image picker failed", t)
-        }
-    }
-
-    /** Hides the editor while the gallery is open (alpha 0 + untouchable, so the picker gets the touches). */
-    private fun setEditorHidden(hidden: Boolean) {
-        val ed = editor ?: return
-        val lp = ed.layoutParams as? WindowManager.LayoutParams ?: return
-        val f = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        lp.flags = if (hidden) lp.flags or f else lp.flags and f.inv()
-        lp.alpha = if (hidden) 0f else 1f
-        runCatching { wm.updateViewLayout(ed, lp) }
     }
 
     // ------------------------------------------------------------------ bubble
@@ -522,8 +382,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         ElementDialogs.editElement(
             this, element, ::overlayDialog,
             onChanged = { ed.refresh() },
-            onPickPoint = { ed.startPick(getString(R.string.ona_overlay_pick_hint)) { x, y -> element.tapX = x; element.tapY = y; ed.refresh() } },
-            onPickImage = { pickImage(element) }
+            onPickPoint = { ed.startPick(getString(R.string.ona_overlay_pick_hint)) { x, y -> element.tapX = x; element.tapY = y; ed.refresh() } }
         )
     }
 
@@ -572,7 +431,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         backend.stop()
         backend = when (OverlayPrefs.backend(this)) {
             BackendType.PC_BRIDGE -> TcpBridgeBackend(OverlayPrefs.host(this), OverlayPrefs.port(this))
-            BackendType.ACCESSIBILITY_TOUCH -> com.onalauncher.controls.input.NoRootBackend(this, ::screenSize)
+            BackendType.ACCESSIBILITY_TOUCH -> com.onalauncher.controls.input.NoRootBackend(this)
             BackendType.ROOT_SHELL -> RootShellBackend()
         }
         backend.start()

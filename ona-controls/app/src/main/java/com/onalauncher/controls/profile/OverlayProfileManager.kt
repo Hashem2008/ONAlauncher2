@@ -42,31 +42,38 @@ object OverlayProfileManager {
     private fun ensureLoaded(ctx: Context): MutableMap<String, OverlayProfile> = synchronized(lock) {
         cache?.let { return it }
         val map = LinkedHashMap<String, OverlayProfile>()
+        removeV13Leftovers(ctx)
         profileDir(ctx).listFiles { f -> f.extension == "json" }?.sortedBy { it.name }?.forEach { f ->
             runCatching { profileFromJson(f.readText()) }
                 .onSuccess { map[it.id] = it }
                 .onFailure { Log.w(TAG, "Bad profile ${f.name}", it) }
         }
-        // Built-in profiles: each one is added once (also to users who already have profiles, so
-        // new presets like Generals appear after an update); a deleted built-in is not re-added.
-        val offeredFile = File(root(ctx), "builtins.txt")
-        val offered = HashSet<String>()
-        if (offeredFile.isFile) offered.addAll(offeredFile.readLines().map { it.trim() }.filter { it.isNotEmpty() })
-        else if (map.isNotEmpty()) offered.addAll(listOf(DefaultProfiles.RTS, DefaultProfiles.TEMPLATE, DefaultProfiles.FPS, DefaultProfiles.GAMEPAD))
-        var changed = false
-        DefaultProfiles.all().forEach { p ->
-            if (p.id !in offered) {
-                if (p.id !in map) {
-                    map[p.id] = p
-                    writeProfile(ctx, p)
-                }
-                offered.add(p.id)
-                changed = true
+        if (map.isEmpty()) {
+            DefaultProfiles.all().forEach { p ->
+                map[p.id] = p
+                writeProfile(ctx, p)
             }
         }
-        if (changed || !offeredFile.isFile) runCatching { offeredFile.writeText(offered.joinToString("\n")) }
         cache = map
         map
+    }
+
+    /**
+     * 1.3 (rolled back at the user's request) added a "Generals Zero Hour" preset, gallery images and
+     * builtins.txt. Remove them once; apps that used that preset fall back to the first profile.
+     */
+    private fun removeV13Leftovers(ctx: Context) {
+        val gen = File(profileDir(ctx), "generals_zh.json")
+        if (gen.isFile) {
+            gen.delete()
+            // keep the app on the whitelist; profileFor() falls back to the first profile if RTS is gone
+            val apps = appMap(ctx)
+            if (apps.containsValue("generals_zh")) {
+                writeApps(ctx, apps.mapValues { if (it.value == "generals_zh") DefaultProfiles.RTS else it.value })
+            }
+        }
+        File(root(ctx), "builtins.txt").delete()
+        File(root(ctx), "images").deleteRecursively()
     }
 
     private fun writeProfile(ctx: Context, p: OverlayProfile) {

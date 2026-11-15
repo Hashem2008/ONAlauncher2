@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- ONA Controls icon (white, tinted at runtime). -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:pathData="M11,1.07C7.05,1.56 4,4.92 4,9h7V1.07z" android:fillColor="#FFFFFFFF" />
-    <path android:pathData="M13,1.07V9h7c0,-4.08 -3.05,-7.44 -7,-7.93z" android:fillColor="#FFFFFFFF" android:fillAlpha="0.35" />
-    <path android:pathData="M4,11v4c0,4.42 3.58,8 8,8s8,-3.58 8,-8v-4H4z" android:fillColor="#FFFFFFFF" />
-</vector>

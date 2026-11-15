@@ -429,6 +429,19 @@ ONA CONTROLS 1.3: GENERALS ZERO HOUR PROFILE, PICTURES, MOUSE (2026-11-15)
 - Commit 34fb2ed: ona_controls.yml run 43673155387 SUCCESS, release ona-controls = 1.3.
   NOT tested on a device: ask about mouse (R-CLICK, SCROLL, touchpad), pictures and Swipe Trigger in Generals.
 
+ONA CONTROLS 1.4 = ROLLBACK OF 1.3 (2026-11-15)
+- User: 1.3 "broke everything", remove the mouse and put it back like before; the Generals profile was
+  bad (not for every army, not every hotkey). -> ona-controls/ is the 1.2 code again (commit 37ad06e:
+  keys via Shizuku + accessibility, no mouse injection, no pictures/swipe trigger/R-CLICK), only
+  versionCode 5 / "1.4" so it installs over 1.3, plus OverlayProfileManager.removeV13Leftovers():
+  deletes the generals_zh preset (apps on it -> RTS), builtins.txt and files/ona_overlay/images.
+  The 1.3 section above describes code that is NOT in the app anymore (kept in git history: 34fb2ed).
+- Unknown what exactly broke in 1.3 (suspects: the full-screen R-CLICK layer, mouse hover injection,
+  Shizuku user service version change). Ask before re-adding any of it.
+- Next for Generals: the user wants hotkeys for every army; I do not know all build/unit hotkeys per
+  faction reliably from memory -> asked the user for the army / screenshots of the buttons.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".

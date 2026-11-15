@@ -80,22 +80,4 @@
     <string name="ona_overlay_shizuku_get">نزّل</string>
     <string name="ona_overlay_shizuku_open">شغّل</string>
     <string name="ona_overlay_keys_fail">الأحرف ما بتوصل لهذا التطبيق. فعّل Shizuku من ONA Controls (الصلاحيات).</string>
-    <string name="ona_overlay_icon">الصورة</string>
-    <string name="ona_overlay_icon_none">بدون صورة</string>
-    <string name="ona_overlay_image">صورة من عندك (من المعرض)</string>
-    <string name="ona_overlay_image_none">ما في صورة من عندك</string>
-    <string name="ona_overlay_image_set">اخترت صورة ✓ (بتنستخدم بدل الصورة الجاهزة)</string>
-    <string name="ona_overlay_image_pick">اختار صورة…</string>
-    <string name="ona_overlay_image_remove">شيلها</string>
-    <string name="ona_overlay_show_label">اكتب النص تحت الصورة</string>
-    <string name="ona_overlay_click_event">طريقة الضغط</string>
-    <string name="ona_overlay_swipe_trigger">Swipe Trigger (تفعيل بالسحب)</string>
-    <string name="ona_overlay_swipe_trigger_hint">إذا سحبت إصبعك من زر ثاني لهذا الزر، بينضغط.</string>
-    <string name="ona_overlay_move_with_mouse">Move with Mouse (يحرك الماوس)</string>
-    <string name="ona_overlay_move_with_mouse_hint">وأنت ماسك الزر، سحب الإصبع بيحرك الماوس (مثلاً زر يمين = تحريك الخريطة).</string>
-    <string name="ona_overlay_mouse_mode">طريقة الماوس</string>
-    <string name="ona_overlay_mouse_swipe">Swipe Control (سحب)</string>
-    <string name="ona_overlay_mouse_tap">Tap Control (ضغط)</string>
-    <string name="ona_overlay_mouse_mode_hint">سحب: الإصبع بيحرك المؤشر والضغطة كبسة. ضغط: اللوحة خريطة صغيرة للشاشة، المؤشر بينط مكان ما تلمس.</string>
-    <string name="ona_overlay_rclick_needs">R-CLICK وأزرار الماوس بدهم Shizuku (من الصلاحيات بـ ONA Controls).</string>
 </resources>

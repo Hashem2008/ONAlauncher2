@@ -80,22 +80,4 @@
     <string name="ona_overlay_shizuku_get">Get</string>
     <string name="ona_overlay_shizuku_open">Start</string>
     <string name="ona_overlay_keys_fail">Keys can\'t reach this app. In ONA Controls set up Shizuku (Permissions).</string>
-    <string name="ona_overlay_icon">Picture</string>
-    <string name="ona_overlay_icon_none">No picture</string>
-    <string name="ona_overlay_image">Own image (from the gallery)</string>
-    <string name="ona_overlay_image_none">No own image</string>
-    <string name="ona_overlay_image_set">Own image chosen ✓ (it is used instead of the picture)</string>
-    <string name="ona_overlay_image_pick">Choose image…</string>
-    <string name="ona_overlay_image_remove">Remove</string>
-    <string name="ona_overlay_show_label">Show text under the picture</string>
-    <string name="ona_overlay_click_event">Click event</string>
-    <string name="ona_overlay_swipe_trigger">Swipe Trigger</string>
-    <string name="ona_overlay_swipe_trigger_hint">A finger sliding onto this button from another control presses it.</string>
-    <string name="ona_overlay_move_with_mouse">Move with Mouse</string>
-    <string name="ona_overlay_move_with_mouse_hint">While this button is held, dragging the finger moves the mouse (e.g. right button = scroll the map).</string>
-    <string name="ona_overlay_mouse_mode">Mouse Control Mode</string>
-    <string name="ona_overlay_mouse_swipe">Swipe Control</string>
-    <string name="ona_overlay_mouse_tap">Tap Control</string>
-    <string name="ona_overlay_mouse_mode_hint">Swipe: drag moves the cursor, tap clicks. Tap: the pad is a small map of the screen, the cursor jumps where you touch.</string>
-    <string name="ona_overlay_rclick_needs">R-CLICK and mouse buttons need Shizuku (Permissions in ONA Controls).</string>
 </resources>

@@ -7,14 +7,6 @@ enum class ElementType { BUTTON, BUTTON_ROW, DPAD, STICK, TRACKPAD }
 
 enum class ButtonShape { CIRCLE, SQUARE, RECT, PILL }
 
-/** Touchpad behaviour (like the launcher's "Mouse Control Mode"). */
-enum class MouseMode {
-    /** Swipe Control: drag moves the cursor (relative), tap = click where the cursor is. */
-    SWIPE,
-    /** Tap Control: the pad is a small map of the whole screen, the cursor jumps to the touched spot, tap = click there. */
-    TAP
-}
-
 /** What an analog stick produces. */
 enum class StickOutput {
     /** 8-way digital keys from [OverlayElement.bindings] = up, right, down, left (WASD by default). */
@@ -58,19 +50,7 @@ data class OverlayElement(
     var tapX: Float = 0.5f,
     var tapY: Float = 0.5f,
     /** TOUCH_DRAG radius as a fraction of the screen height. */
-    var dragRadius: Float = 0.12f,
-    /** Built-in picture (ControlIcons id), "" = none. */
-    var icon: String = "",
-    /** Own picture picked from the gallery (file in app storage), "" = none. Wins over [icon]. */
-    var imagePath: String = "",
-    /** Draw the text under the picture. */
-    var showLabel: Boolean = true,
-    /** Swipe Trigger: a finger sliding onto this button from another control presses it. */
-    var swipeTrigger: Boolean = false,
-    /** Move with Mouse: while this button is held, dragging the finger moves the mouse. */
-    var moveWithMouse: Boolean = false,
-    /** TRACKPAD: Swipe Control or Tap Control. */
-    var mouseMode: MouseMode = MouseMode.SWIPE
+    var dragRadius: Float = 0.12f
 )
 
 data class OverlayProfile(
@@ -103,8 +83,6 @@ fun OverlayElement.toJson(): org.json.JSONObject = org.json.JSONObject().apply {
     put("toggle", toggle); put("text", text); put("stickOutput", stickOutput.name)
     put("deadzone", deadzone.toDouble()); put("eightWay", eightWay)
     put("tapX", tapX.toDouble()); put("tapY", tapY.toDouble()); put("dragRadius", dragRadius.toDouble())
-    put("icon", icon); put("imagePath", imagePath); put("showLabel", showLabel)
-    put("swipeTrigger", swipeTrigger); put("moveWithMouse", moveWithMouse); put("mouseMode", mouseMode.name)
 }
 
 fun elementFromJson(o: org.json.JSONObject): OverlayElement {
@@ -125,13 +103,7 @@ fun elementFromJson(o: org.json.JSONObject): OverlayElement {
         eightWay = o.optBoolean("eightWay", true),
         tapX = o.optDouble("tapX", 0.5).toFloat(),
         tapY = o.optDouble("tapY", 0.5).toFloat(),
-        dragRadius = o.optDouble("dragRadius", 0.12).toFloat(),
-        icon = o.optString("icon", ""),
-        imagePath = o.optString("imagePath", ""),
-        showLabel = o.optBoolean("showLabel", true),
-        swipeTrigger = o.optBoolean("swipeTrigger", false),
-        moveWithMouse = o.optBoolean("moveWithMouse", false),
-        mouseMode = enumOr(o.optString("mouseMode"), MouseMode.SWIPE)
+        dragRadius = o.optDouble("dragRadius", 0.12).toFloat()
     )
 }
 

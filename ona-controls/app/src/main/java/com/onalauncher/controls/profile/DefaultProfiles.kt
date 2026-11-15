@@ -20,7 +20,6 @@ object DefaultProfiles {
     const val TEMPLATE = "template12"
     const val FPS = "fps"
     const val GAMEPAD = "gamepad"
-    const val GENERALS = "generals_zh"
 
     private var counter = 0
     private fun nid() = "e${counter++}"
@@ -40,49 +39,7 @@ object DefaultProfiles {
             bindings = mutableListOf(W, D, S, A), stickOutput = out
         )
 
-    fun all(): List<OverlayProfile> = listOf(generals(), rts(), template(), fps(), gamepad())
-
-    /** A button with a picture and a short label under it. */
-    private fun pic(
-        x: Float, y: Float, key: OverlayKey, icon: String, text: String,
-        scale: Float = 1f, toggle: Boolean = false, swipe: Boolean = true, moveMouse: Boolean = false
-    ) = OverlayElement(
-        nid(), ElementType.BUTTON, x, y, scale, ButtonShape.SQUARE, mutableListOf(key),
-        toggle = toggle, text = text, icon = icon, showLabel = true,
-        swipeTrigger = swipe && !toggle, moveWithMouse = moveMouse
-    )
-
-    /**
-     * Command & Conquer Generals - Zero Hour (played in Winlator). Default game hotkeys:
-     * 1-6 select a group (CTRL + number = make the group, SHIFT + click = add to the selection),
-     * Q select all units, E select all of the same type, W select all aircraft, A attack-move,
-     * S stop, X scatter, D build a dozer (Command Center selected), H go to the base,
-     * SPACE jump to the last event, ESC menu, arrows scroll, wheel zoom, right-drag scrolls the map.
-     * The command bar at the bottom of the game is left free. Keys can be changed in the editor.
-     */
-    fun generals() = OverlayProfile(
-        GENERALS, "Generals Zero Hour", cursorSpeed = 1f, opacity = 0.55f, elements = mutableListOf(
-            row(0.155f, 0.075f, K1, K2, K3, K4, K5, K6),
-            pic(0.855f, 0.075f, H, "home", "HOME H", 0.85f),
-            pic(0.910f, 0.075f, SPACE, "radar", "EVENT", 0.85f),
-            pic(0.965f, 0.075f, ESC, "menu", "MENU", 0.85f, swipe = false),
-            pic(0.045f, 0.22f, L_CTRL, "keyboard", "CTRL", toggle = true),
-            pic(0.045f, 0.36f, L_SHIFT, "group", "SHIFT", toggle = true),
-            dpad(0.10f, 0.62f, UP, RIGHT, DOWN, LEFT).apply { scale = 0.8f },
-            pic(0.20f, 0.52f, WHEEL_UP, "zoom_in", "ZOOM+", 0.85f),
-            pic(0.20f, 0.66f, WHEEL_DOWN, "zoom_out", "ZOOM-", 0.85f),
-            OverlayElement(nid(), ElementType.TRACKPAD, 0.185f, 0.30f, 0.55f),
-            pic(0.825f, 0.22f, D, "dozer", "DOZER D"),
-            pic(0.890f, 0.22f, Q, "group", "ALL Q"),
-            pic(0.890f, 0.36f, E, "same_type", "SAME E"),
-            pic(0.890f, 0.50f, W, "aircraft", "AIR W"),
-            pic(0.890f, 0.64f, MRB, "pan", "SCROLL", swipe = false, moveMouse = true),
-            pic(0.955f, 0.22f, A, "crosshair", "ATK A"),
-            pic(0.955f, 0.36f, S, "stop", "STOP S"),
-            pic(0.955f, 0.50f, X, "scatter", "SCAT X"),
-            pic(0.955f, 0.64f, RIGHT_TAP_MODE, "mouse_right", "R-CLICK", toggle = true)
-        )
-    )
+    fun all(): List<OverlayProfile> = listOf(rts(), template(), fps(), gamepad())
 
     fun rts() = OverlayProfile(
         RTS, "RTS", elements = mutableListOf(
