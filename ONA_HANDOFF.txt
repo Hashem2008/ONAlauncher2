@@ -461,7 +461,7 @@ ONA CONTROLS 1.6: ONE-TAP HIDE / SHOW BUTTON (2026-11-15)
   the ONA bubble (own window, draggable, position OverlayPrefs.eyeX/eyeY). Tap = toggleHidden():
   flips userHidden and calls showControls(force) -> controls removed (keys released) or re-added.
   Blue open eye = shown, grey crossed eye = hidden. Added/removed together with the bubble.
-- CI result: (filled after the build)
+- Commit 51aa8ea: ona_controls.yml run 43695438216 SUCCESS, release ona-controls = 1.6. NOT tested on a device.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
