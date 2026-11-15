@@ -46,4 +46,9 @@ object OverlayPrefs {
     fun bubbleX(ctx: Context): Int = sp(ctx).getInt("bubbleX", 0)
     fun bubbleY(ctx: Context): Int = sp(ctx).getInt("bubbleY", 200)
     fun setBubble(ctx: Context, x: Int, y: Int) = sp(ctx).edit { putInt("bubbleX", x); putInt("bubbleY", y) }
+
+    /** Hide/show (eye) button position in pixels; -1 = not moved yet (sits under the bubble). */
+    fun eyeX(ctx: Context): Int = sp(ctx).getInt("eyeX", -1)
+    fun eyeY(ctx: Context): Int = sp(ctx).getInt("eyeY", -1)
+    fun setEye(ctx: Context, x: Int, y: Int) = sp(ctx).edit { putInt("eyeX", x); putInt("eyeY", y) }
 }

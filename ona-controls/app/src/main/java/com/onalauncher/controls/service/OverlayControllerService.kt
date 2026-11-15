@@ -106,6 +106,8 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
     private var profile: OverlayProfile? = null
     private val playViews = ArrayList<OverlayElementView>()
     private var bubble: View? = null
+    /** One-tap hide / show button (eye), always on screen while the overlay is active. */
+    private var eye: View? = null
     private var editor: OverlayEditorView? = null
     private var editorFor: String? = null
     /** User hid the controls with the bubble; stays hidden until shown again or the app changes. */
@@ -181,6 +183,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         profile = p
         if (!userHidden) addPlayViews(p)
         ensureBubble()
+        eye?.invalidate() // open / crossed eye follows userHidden
         updateNotification()
     }
 
@@ -287,9 +290,82 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
             true
         }
         runCatching { wm.addView(v, lp); bubble = v }
+        ensureEye(lp.x, lp.y + size + (8 * density).toInt())
+    }
+
+    /** Hides every control with one tap (to reach the game under them) and brings them back. */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun ensureEye(defaultX: Int, defaultY: Int) {
+        if (eye != null || !canDraw()) return
+        val density = resources.displayMetrics.density
+        val size = (42 * density).toInt()
+        val v = object : View(this) {
+            private val bg = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+            private val line = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = 2.2f * density
+                strokeCap = android.graphics.Paint.Cap.ROUND
+                color = Color.WHITE
+            }
+            private val dot = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
+            private val path = android.graphics.Path()
+
+            override fun onDraw(c: android.graphics.Canvas) {
+                val w = width.toFloat(); val h = height.toFloat()
+                val cx = w / 2f; val cy = h / 2f
+                // grey when the controls are hidden, blue when they are shown
+                bg.color = if (userHidden) Color.argb(190, 90, 90, 90) else Color.argb(170, 3, 136, 209)
+                c.drawCircle(cx, cy, w / 2f - density, bg)
+                line.strokeWidth = 1.5f * density
+                c.drawCircle(cx, cy, w / 2f - density, line)
+                // eye outline
+                line.strokeWidth = 2.2f * density
+                val ew = w * 0.30f; val eh = h * 0.17f
+                path.reset()
+                path.moveTo(cx - ew, cy)
+                path.quadTo(cx, cy - eh * 2f, cx + ew, cy)
+                path.quadTo(cx, cy + eh * 2f, cx - ew, cy)
+                c.drawPath(path, line)
+                c.drawCircle(cx, cy, h * 0.08f, dot)
+                // crossed out while hidden
+                if (userHidden) c.drawLine(cx - ew, cy + eh * 1.6f, cx + ew, cy - eh * 1.6f, line)
+            }
+        }
+        val savedX = OverlayPrefs.eyeX(this)
+        val savedY = OverlayPrefs.eyeY(this)
+        val lp = baseParams(size, size).apply {
+            x = if (savedX >= 0) savedX else defaultX
+            y = if (savedY >= 0) savedY else defaultY
+        }
+        var sx = 0f; var sy = 0f; var px = 0; var py = 0; var moved = false
+        v.setOnTouchListener { _, e ->
+            when (e.actionMasked) {
+                MotionEvent.ACTION_DOWN -> { sx = e.rawX; sy = e.rawY; px = lp.x; py = lp.y; moved = false }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = e.rawX - sx; val dy = e.rawY - sy
+                    if (abs(dx) + abs(dy) > 8 * density) moved = true
+                    if (moved) {
+                        lp.x = px + dx.toInt(); lp.y = py + dy.toInt()
+                        runCatching { wm.updateViewLayout(v, lp) }
+                    }
+                }
+                MotionEvent.ACTION_UP -> if (moved) OverlayPrefs.setEye(this, lp.x, lp.y) else toggleHidden()
+            }
+            true
+        }
+        runCatching { wm.addView(v, lp); eye = v }
+    }
+
+    private fun toggleHidden() {
+        val pkg = shownFor ?: return
+        userHidden = !userHidden
+        if (OverlayPrefs.haptics(this)) eye?.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+        showControls(pkg, force = true) // removes (and releases) or re-adds the controls
     }
 
     private fun removeBubble() {
+        eye?.let { runCatching { wm.removeViewImmediate(it) } }
+        eye = null
         bubble?.let { runCatching { wm.removeViewImmediate(it) } }
         bubble = null
     }

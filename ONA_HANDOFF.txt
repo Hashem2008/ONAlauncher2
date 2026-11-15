@@ -455,6 +455,14 @@ ONA CONTROLS 1.5: GENERALS PROFILES FROM THE USER'S HOTKEY LIST (2026-11-15)
   (strategywiki.org is blocked by this session's network; do not guess hotkeys again).
 - Commit cd2a9de: ona_controls.yml run 43694906880 SUCCESS, release ona-controls = 1.5. NOT tested on a device.
 
+ONA CONTROLS 1.6: ONE-TAP HIDE / SHOW BUTTON (2026-11-15)
+- User: a button like the edit one that hides the controls so he can tap the game under them, then
+  brings them back. OverlayControllerService.ensureEye(): a second floating round button (eye) under
+  the ONA bubble (own window, draggable, position OverlayPrefs.eyeX/eyeY). Tap = toggleHidden():
+  flips userHidden and calls showControls(force) -> controls removed (keys released) or re-added.
+  Blue open eye = shown, grey crossed eye = hidden. Added/removed together with the bubble.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
