@@ -440,7 +440,7 @@ ONA CONTROLS 1.4 = ROLLBACK OF 1.3 (2026-11-15)
   Shizuku user service version change). Ask before re-adding any of it.
 - Next for Generals: the user wants hotkeys for every army; I do not know all build/unit hotkeys per
   faction reliably from memory -> asked the user for the army / screenshots of the buttons.
-- CI result: (filled after the build)
+- Commit 4f0e561: ona_controls.yml run 43676525639 SUCCESS, release ona-controls = 1.4 (rollback).
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
