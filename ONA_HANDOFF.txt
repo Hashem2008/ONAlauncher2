@@ -359,6 +359,22 @@ FLOATING OVERLAY CONTROLS OVER OTHER APPS (2026-11-15, branch ccr-3291e893-ej006
   (or a game) as target app; open it -> controls must appear, leave -> they hide. Check the editor
   (bubble "ONA" -> Edit layout). Then merge the branch into main if the user agrees.
 
+ONA CONTROLS = SEPARATE APP (2026-11-15, branch ccr-3291e893-ej006h)
+- User: "separate app, NOT with Minecraft, cancel what you added, don't break anything".
+  -> The launcher is back EXACTLY as e5f9e67 (git diff e5f9e67 -- ZalithLauncher/ is empty): the
+     overlay package, manifest entries, strings and the Controls card were removed from it.
+  -> The floating controls now live in ona-controls/ = its own Gradle project (not in the launcher's
+     settings.gradle.kts), package com.onalauncher.controls, app name "ONA Controls", own fixed signing
+     key app/ona_controls.jks (password onacontrols, committed so updates install over each other).
+     JSON uses Android's org.json (no kotlinx.serialization). Same AGP 9.3.0 / Kotlin 2.4.21 / Compose BOM
+     as the launcher. PC bridge script moved to ona-controls/pc-bridge/ona_bridge.py.
+  -> CI: .github/workflows/ona_controls.yml, runs only when ona-controls/** or that file changes
+     (~small APK). Publishes release "ona-controls" (ONA-Controls.apk) + artifact ONA-Controls.
+     push_ci.yml (launcher) was NOT changed; it still runs on every push.
+- The section above (FLOATING OVERLAY CONTROLS ...) describes the code; paths are now
+  ona-controls/app/src/main/java/com/onalauncher/controls/... instead of .../zalithlauncher/overlay/.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".

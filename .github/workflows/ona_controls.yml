@@ -1,0 +1,58 @@
+name: ONA Controls (separate app)
+
+# Builds ONLY the standalone ONA Controls app in ona-controls/. It never touches the launcher build.
+on:
+  push:
+    paths:
+      - 'ona-controls/**'
+      - '.github/workflows/ona_controls.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: ona-controls
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          add-job-summary: "on-failure"
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --stacktrace
+          cp app/build/outputs/apk/debug/app-debug.apk ONA-Controls.apk
+          ls -la ONA-Controls.apk
+
+      - name: Publish APK to the release ona-controls
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=ona-controls
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --target "$GITHUB_SHA" \
+              --title "ONA Controls" --notes "Standalone floating controls app. Built from ${GITHUB_SHA::7}." || true
+          gh release upload "$tag" ONA-Controls.apk --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes "Standalone floating controls app. Built from ${GITHUB_SHA::7} (${GITHUB_REF_NAME})." || true
+          echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/ONA-Controls.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload APK to this build page
+        uses: actions/upload-artifact@v7
+        with:
+          name: ONA-Controls
+          path: ona-controls/ONA-Controls.apk
+          retention-days: 7
