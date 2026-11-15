@@ -492,7 +492,7 @@ ONA CONTROLS 1.8: MOUSE REMOVED AGAIN (2026-11-15)
   IInjector.aidl are byte-identical to 4f0e561 (the 1.2 code that works; user service version 1).
   Kept from 1.7: readable renderer, colour / width / height per button, new bilingual UI.
   Do NOT bring the mouse back unless the user asks.
-- CI result: (filled after the build)
+- Commit 866d395: ona_controls.yml run 43701502201 SUCCESS, release ona-controls = 1.8. NOT tested on a device.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
