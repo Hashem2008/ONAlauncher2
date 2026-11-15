@@ -386,7 +386,8 @@ ONA CONTROLS 1.1: LETTER KEYS WITHOUT ROOT (2026-11-15)
   to have a focused input view (Winlator supports the Android keyboard, so it should).
   If keys still do nothing: turn the accessibility switch of ONA Controls off and on (new flag),
   notification shows "Keys: app has no input focus" when there is no connection.
-- CI result: (filled after the build)
+- Commit 4eabef7: ona_controls.yml run 43659883177 SUCCESS, release ona-controls updated (1.1).
+  NOT tested on a device: ask the user if letters work in Winlator now.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
