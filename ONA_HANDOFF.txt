@@ -484,7 +484,7 @@ ONA CONTROLS 1.7: READABLE BUTTONS, COLOUR / WIDTH / HEIGHT, MOUSE (OFF / SWIPE)
   res/xml/locales_config.xml + AppLocalesMetadataHolderService), numbered quick start (overlay,
   accessibility, Shizuku, game, switch), games, profile (edit layout, opacity, mouse Off / Swipe +
   cursor speed, import/export), "How to use" guide, folded "Advanced" (backends, haptics, usage access).
-- CI result: (filled after the build)
+- Commit d4d3e92: ona_controls.yml run 43700930179 SUCCESS, release ona-controls = 1.7. NOT tested on a device.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
