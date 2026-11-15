@@ -453,7 +453,7 @@ ONA CONTROLS 1.5: GENERALS PROFILES FROM THE USER'S HOTKEY LIST (2026-11-15)
   with the same text-fit maths as ElementRenderer.
 - China list in the screenshot stops at "Chain Gun", GLA is missing -> asked the user for the rest
   (strategywiki.org is blocked by this session's network; do not guess hotkeys again).
-- CI result: (filled after the build)
+- Commit cd2a9de: ona_controls.yml run 43694906880 SUCCESS, release ona-controls = 1.5. NOT tested on a device.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
