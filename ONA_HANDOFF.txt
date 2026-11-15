@@ -442,6 +442,19 @@ ONA CONTROLS 1.4 = ROLLBACK OF 1.3 (2026-11-15)
   faction reliably from memory -> asked the user for the army / screenshots of the buttons.
 - Commit 4f0e561: ona_controls.yml run 43676525639 SUCCESS, release ona-controls = 1.4 (rollback).
 
+ONA CONTROLS 1.5: GENERALS PROFILES FROM THE USER'S HOTKEY LIST (2026-11-15)
+- Base = the 1.4 (1.2) code. Only added: OverlayKey NUM_2/4/5/6/8 (numpad camera), two-line button
+  text ("KEY\nwhat it does", first line bigger), ElementGeometry.fit (sizes shrink evenly below
+  915x412 dp), presets added once per id (files/ona_overlay/presets_offered.txt; deleted presets stay
+  deleted), the 1.3 cleanup runs only once (marker files/ona_overlay/v13_cleaned). NO mouse code.
+- DefaultProfiles.generalsAll() "Generals ZH (all armies)" and generalsUsa() "Generals ZH USA", built
+  ONLY from the screenshots the user sent (Steam guide + gamereplays.org list). Layout checked by a
+  script (no overlaps 640x360..1280x800, bottom 23.5% = game command bar left free) and rendered
+  with the same text-fit maths as ElementRenderer.
+- China list in the screenshot stops at "Chain Gun", GLA is missing -> asked the user for the rest
+  (strategywiki.org is blocked by this session's network; do not guess hotkeys again).
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".

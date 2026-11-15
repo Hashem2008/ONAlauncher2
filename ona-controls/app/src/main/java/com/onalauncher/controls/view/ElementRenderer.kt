@@ -44,9 +44,19 @@ object ElementGeometry {
         return w * el.scale to h * el.scale
     }
 
-    fun sizePx(el: OverlayElement, density: Float): Pair<Int, Int> {
+    /** Profiles are laid out for a 915 x 412 dp landscape phone; smaller screens shrink every control evenly. */
+    private const val REF_W_DP = 915f
+    private const val REF_H_DP = 412f
+
+    fun fit(screenW: Int, screenH: Int, density: Float): Float {
+        if (screenW <= 0 || screenH <= 0) return 1f
+        return minOf(1f, screenW / density / REF_W_DP, screenH / density / REF_H_DP)
+    }
+
+    fun sizePx(el: OverlayElement, density: Float, screenW: Int, screenH: Int): Pair<Int, Int> {
         val (w, h) = sizeDp(el)
-        return (w * density).toInt().coerceAtLeast(8) to (h * density).toInt().coerceAtLeast(8)
+        val k = density * fit(screenW, screenH, density)
+        return (w * k).toInt().coerceAtLeast(8) to (h * k).toInt().coerceAtLeast(8)
     }
 }
 
@@ -118,7 +128,21 @@ class ElementRenderer(private val density: Float) {
         val t = el.text.ifBlank {
             el.bindings.filter { it != OverlayKey.NONE }.joinToString("+") { it.label }.ifBlank { "NONE" }
         }
-        label(c, t, r.centerX(), r.centerY(), r.width() * 0.86f, r.height() * 0.36f)
+        val lines = t.split('\n')
+        if (lines.size == 1) {
+            label(c, t, r.centerX(), r.centerY(), r.width() * 0.86f, r.height() * 0.36f)
+        } else {
+            // several lines: the first one bigger (the key), the rest smaller (what it does)
+            val usable = r.height() * 0.78f
+            val first = usable * 0.55f
+            val rest = (usable - first) / (lines.size - 1)
+            var y = r.centerY() - usable / 2f
+            lines.forEachIndexed { i, line ->
+                val h = if (i == 0) first else rest
+                label(c, line, r.centerX(), y + h / 2f, r.width() * 0.88f, h * 0.72f)
+                y += h
+            }
+        }
     }
 
     private fun drawRow(c: Canvas, el: OverlayElement, state: ElementState?) {

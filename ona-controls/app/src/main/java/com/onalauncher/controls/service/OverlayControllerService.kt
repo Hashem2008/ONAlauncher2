@@ -224,7 +224,7 @@ class OverlayControllerService : Service(), OverlayEditorView.Listener {
         val density = resources.displayMetrics.density
         val haptics = OverlayPrefs.haptics(this)
         for (el in p.elements) {
-            val (w, h) = ElementGeometry.sizePx(el, density)
+            val (w, h) = ElementGeometry.sizePx(el, density, sw, sh)
             val v = OverlayElementView(this, el, { profile ?: p }, dispatcher, haptics)
             val lp = baseParams(w, h).apply {
                 x = (el.x * sw - w / 2f).toInt()

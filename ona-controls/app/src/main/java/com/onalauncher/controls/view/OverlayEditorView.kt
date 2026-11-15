@@ -172,7 +172,7 @@ class OverlayEditorView(
         private var scaleStart = 1f
 
         fun boundsOf(el: OverlayElement, out: RectF) {
-            val (w, h) = ElementGeometry.sizePx(el, density)
+            val (w, h) = ElementGeometry.sizePx(el, density, width, height)
             val cx = el.x * width
             val cy = el.y * height
             out.set(cx - w / 2f, cy - h / 2f, cx + w / 2f, cy + h / 2f)

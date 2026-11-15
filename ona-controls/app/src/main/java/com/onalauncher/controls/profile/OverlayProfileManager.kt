@@ -48,12 +48,27 @@ object OverlayProfileManager {
                 .onSuccess { map[it.id] = it }
                 .onFailure { Log.w(TAG, "Bad profile ${f.name}", it) }
         }
-        if (map.isEmpty()) {
-            DefaultProfiles.all().forEach { p ->
-                map[p.id] = p
-                writeProfile(ctx, p)
+        // Built-in profiles are added once each (also for users who already have profiles, so new
+        // presets appear after an update). A built-in the user deleted is not added again.
+        val offeredFile = File(root(ctx), "presets_offered.txt")
+        val offered = HashSet<String>()
+        if (offeredFile.isFile) {
+            offered.addAll(offeredFile.readLines().map { it.trim() }.filter { it.isNotEmpty() })
+        } else if (map.isNotEmpty()) {
+            offered.addAll(listOf(DefaultProfiles.RTS, DefaultProfiles.TEMPLATE, DefaultProfiles.FPS, DefaultProfiles.GAMEPAD))
+        }
+        var added = false
+        DefaultProfiles.all().forEach { p ->
+            if (p.id !in offered) {
+                if (p.id !in map) {
+                    map[p.id] = p
+                    writeProfile(ctx, p)
+                }
+                offered.add(p.id)
+                added = true
             }
         }
+        if (added || !offeredFile.isFile) runCatching { offeredFile.writeText(offered.joinToString("\n")) }
         cache = map
         map
     }
@@ -63,6 +78,9 @@ object OverlayProfileManager {
      * builtins.txt. Remove them once; apps that used that preset fall back to the first profile.
      */
     private fun removeV13Leftovers(ctx: Context) {
+        val done = File(root(ctx), "v13_cleaned")
+        if (done.isFile) return
+        runCatching { root(ctx).mkdirs(); done.writeText("1") }
         val gen = File(profileDir(ctx), "generals_zh.json")
         if (gen.isFile) {
             gen.delete()
