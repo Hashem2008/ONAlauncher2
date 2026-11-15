@@ -7,9 +7,6 @@ enum class ElementType { BUTTON, BUTTON_ROW, DPAD, STICK, TRACKPAD }
 
 enum class ButtonShape { CIRCLE, SQUARE, RECT, PILL }
 
-/** Mouse for a profile: OFF (no mouse at all) or SWIPE (cursor + floating touchpad, drag = move). */
-enum class MouseMode { OFF, SWIPE }
-
 /** What an analog stick produces. */
 enum class StickOutput {
     /** 8-way digital keys from [OverlayElement.bindings] = up, right, down, left (WASD by default). */
@@ -70,8 +67,6 @@ data class OverlayProfile(
     var opacity: Float = 0.4f,
     /** Winlator "Disable Mouse Input": trackpads and mouse sticks send nothing. */
     var disableMouse: Boolean = false,
-    /** Mouse: OFF (default, nothing mouse related runs) or SWIPE (cursor + floating touchpad). */
-    var mouseMode: MouseMode = MouseMode.OFF,
     var elements: MutableList<OverlayElement> = mutableListOf()
 ) {
     fun deepCopy(newId: String = id, newName: String = name): OverlayProfile = copy(
@@ -124,7 +119,7 @@ fun elementFromJson(o: org.json.JSONObject): OverlayElement {
 fun OverlayProfile.toJson(): org.json.JSONObject = org.json.JSONObject().apply {
     put("format", "ona-controls-profile-1")
     put("id", id); put("name", name); put("cursorSpeed", cursorSpeed.toDouble())
-    put("opacity", opacity.toDouble()); put("disableMouse", disableMouse); put("mouseMode", mouseMode.name)
+    put("opacity", opacity.toDouble()); put("disableMouse", disableMouse)
     put("elements", org.json.JSONArray().apply { elements.forEach { put(it.toJson()) } })
 }
 
@@ -138,7 +133,6 @@ fun profileFromJson(text: String): OverlayProfile {
         cursorSpeed = o.optDouble("cursorSpeed", 1.0).toFloat(),
         opacity = o.optDouble("opacity", 0.4).toFloat(),
         disableMouse = o.optBoolean("disableMouse", false),
-        mouseMode = enumOr(o.optString("mouseMode"), MouseMode.OFF),
         elements = MutableList(arr.length()) { i -> elementFromJson(arr.getJSONObject(i)) }
     )
 }

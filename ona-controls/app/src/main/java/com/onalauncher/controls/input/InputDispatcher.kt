@@ -22,15 +22,6 @@ class InputDispatcher(
     private val screenSize: () -> Pair<Int, Int>
 ) {
     private val held = HashMap<OverlayKey, Int>()
-
-    /** Called after every mouse move / click, so the service can move the drawn pointer. */
-    var onMouse: (() -> Unit)? = null
-
-    /** Mouse works only when the profile's mouse mode is SWIPE (and mouse input is not disabled). */
-    fun mouseEnabled(): Boolean {
-        val p = profile()
-        return !p.disableMouse && p.mouseMode == com.onalauncher.controls.model.MouseMode.SWIPE
-    }
     private var nextPointer = 1
 
     fun newPointerId(): Int = nextPointer++
@@ -54,21 +45,16 @@ class InputDispatcher(
         }
         when (key.category) {
             KeyCategory.KEYBOARD -> backend.key(key, down)
-            KeyCategory.MOUSE -> if (mouseEnabled()) { backend.mouseButton(key, down); onMouse?.invoke() }
+            KeyCategory.MOUSE -> if (!profile().disableMouse) backend.mouseButton(key, down)
             KeyCategory.GAMEPAD -> backend.gamepadButton(key, down)
             else -> Unit
         }
     }
 
     fun mouseMove(dx: Float, dy: Float) {
-        if (!mouseEnabled()) return
         val p = profile()
+        if (p.disableMouse) return
         backend.mouseMove(dx * p.cursorSpeed, dy * p.cursorSpeed)
-        onMouse?.invoke()
-    }
-
-    fun wheel(steps: Int) {
-        if (mouseEnabled()) backend.mouseWheel(steps)
     }
 
     fun axis(axis: GamepadAxis, value: Float) = backend.gamepadAxis(axis, value)
@@ -85,7 +71,7 @@ class InputDispatcher(
         keys.forEach { k ->
             when (k.category) {
                 KeyCategory.KEYBOARD -> backend.key(k, false)
-                KeyCategory.MOUSE -> if (mouseEnabled()) backend.mouseButton(k, false)
+                KeyCategory.MOUSE -> backend.mouseButton(k, false)
                 KeyCategory.GAMEPAD -> backend.gamepadButton(k, false)
                 else -> Unit
             }

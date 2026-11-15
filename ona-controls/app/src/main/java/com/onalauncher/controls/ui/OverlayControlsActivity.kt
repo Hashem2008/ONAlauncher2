@@ -21,7 +21,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FilterChip
 import androidx.core.os.LocaleListCompat
-import com.onalauncher.controls.model.MouseMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -344,26 +343,6 @@ private fun OverlayScreen(resumeTick: Int) {
                 Slider(value = opacity, valueRange = 0.05f..1f, onValueChange = { opacity = it }, onValueChangeFinished = {
                     selected.opacity = opacity; OverlayProfileManager.save(ctx, selected)
                 })
-
-                // mouse: two modes
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                Text(stringResource(R.string.ona_overlay_mouse_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                ChoiceRow(selected.mouseMode == MouseMode.OFF, stringResource(R.string.ona_overlay_mouse_off), stringResource(R.string.ona_overlay_mouse_off_desc)) {
-                    selected.mouseMode = MouseMode.OFF; OverlayProfileManager.save(ctx, selected)
-                }
-                ChoiceRow(selected.mouseMode == MouseMode.SWIPE, stringResource(R.string.ona_overlay_mouse_swipe), stringResource(R.string.ona_overlay_mouse_swipe_desc)) {
-                    selected.mouseMode = MouseMode.SWIPE; OverlayProfileManager.save(ctx, selected)
-                }
-                if (selected.mouseMode == MouseMode.SWIPE) {
-                    var speed by remember(selected.id, key) { mutableStateOf(selected.cursorSpeed) }
-                    Text(stringResource(R.string.ona_overlay_cursor_speed) + "  ${(speed * 100).toInt()}%")
-                    Slider(value = speed, valueRange = 0.1f..3f, onValueChange = { speed = it }, onValueChangeFinished = {
-                        selected.cursorSpeed = speed; OverlayProfileManager.save(ctx, selected)
-                    })
-                    if (shizuku != ShizukuKeys.State.READY) {
-                        Text(stringResource(R.string.ona_overlay_mouse_needs), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

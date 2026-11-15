@@ -34,7 +34,7 @@ object ShizukuKeys {
             .daemon(false)
             .processNameSuffix("injector")
             .debuggable(false)
-            .version(3) // bump when IInjector changes, so Shizuku restarts the service with the new code
+            .version(1)
     }
 
     private val conn = object : ServiceConnection {
@@ -93,22 +93,6 @@ object ShizukuKeys {
     }
 
     val ready: Boolean get() = injector != null
-
-    const val MOUSE_MOVE = 0
-    const val MOUSE_PRESS = 1
-    const val MOUSE_RELEASE = 2
-    const val MOUSE_WHEEL = 3
-
-    /** Returns true if the mouse event was injected. */
-    fun mouse(kind: Int, x: Float, y: Float, button: Int, value: Float): Boolean {
-        val i = injector ?: run { ensureBound(); return false }
-        return try {
-            i.mouse(kind, x, y, button, value)
-        } catch (_: Throwable) {
-            injector = null
-            false
-        }
-    }
 
     /** Returns true if the key was injected. */
     fun key(code: Int, down: Boolean, meta: Int, downTime: Long): Boolean {

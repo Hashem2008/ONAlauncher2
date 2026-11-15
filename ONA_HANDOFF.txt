@@ -486,6 +486,14 @@ ONA CONTROLS 1.7: READABLE BUTTONS, COLOUR / WIDTH / HEIGHT, MOUSE (OFF / SWIPE)
   cursor speed, import/export), "How to use" guide, folded "Advanced" (backends, haptics, usage access).
 - Commit d4d3e92: ona_controls.yml run 43700930179 SUCCESS, release ona-controls = 1.7. NOT tested on a device.
 
+ONA CONTROLS 1.8: MOUSE REMOVED AGAIN (2026-11-15)
+- User: drop the mouse idea. Removed: TouchpadPanelView / CursorView, addMouseUi, the ONA-menu mouse
+  item, OverlayProfile.mouseMode, the mouse section of the UI and its strings. input/* , shizuku/* and
+  IInjector.aidl are byte-identical to 4f0e561 (the 1.2 code that works; user service version 1).
+  Kept from 1.7: readable renderer, colour / width / height per button, new bilingual UI.
+  Do NOT bring the mouse back unless the user asks.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".

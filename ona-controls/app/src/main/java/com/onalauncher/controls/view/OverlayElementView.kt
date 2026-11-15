@@ -396,7 +396,7 @@ class OverlayElementView(
                     scrollAcc += dy
                     val step = 24f * resources.displayMetrics.density
                     while (abs(scrollAcc) >= step) {
-                        dispatcher.wheel(if (scrollAcc > 0) -1 else 1)
+                        dispatcher.backend.mouseWheel(if (scrollAcc > 0) -1 else 1)
                         scrollAcc -= step * (if (scrollAcc > 0) 1 else -1)
                     }
                 } else {

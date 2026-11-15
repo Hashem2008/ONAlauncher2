@@ -85,31 +85,22 @@
     <string name="ona_overlay_step_overlay_desc">Needed so the buttons can be drawn over the game.</string>
     <string name="ona_overlay_step_a11y">Accessibility: ONA Controls</string>
     <string name="ona_overlay_step_a11y_desc">Finds out when your game is open, so the buttons appear and hide by themselves.</string>
-    <string name="ona_overlay_step_shizuku">Shizuku (keys and mouse)</string>
+    <string name="ona_overlay_step_shizuku">Shizuku (letter keys)</string>
     <string name="ona_overlay_step_game">Choose your game</string>
     <string name="ona_overlay_step_game_desc">The buttons appear only over the apps you add here.</string>
     <string name="ona_overlay_step_on">Turn the buttons on</string>
     <string name="ona_overlay_step_on_desc">Then open your game: the buttons appear by themselves.</string>
     <string name="ona_overlay_uses_profile">Uses the profile:</string>
     <string name="ona_overlay_edit_hint">In the editor: drag a button to move it, pinch to resize, ⚙ for keys, colour, width and height.</string>
-    <string name="ona_overlay_mouse_title">Mouse</string>
-    <string name="ona_overlay_mouse_off">Off</string>
-    <string name="ona_overlay_mouse_off_desc">No mouse at all (the safest choice).</string>
-    <string name="ona_overlay_mouse_swipe">Swipe Control</string>
-    <string name="ona_overlay_mouse_swipe_desc">A pointer on the screen and a small floating touchpad: drag to move, tap = left click, two fingers = right click / wheel, L and R buttons for holding.</string>
-    <string name="ona_overlay_mouse_needs">The mouse needs Shizuku (step 3).</string>
     <string name="ona_overlay_guide">How to use</string>
-    <string name="ona_overlay_guide_1">The blue ONA button: menu (edit layout, change profile, mouse on/off, stop).</string>
+    <string name="ona_overlay_guide_1">The blue ONA button: menu (edit layout, change profile, hide / show, stop).</string>
     <string name="ona_overlay_guide_2">The eye button under it: one tap hides all buttons so you can reach the game under them, another tap brings them back.</string>
     <string name="ona_overlay_guide_3">Edit layout: drag buttons, pinch to resize, + adds a button, ⚙ changes the selected one, ✓ saves.</string>
     <string name="ona_overlay_guide_4">In a button\'s ⚙: keys (two keys = pressed together, like CTRL+H), colour, size, width, height, toggle.</string>
-    <string name="ona_overlay_guide_5">Mouse buttons (left, right, middle, wheel) can be put on any button when the mouse is Swipe Control.</string>
-    <string name="ona_overlay_guide_6">Drag the ONA button, the eye and the touchpad by their edge to place them anywhere.</string>
+    <string name="ona_overlay_guide_5">If a key does nothing: open Shizuku and press Start (it stops when the phone restarts).</string>
+    <string name="ona_overlay_guide_6">Drag the ONA button and the eye button to place them anywhere.</string>
     <string name="ona_overlay_advanced">Advanced</string>
     <string name="ona_overlay_width">Width</string>
     <string name="ona_overlay_height">Height</string>
     <string name="ona_overlay_color">Colour</string>
-    <string name="ona_overlay_pad_hint">drag = move · tap = click</string>
-    <string name="ona_overlay_menu_mouse_on">Mouse: turn on (Swipe Control)</string>
-    <string name="ona_overlay_menu_mouse_off">Mouse: turn off</string>
 </resources>

@@ -9,7 +9,4 @@ interface IInjector {
     boolean key(int code, boolean down, int meta, long downTime) = 2;
     // Which injection API was found ("InputManagerGlobal" / "InputManager" / error text).
     String probe() = 3;
-    // Mouse like a real USB mouse. kind: 0 move, 1 button press, 2 button release, 3 wheel.
-    // button = MotionEvent.BUTTON_* bits, value = wheel steps (+ up).
-    boolean mouse(int kind, float x, float y, int button, float value) = 4;
 }

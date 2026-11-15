@@ -52,8 +52,4 @@ object OverlayPrefs {
     fun eyeY(ctx: Context): Int = sp(ctx).getInt("eyeY", -1)
     fun setEye(ctx: Context, x: Int, y: Int) = sp(ctx).edit { putInt("eyeX", x); putInt("eyeY", y) }
 
-    /** Floating mouse touchpad position in pixels; -1 = default (right side). */
-    fun padX(ctx: Context): Int = sp(ctx).getInt("padX", -1)
-    fun padY(ctx: Context): Int = sp(ctx).getInt("padY", -1)
-    fun setPad(ctx: Context, x: Int, y: Int) = sp(ctx).edit { putInt("padX", x); putInt("padY", y) }
 }
