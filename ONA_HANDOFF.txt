@@ -500,6 +500,17 @@ ONA CONTROLS SOURCE ZIP ON THE RELEASE (2026-11-15)
 - Commit fbe4486: ona_controls.yml run 43724655793 SUCCESS; release ona-controls has ONA-Controls.apk and
   ONA-Controls-source.zip (149686 bytes).
 
+ONA CONTROLS: USER'S OWN GENERALS LAYOUT + MOVE PACKAGE (2026-11-17)
+- User sent a screenshot of a layout (another editor app) and wants it as a file for ONA Controls:
+  ona-controls/profiles/Generals-my-layout.json (23 SQUARE buttons, scale 1.25, teal colour, opacity
+  0.78, CTRL toggle; positions measured from the screenshot's screen area 108..1865 x 247..810 px;
+  no overlaps 732..915 dp wide). Import: app > Profile > Import profile.
+- User wants to move the project elsewhere: ona-controls/README_MOVE.md (EN + AR: folder layout,
+  GitHub build, Android Studio, keep the signing key). The release ona-controls now also carries
+  profiles/*.json; ONA-Controls-source.zip = the move package (ona-controls/ + workflow).
+  The whole repo (launcher too) is ~360 MB: move it with GitHub itself, not as a file.
+- CI result: (filled after the build)
+
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
    DeceasedCraft log: F3 must not say "Light updates disabled", log must say "bigcore: no LITTLE cores".
