@@ -509,7 +509,8 @@ ONA CONTROLS: USER'S OWN GENERALS LAYOUT + MOVE PACKAGE (2026-11-17)
   GitHub build, Android Studio, keep the signing key). The release ona-controls now also carries
   profiles/*.json; ONA-Controls-source.zip = the move package (ona-controls/ + workflow).
   The whole repo (launcher too) is ~360 MB: move it with GitHub itself, not as a file.
-- CI result: (filled after the build)
+- Commit 62ed8c2: build SUCCESS; release ona-controls has ONA-Controls.apk, ONA-Controls-source.zip and
+  Generals-my-layout.json. Layout NOT tested on a device.
 
 STATUS / OPEN ITEMS (check these first)
 0. d036d58: CI run #23 SUCCESS (APK built). Ask the user for a new
